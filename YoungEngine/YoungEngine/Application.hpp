@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <optional>
 
 const std::vector<const char *> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -15,6 +16,14 @@ const std::vector<const char *> validationLayers = {
 #else
 	const bool enableValidationLayers = true;
 #endif
+
+struct QueueFamilyIndices {
+	std::optional<uint32_t> graphicsFamily;
+
+	bool isComplete() {
+		return graphicsFamily.has_value();
+	}
+};
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -29,6 +38,7 @@ private:
 	GLFWwindow *window;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
 public:
 
@@ -55,6 +65,12 @@ private:
 	void setupDebugMessenger();
 
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+
+	void pickPhysicalDevice();
+
+	bool isDeviceSuitable(VkPhysicalDevice device, bool verbose);
+
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
