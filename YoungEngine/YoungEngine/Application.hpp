@@ -63,6 +63,7 @@ private:
 	std::vector<VkImage> swapChainImages;
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
+	std::vector<VkImageView> swapChainImageViews;
 
 public:
 
@@ -111,6 +112,8 @@ private:
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
 	void createSwapChain();
+
+	void createImageViews();
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
