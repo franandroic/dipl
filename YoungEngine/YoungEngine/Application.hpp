@@ -25,6 +25,7 @@ const std::vector<const char *> deviceExtensions = {
 	const bool enableValidationLayers = true;
 #endif
 
+//STRUCTURE CONTAINING INFORMATION ABOUT A QUEUE FAMILY USED BY PHYSICAL AND LOGICAL DEVICE AND SWAP CHAIN
 struct QueueFamilyIndices {
 	std::optional<uint32_t> graphicsFamily;
 	std::optional<uint32_t> presentFamily;
@@ -34,6 +35,7 @@ struct QueueFamilyIndices {
 	}
 };
 
+//STRUCTURE CONTAINING DETAILS NEEDED TO CREATE A SWAP CHAIN
 struct SwapChainSupportDetails {
 	VkSurfaceCapabilitiesKHR capabilities;
 	std::vector<VkSurfaceFormatKHR> formats;
@@ -50,6 +52,7 @@ public:
 
 private:
 
+	//MAIN OBJECTS RELATED TO INSTANCE, PHYSICAL AND LOGICAL DEVICE AND WINDOW
 	GLFWwindow *window;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -59,6 +62,7 @@ private:
 	VkSurfaceKHR surface;
 	VkQueue presentQueue;
 
+	//SWAP CHAIN OBJECTS
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
 	VkFormat swapChainImageFormat;
@@ -71,49 +75,36 @@ public:
 
 private:
 	
-	//RUNTIME FUNCTIONS
+	//MAIN SETUP AND RUNTIME FUNCTIONS
 	void initWindow();
-
 	void initVulkan();
-
 	void mainLoop();
-
 	void cleanup();
 
-	//SUPPORT FUNCTIONS
+	//OBJECT CREATION FUNCTIONS
 	void createInstance();
-
-	std::vector<const char *> getRequiredExtensions(bool verbose);
-
-	bool checkValidationLayerSupport(bool verbose);
-
 	void setupDebugMessenger();
-
-	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-	
-	void pickPhysicalDevice();
-
-	bool isDeviceSuitable(VkPhysicalDevice device, bool verbose);
-
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-
-	void createLogicalDevice();
-
 	void createSurface();
+	void pickPhysicalDevice();
+	void createLogicalDevice();
+	void createSwapChain();
+	void createImageViews();
 
+	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
+	std::vector<const char *> getRequiredExtensions(bool verbose);
+	bool checkValidationLayerSupport(bool verbose);
+	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+
+	//PHYSICAL AND LOGICAL DEVICE SUPPORT FUNCTIONS
+	bool isDeviceSuitable(VkPhysicalDevice device, bool verbose);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device, bool verbose);
-
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
+	//SWAP CHAIN SUPPORT FUNCTIONS
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
-
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
-
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
-
-	void createSwapChain();
-
-	void createImageViews();
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

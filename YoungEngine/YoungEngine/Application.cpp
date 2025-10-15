@@ -56,6 +56,10 @@ void Application::cleanup() {
 
 void Application::createInstance() {
 
+	//To create a Vulkan instance it's necessary to fill out info about the application and
+	//info about the instance, which requires checking for and enabling the required extensions.
+	//Before creating the instance we create a special debug messenger for this object/code.
+
 	VkApplicationInfo appInfo{};
 
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -97,6 +101,11 @@ void Application::createInstance() {
 
 std::vector<const char *> Application::getRequiredExtensions(bool verbose) {
 
+	//The entities needing extensions are: GLFW - window creation and management,
+	//									   Validation Layers - debugging
+	//We check for required and available extensions and return a list of
+	//required extensions to enable.
+
 	uint32_t glfwExtensionCount = 0;
 	const char **glfwExtensions;
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -125,6 +134,8 @@ std::vector<const char *> Application::getRequiredExtensions(bool verbose) {
 }
 
 bool Application::checkValidationLayerSupport(bool verbose) {
+
+	//Checking for wanted validation layers availability and returning information on whether they are.
 
 	uint32_t layerCount;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -157,6 +168,8 @@ bool Application::checkValidationLayerSupport(bool verbose) {
 
 void Application::setupDebugMessenger() {
 
+	//Creating a debug messenger after populating it with needed data.
+
 	if (!enableValidationLayers) return;
 
 	VkDebugUtilsMessengerCreateInfoEXT createInfo {};
@@ -167,6 +180,8 @@ void Application::setupDebugMessenger() {
 	}
 }
 void Application::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
+
+	//Populating debug messenger creation info.
 
 	createInfo = {};
 
@@ -182,6 +197,9 @@ void Application::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateIn
 }
 
 void Application::pickPhysicalDevice() {
+
+	//After listing existing physical devices on the machine, checking for first suitable one
+	//and assigning the handle to a member variable.
 
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -207,6 +225,13 @@ void Application::pickPhysicalDevice() {
 
 bool Application::isDeviceSuitable(VkPhysicalDevice device, bool verbose) {
 
+	//For a physical device to be suitable we need to have information on desired queue families,
+	//the desired extensions need to be supported and the swap chain needs to have the desired
+	//features available.
+
+	//TODO: More verbose print of properties and features
+	//TODO: Better selection process among suitable devices
+
 	if (verbose) {
 		VkPhysicalDeviceProperties deviceProperties;
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -218,9 +243,6 @@ bool Application::isDeviceSuitable(VkPhysicalDevice device, bool verbose) {
 		std::cout << '\t' << deviceProperties.deviceName << std::endl;
 		std::cout << '\t' << deviceProperties.deviceID << std::endl;
 		std::cout << '\t' << deviceProperties.deviceType << std::endl;
-
-		//TODO: More verbose print of properties and features
-		//TODO: Better selection process among suitable devices
 	}
 
 	QueueFamilyIndices indices = findQueueFamilies(device);
@@ -237,6 +259,11 @@ bool Application::isDeviceSuitable(VkPhysicalDevice device, bool verbose) {
 }
 
 QueueFamilyIndices Application::findQueueFamilies(VkPhysicalDevice device) {
+
+	//We're interested in a queue family to serve for graphics calculation purposes
+	//and one to serve for screen presentation purposes. We list all available queue
+	//families on the device and check whether one supports one or both of desired purposes.
+	//We note the indices of the queue/s in the list and save them into our custom struct.
 
 	QueueFamilyIndices indices;
 
@@ -266,6 +293,10 @@ QueueFamilyIndices Application::findQueueFamilies(VkPhysicalDevice device) {
 }
 
 void Application::createLogicalDevice() {
+
+	//To create a logical device there needs to exist a physical device, a number of queues
+	//(with known indices) and an optional validation layer. We fill the create info with the
+	//needed data before creating the logical device and getting the handles for its queues.
 
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
@@ -309,12 +340,18 @@ void Application::createLogicalDevice() {
 
 void Application::createSurface() {
 
+	//Surface is an abstraction of the screen to which to draw onto through the graphics
+	//and presentation queues with the swap chain. GLFW provides a function to create it.
+
 	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create window surface!");
 	}
 }
 
 bool Application::checkDeviceExtensionSupport(VkPhysicalDevice device, bool verbose) {
+
+	//Checking if all the device extensions defined (in the global vector in the .hpp file)
+	//as required for the application are present in the list of available device extensions.
 
 	uint32_t extensionCount;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -339,6 +376,8 @@ bool Application::checkDeviceExtensionSupport(VkPhysicalDevice device, bool verb
 }
 
 SwapChainSupportDetails Application::querySwapChainSupport(VkPhysicalDevice device) {
+
+	//Querying for all the available features of the swap chain and adding them to a custom struct.
 
 	SwapChainSupportDetails details;
 
@@ -365,6 +404,8 @@ SwapChainSupportDetails Application::querySwapChainSupport(VkPhysicalDevice devi
 
 VkSurfaceFormatKHR Application::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
 
+	//TODO: Explain what exactly surface format and color space mean.
+
 	for (const auto &availableFormat : availableFormats) {
 		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
 			return availableFormat;
@@ -376,6 +417,8 @@ VkSurfaceFormatKHR Application::chooseSwapSurfaceFormat(const std::vector<VkSurf
 
 VkPresentModeKHR Application::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
 
+	//Present mode describes how the images in a queue will behave in regard to adding and removing from the queue.
+
 	for (const auto &availablePresentMode : availablePresentModes) {
 		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
 			return availablePresentMode;
@@ -386,6 +429,8 @@ VkPresentModeKHR Application::chooseSwapPresentMode(const std::vector<VkPresentM
 }
 
 VkExtent2D Application::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) {
+
+	//Extent refers to the screen height and width in pixels.
 
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
@@ -405,6 +450,9 @@ VkExtent2D Application::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabil
 }
 
 void Application::createSwapChain() {
+
+	//To create a swap chain its create info needs to be filled with surface features, which we query
+	//with support functions. After creating the swap chain we get the handles for its images.
 
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
 
@@ -459,6 +507,8 @@ void Application::createSwapChain() {
 }
 
 void Application::createImageViews() {
+
+	//TODO: Explain what happens here.
 
 	swapChainImageViews.resize(swapChainImages.size());
 
