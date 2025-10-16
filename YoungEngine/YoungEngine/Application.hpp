@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <limits>
 #include <algorithm>
+#include <fstream>
 
 const std::vector<const char *> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -89,6 +90,7 @@ private:
 	void createLogicalDevice();
 	void createSwapChain();
 	void createImageViews();
+	void createGraphicsPipeline();
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
 	std::vector<const char *> getRequiredExtensions(bool verbose);
@@ -105,6 +107,9 @@ private:
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+
+	//GRAPHICS PIPELINE SUPPORT FUNCTIONS
+	VkShaderModule createShaderModule(const std::vector<char> &code);
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -141,6 +146,26 @@ private:
 			if (func != nullptr) {
 				func(instance, debugMessenger, pAllocator);
 			}
+	}
+
+	//FUNCTION TO READ SHADER CODE COMPILED TO SPIR-V
+	static std::vector<char> readFile(const std::string &filename) {
+
+		std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+		if (!file.is_open()) {
+			throw std::runtime_error("Failed to open file!");
+		}
+
+		size_t fileSize = (size_t)file.tellg();
+		std::vector<char> buffer(fileSize);
+
+		file.seekg(0);
+		file.read(buffer.data(), fileSize);
+
+		file.close();
+
+		return buffer;
 	}
 
 };
