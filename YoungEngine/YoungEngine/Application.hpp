@@ -93,6 +93,7 @@ private:
 	void createLogicalDevice();
 	void createSwapChain();
 	void createImageViews();
+	void createRenderPass();
 	void createGraphicsPipeline();
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS

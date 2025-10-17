@@ -26,6 +26,7 @@ void Application::initVulkan() {
 	createLogicalDevice();
 	createSwapChain();
 	createImageViews();
+	createRenderPass();
 	createGraphicsPipeline();
 }
 
@@ -680,4 +681,11 @@ VkShaderModule Application::createShaderModule(const std::vector<char> &code) {
 	}
 
 	return shaderModule;
+}
+
+void Application::createRenderPass() {
+
+	VkAttachmentDescription colorAttachment{};
+	colorAttachment.format = swapChainImageFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 }
