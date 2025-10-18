@@ -71,7 +71,9 @@ private:
 	std::vector<VkImageView> swapChainImageViews;
 
 	//GRAPHICS PIPELINE OBJECTS
+	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
+	VkPipeline graphicsPipeline;
 
 public:
 
