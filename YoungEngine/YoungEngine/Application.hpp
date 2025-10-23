@@ -75,6 +75,13 @@ private:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 
+	//BUFFERS
+	std::vector<VkFramebuffer> swapChainFramebuffers;
+	VkCommandBuffer commandBuffer;
+
+	//COMMAND POOLS
+	VkCommandPool commandPool;
+
 public:
 
 	void run();
@@ -97,6 +104,9 @@ private:
 	void createImageViews();
 	void createRenderPass();
 	void createGraphicsPipeline();
+	void createFramebuffers();
+	void createCommandPool();
+	void createCommandBuffer();
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
 	std::vector<const char *> getRequiredExtensions(bool verbose);
@@ -116,6 +126,9 @@ private:
 
 	//GRAPHICS PIPELINE SUPPORT FUNCTIONS
 	VkShaderModule createShaderModule(const std::vector<char> &code);
+
+	//COMMAND RECORDING FUNCTION
+	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
