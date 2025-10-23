@@ -514,7 +514,9 @@ void Application::createSwapChain() {
 
 void Application::createImageViews() {
 
-	//TODO: Explain what happens here.
+	//To create an image view we need to have a swap chain image we want to access through it.
+	//We define the necessary members that describe how the images are treated and interpreted
+	//and create the views to store in an array of handles.
 
 	swapChainImageViews.resize(swapChainImages.size());
 
@@ -545,6 +547,11 @@ void Application::createImageViews() {
 }
 
 void Application::createGraphicsPipeline() {
+
+	//The graphics pipeline consists of programmable (shaders) and fixed functions. We create shader modules
+	//with the compiled code read from a file and save them into shader stages.
+	//After that, a number of fixed functions defined one after another and added to the pipeline info structure.
+	//Then we create the graphics pipeline and save its handle. We destroy the shader modules right away.
 
 	auto vertShaderCode = readFile("shaders/vert.spv");
 	auto fragShaderCode = readFile("shaders/frag.spv");
@@ -700,6 +707,9 @@ void Application::createGraphicsPipeline() {
 
 VkShaderModule Application::createShaderModule(const std::vector<char> &code) {
 
+	//The bytes of code passed as the argument need to be forcibly cast to unit32_t
+	//so they can be fed into the shader module create info. We return the created shader module.
+
 	VkShaderModuleCreateInfo createInfo{};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -716,6 +726,8 @@ VkShaderModule Application::createShaderModule(const std::vector<char> &code) {
 }
 
 void Application::createRenderPass() {
+
+	//Specifying the attachments and subpasses the render pass consist of.
 
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = swapChainImageFormat;
