@@ -82,11 +82,19 @@ private:
 	//COMMAND POOLS
 	VkCommandPool commandPool;
 
+	//SYNCHRONISATION
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
+	VkFence inFlightFence;
+
 public:
 
 	void run();
 
 private:
+
+	//DRAWING FUNCTIONS
+	void drawFrame();
 	
 	//MAIN SETUP AND RUNTIME FUNCTIONS
 	void initWindow();
@@ -107,6 +115,7 @@ private:
 	void createFramebuffers();
 	void createCommandPool();
 	void createCommandBuffer();
+	void createSyncObjects();
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
 	std::vector<const char *> getRequiredExtensions(bool verbose);
