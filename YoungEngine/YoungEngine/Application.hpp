@@ -26,6 +26,8 @@ const std::vector<const char *> deviceExtensions = {
 	const bool enableValidationLayers = true;
 #endif
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
 //STRUCTURE CONTAINING INFORMATION ABOUT A QUEUE FAMILY USED BY PHYSICAL AND LOGICAL DEVICE AND SWAP CHAIN
 struct QueueFamilyIndices {
 	std::optional<uint32_t> graphicsFamily;
@@ -77,15 +79,19 @@ private:
 
 	//BUFFERS
 	std::vector<VkFramebuffer> swapChainFramebuffers;
-	VkCommandBuffer commandBuffer;
+	std::vector<VkCommandBuffer> commandBuffers;
 
 	//COMMAND POOLS
 	VkCommandPool commandPool;
 
 	//SYNCHRONISATION
-	VkSemaphore imageAvailableSemaphore;
-	VkSemaphore renderFinishedSemaphore;
-	VkFence inFlightFence;
+	std::vector<VkSemaphore> imageAvailableSemaphores;
+	std::vector<VkSemaphore> renderFinishedSemaphores;
+	std::vector<VkFence> inFlightFences;
+
+	//DRAWING
+	uint32_t currentFrame = 0;
+	bool framebufferResized = false;
 
 public:
 
@@ -101,6 +107,7 @@ private:
 	void initVulkan();
 	void mainLoop();
 	void cleanup();
+	void cleanupSwapChain();
 
 	//OBJECT CREATION FUNCTIONS
 	void createInstance();
@@ -114,8 +121,11 @@ private:
 	void createGraphicsPipeline();
 	void createFramebuffers();
 	void createCommandPool();
-	void createCommandBuffer();
+	void createCommandBuffers();
 	void createSyncObjects();
+
+	//OBJECT RECREATION FUNCTIONS
+	void recreateSwapChain();
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
 	std::vector<const char *> getRequiredExtensions(bool verbose);
@@ -148,6 +158,12 @@ private:
 		) {
 			std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 			return VK_FALSE;
+	}
+
+	//WINDOW RESIZE CALLBACK FUNCTION
+	static void framebufferResizeCallback(GLFWwindow *window, int width, int height) {
+		auto app = reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
+		app->framebufferResized = true;
 	}
 
 	//FUNCTIONS TO EXPLICITLY LOAD EXTENSION FUNCTIONS
