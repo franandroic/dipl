@@ -1,6 +1,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+
 #include <stdexcept>
 #include <vector>
 #include <iostream>
@@ -11,6 +13,7 @@
 #include <limits>
 #include <algorithm>
 #include <fstream>
+#include <array>
 
 const std::vector<const char *> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -45,6 +48,40 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+//VERTEX STRUCTURE
+struct Vertex {
+	glm::vec2 pos;
+	glm::vec3 color;
+
+	static VkVertexInputBindingDescription getBindingDescription() {
+
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(Vertex);
+		//TODO: Look into instanced rendering
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+
+		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+		
+		attributeDescriptions[0].binding = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+		return attributeDescriptions;
+	}
+};
+
 //THE MAIN APPLICATION CLASS
 class Application {
 
@@ -52,6 +89,19 @@ public:
 
 	const uint32_t WIDTH = 800;
 	const uint32_t HEIGHT = 600;
+
+	//VERTICES
+	const std::vector<Vertex> vertices = {
+		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+	};
+
+	//INDICES 
+	const std::vector<uint16_t> indices = {
+		0, 1, 2, 2, 3, 0
+	};
 
 private:
 
@@ -80,6 +130,8 @@ private:
 	//BUFFERS
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	std::vector<VkCommandBuffer> commandBuffers;
+	VkBuffer vertexBuffer;
+	VkBuffer indexBuffer;
 
 	//COMMAND POOLS
 	VkCommandPool commandPool;
@@ -92,6 +144,10 @@ private:
 	//DRAWING
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
+
+	//MEMORY
+	VkDeviceMemory vertexBufferMemory;
+	VkDeviceMemory indexBufferMemory;
 
 public:
 
@@ -121,6 +177,8 @@ private:
 	void createGraphicsPipeline();
 	void createFramebuffers();
 	void createCommandPool();
+	void createVertexBuffer();
+	void createIndexBuffer();
 	void createCommandBuffers();
 	void createSyncObjects();
 
@@ -146,8 +204,13 @@ private:
 	//GRAPHICS PIPELINE SUPPORT FUNCTIONS
 	VkShaderModule createShaderModule(const std::vector<char> &code);
 
-	//COMMAND RECORDING FUNCTION
+	//COMMAND RECORDING FUNCTIONS
 	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+	//BUFFER SUPPORT FUNCTIONS
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
