@@ -579,8 +579,6 @@ void Application::createSwapChain() {
 void Application::createImageViews() {
 
 	//To create an image view we need to have a swap chain image we want to access through it.
-	//We define the necessary members that describe how the images are treated and interpreted
-	//and create the views to store in an array of handles.
 
 	swapChainImageViews.resize(swapChainImages.size());
 
@@ -595,6 +593,7 @@ void Application::createGraphicsPipeline() {
 	//with the compiled code read from a file and save them into shader stages.
 	//After that, a number of fixed functions defined one after another and added to the pipeline info structure.
 	//Then we create the graphics pipeline and save its handle. We destroy the shader modules right away.
+	//We also specify the bindings of the shaders (what type of data we pass to them in what shape).
 
 	auto vertShaderCode = readFile("shaders/vert.spv");
 	auto fragShaderCode = readFile("shaders/frag.spv");
@@ -884,7 +883,9 @@ void Application::createCommandBuffers() {
 void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 
 	//This is where the recording of commands happens. Before recording we need to "begin"
-	//The command buffer and the render pass.
+	//the command buffer and the render pass.
+	//During the recording we bind the vertex and index buffers that specify the data to be drawn,
+	//as well as descriptor sets, which we use for things like uniform buffers and samplers.
 
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -981,6 +982,7 @@ void Application::drawFrame() {
 	//to be drawn.
 
 	//We are able to render to multiple (MAX_FRAMES_IN_FLIGHT) frames before waiting for previous renders to finish.
+	//We need to update the uniform buffer that contains constantly-changing data (transformation matrices) every frame.
 
 	updateUniformBuffer(currentFrame);
 
@@ -1066,6 +1068,9 @@ void Application::recreateSwapChain() {
 
 void Application::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory) {
 
+	//Generic function used to create a buffer.
+	//Includes allocating and binding memory to it and storing the handles.
+
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = size;
@@ -1095,6 +1100,11 @@ void Application::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMe
 }
 
 void Application::createVertexBuffer() {
+
+	//Creating a vertex buffer, by a two-step process of first creating a CPU-accessible buffer on the GPU,
+	//copying the vertex data from the CPU memory to the GPU staging memory, and finally
+	//copying from the GPU staging (host-visible) memory to the GPU device-local faster memory.
+	//We free the staging memory in the end to avoid having duplicate data.
 
 	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -1126,6 +1136,8 @@ void Application::createVertexBuffer() {
 
 void Application::createIndexBuffer() {
 
+	//Same as the vertex memory, but for the index buffer.
+
 	VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
 	VkBuffer stagingBuffer;
@@ -1156,6 +1168,9 @@ void Application::createIndexBuffer() {
 
 void Application::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 
+	//To copy one buffer to another we need to record a single-use command buffer
+	//that calls the copy command.
+
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
 		VkBufferCopy copyRegion{};
@@ -1169,6 +1184,8 @@ void Application::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSiz
 }
 
 VkCommandBuffer Application::beginSingleTimeCommands() {
+
+	//A generic prologue to a single-use command recording.
 
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1190,6 +1207,8 @@ VkCommandBuffer Application::beginSingleTimeCommands() {
 
 void Application::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 
+	//A generic epilogue to a single-use command recording.
+
 	vkEndCommandBuffer(commandBuffer);
 
 	VkSubmitInfo submitInfo{};
@@ -1209,6 +1228,8 @@ void Application::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 
 uint32_t Application::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 
+	//Querying the physical device for memory properties and checking for the flag bits that fit the desired type.
+
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
@@ -1223,6 +1244,9 @@ uint32_t Application::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags 
 }
 
 void Application::createDescriptorSetLayout() {
+
+	//Specifying what kind of descriptor sets we're going to bind to a render pass, to which bindings
+	//and to which shader stages.
 
 	VkDescriptorSetLayoutBinding uboLayoutBinding{};
 	uboLayoutBinding.binding = 0;
@@ -1252,6 +1276,9 @@ void Application::createDescriptorSetLayout() {
 
 void Application::createUniformBuffers() {
 
+	//Creating and mapping a uniform buffer for each frame (imageView) we want to be able
+	//to draw to before presenting.
+
 	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
 	uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1269,6 +1296,10 @@ void Application::createUniformBuffers() {
 }
 
 void Application::updateUniformBuffer(uint32_t currentImage) {
+
+	//Updating the contents of a uniform buffer.
+	//This is called every frame and it updates the transformation matrices.
+	//Updating the contents of the memory mapped to the GPU passes values to shaders.
 
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -1290,6 +1321,8 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 
 void Application::createDescriptorPool() {
 
+	//Creating a descriptor pool, with a pool size for each descriptor set type and amount.
+
 	std::array<VkDescriptorPoolSize, 2> poolSizes{};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
@@ -1309,6 +1342,9 @@ void Application::createDescriptorPool() {
 }
 
 void Application::createDescriptorSets() {
+
+	//After we create the pool and define the layouts, we use those references to create
+	//the actual descriptor sets.
 
 	std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 
@@ -1364,6 +1400,8 @@ void Application::createDescriptorSets() {
 
 void Application::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) {
 
+	//A generic image creation function that works similar to the buffer creation function.
+
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -1400,6 +1438,12 @@ void Application::createImage(uint32_t width, uint32_t height, VkFormat format, 
 }
 
 void Application::createTextureImage() {
+
+	//Similar to buffer creation (regarding the use of two buffers),
+	//with the use of the stb library to load an image from disk and some additional
+	//helper functions for transitioning image layouts and copying buffer to image.
+	//In order to transfer the pixel data from a CPU buffer to a staging buffer, and then
+	//from the staging buffer to an image object, we need to have the image in proper layouts.
 
 	int texWidth, texHeight, texChannels;
 	
@@ -1446,6 +1490,8 @@ void Application::createTextureImage() {
 }
 
 void Application::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+
+	//A function that uses a single-use command buffer to execute a command that changes the image's layout.
 
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -1497,6 +1543,8 @@ void Application::transitionImageLayout(VkImage image, VkFormat format, VkImageL
 
 void Application::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
 
+	//Similar to with the buffer, copying from a buffer to image is done with a single-use command buffer.
+
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
 		VkBufferImageCopy region{};
@@ -1527,6 +1575,9 @@ void Application::createTextureImageView() {
 
 VkImageView Application::createImageView(VkImage image, VkFormat format) {
 
+	//We define the necessary members that describe how the images are treated and interpreted
+	//and create the views to store in an array of handles.
+
 	VkImageViewCreateInfo viewInfo{};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	viewInfo.image = image;
@@ -1547,6 +1598,8 @@ VkImageView Application::createImageView(VkImage image, VkFormat format) {
 }
 
 void Application::createTextureSampler() {
+
+	//Defining members that describe the sampler we use to sample a texture onto an object.
 
 	VkSamplerCreateInfo samplerInfo{};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
