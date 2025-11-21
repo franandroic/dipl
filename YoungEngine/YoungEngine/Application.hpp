@@ -212,6 +212,7 @@ private:
 	VkSampler textureSampler;
 	VkImage depthImage;
 	VkImageView depthImageView;
+	uint32_t mipLevels;
 
 public:
 
@@ -259,7 +260,7 @@ private:
 
 	//OBJECT CREATION SUPPORT FUNCTIONS
 	void recreateSwapChain();
-	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 	//SUPPORT DRAWING FUNCTIONS
 	void updateUniformBuffer(uint32_t currentImage);
@@ -294,12 +295,13 @@ private:
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 	//IMAGE SUPPORT FUNCTIONS
-	void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
-	void transitionImageLayout(VkImage image, VkFormat format, VkImageAspectFlagBits aspect, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageAspectFlagBits aspect, uint32_t mipLevels, VkImageLayout oldLayout, VkImageLayout newLayout);
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	VkFormat findDepthFormat();
 	bool hasStencilComponent(VkFormat format);
+	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
