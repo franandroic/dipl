@@ -3,8 +3,11 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/hash.hpp>
 
 #include <stdexcept>
 #include <vector>
@@ -18,6 +21,7 @@
 #include <fstream>
 #include <array>
 #include <chrono>
+#include <unordered_map>
 
 const std::vector<const char *> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -62,7 +66,7 @@ struct UniformBufferObject {
 
 //VERTEX STRUCTURE
 struct Vertex {
-	glm::vec2 pos;
+	glm::vec3 pos;
 	glm::vec3 color;
 	glm::vec2 texCoord;
 
@@ -83,7 +87,7 @@ struct Vertex {
 		
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
 		attributeDescriptions[1].binding = 0;
@@ -98,6 +102,18 @@ struct Vertex {
 
 		return attributeDescriptions;
 	}
+
+	bool operator==(const Vertex &other) const {
+		return pos == other.pos && color == other.color && texCoord == other.texCoord;
+	}
+};
+
+//NECESSARY TO BE ABLE TO HAVE THE VERTEX STRUCTURE AS KEY IN A STD C++ MAP
+template<> struct std::hash<Vertex> {
+	size_t operator()(Vertex const &vertex) const {
+		return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+			   (hash<glm::vec2>()(vertex.texCoord) << 1);
+	}
 };
 
 //THE MAIN APPLICATION CLASS
@@ -108,18 +124,33 @@ public:
 	const uint32_t WIDTH = 800;
 	const uint32_t HEIGHT = 600;
 
-	//VERTICES
-	const std::vector<Vertex> vertices = {
-		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-	};
+	const std::string MODEL_PATH = "models/viking_room.obj";
+	const std::string TEXTURE_PATH = "textures/viking_room.png";
 
-	//INDICES 
-	const std::vector<uint16_t> indices = {
-		0, 1, 2, 2, 3, 0
+	//VERTICES
+	/*
+	const std::vector<Vertex> vertices = {
+		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+
+		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 	};
+	*/
+	std::vector<Vertex> vertices;
+
+	//INDICES
+	/*
+	const std::vector<uint32_t> indices = {
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4
+	};
+	*/
+	std::vector<uint32_t> indices;
 
 private:
 
@@ -173,11 +204,14 @@ private:
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	std::vector<void *> uniformBuffersMapped;
 	VkDeviceMemory textureImageMemory;
+	VkDeviceMemory depthImageMemory;
 
 	//IMAGE/TEXTURE OBJECTS
 	VkImage textureImage;
 	VkImageView textureImageView;
 	VkSampler textureSampler;
+	VkImage depthImage;
+	VkImageView depthImageView;
 
 public:
 
@@ -208,6 +242,7 @@ private:
 	void createGraphicsPipeline();
 	void createFramebuffers();
 	void createCommandPool();
+	void createDepthResources();
 	void createTextureImage();
 	void createTextureImageView();
 	void createTextureSampler();
@@ -219,9 +254,12 @@ private:
 	void createCommandBuffers();
 	void createSyncObjects();
 
+	//MODEL LOADING FUNCTIONS
+	void loadModel();
+
 	//OBJECT CREATION SUPPORT FUNCTIONS
 	void recreateSwapChain();
-	VkImageView createImageView(VkImage image, VkFormat format);
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 	//SUPPORT DRAWING FUNCTIONS
 	void updateUniformBuffer(uint32_t currentImage);
@@ -257,8 +295,11 @@ private:
 
 	//IMAGE SUPPORT FUNCTIONS
 	void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
-	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageAspectFlagBits aspect, VkImageLayout oldLayout, VkImageLayout newLayout);
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	VkFormat findDepthFormat();
+	bool hasStencilComponent(VkFormat format);
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
