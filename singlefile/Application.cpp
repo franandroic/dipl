@@ -154,12 +154,12 @@ void Application::createInstance() {
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
 
-	auto extensions = DeviceUtils::getRequiredExtensions(true);
+	auto extensions = getRequiredExtensions(true);
 
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
 
-	if (enableValidationLayers && !DeviceUtils::checkValidationLayerSupport(true)) {
+	if (enableValidationLayers && !checkValidationLayerSupport(true)) {
 		throw std::runtime_error("Validation layers requested, but not available!");
 	}
 
@@ -179,6 +179,73 @@ void Application::createInstance() {
 	}
 }
 
+std::vector<const char *> Application::getRequiredExtensions(bool verbose) {
+
+	//The entities needing extensions are: GLFW - window creation and management,
+	//									   Validation Layers - debugging
+	//We check for required and available extensions and return a list of
+	//required extensions to enable.
+
+	uint32_t glfwExtensionCount = 0;
+	const char **glfwExtensions;
+	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+	uint32_t extensionCount = 0;
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+	std::vector<VkExtensionProperties> extensions(extensionCount);
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+
+	if (verbose) {
+		std::cout << "Required extensions (GLFW): " << std::endl;
+		for (int i = 0; i < glfwExtensionCount; i++) std::cout << '\t' << glfwExtensions[i] << std::endl;
+		std::cout << "Required extensions (validation): " << std::endl;
+		std::cout << '\t' << VK_EXT_DEBUG_UTILS_EXTENSION_NAME << std::endl;
+		std::cout << "Available extensions: " << std::endl;
+		for (const auto &extension : extensions) std::cout << '\t' << extension.extensionName << std::endl;
+	}
+
+	std::vector<const char *> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+	if (enableValidationLayers) {
+		requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	}
+
+	return requiredExtensions;
+}
+
+bool Application::checkValidationLayerSupport(bool verbose) {
+
+	//Checking for wanted validation layers availability and returning information on whether they are.
+
+	uint32_t layerCount;
+	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+	std::vector<VkLayerProperties> availableLayers(layerCount);
+	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+	if (verbose) {
+		std::cout << "Required validation layers: " << std::endl;
+		for (const auto &vLayer : validationLayers) std::cout << '\t' << vLayer << std::endl;
+		std::cout << "Available validation layers: " << std::endl;
+		for (const auto &vLayer : availableLayers) std::cout << '\t' << vLayer.layerName << std::endl;
+	}
+
+	for (const char *layerName : validationLayers) {
+
+		bool layerFound = false;
+
+		for (const auto &layerProperties : availableLayers) {
+			if (strcmp(layerName, layerProperties.layerName) == 0) {
+				layerFound = true;
+				break;
+			}
+		}
+
+		if (!layerFound) return false;
+	}
+
+	return true;
+}
+
 void Application::setupDebugMessenger() {
 
 	//Creating a debug messenger after populating it with needed data.
@@ -192,7 +259,6 @@ void Application::setupDebugMessenger() {
 		throw std::runtime_error("Failed to set up debug messenger!");
 	}
 }
-
 void Application::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
 
 	//Populating debug messenger creation info.
@@ -226,7 +292,7 @@ void Application::pickPhysicalDevice() {
 	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
 	for (const auto &device : devices) {
-		if (DeviceUtils::isDeviceSuitable(device, surface, true)) {
+		if (isDeviceSuitable(device, true)) {
 			physicalDevice = device;
 			msaaSamples = getMaxUsableSampleCount();
 			break;
@@ -238,12 +304,124 @@ void Application::pickPhysicalDevice() {
 	}
 }
 
+bool Application::isDeviceSuitable(VkPhysicalDevice device, bool verbose) {
+
+	//For a physical device to be suitable we need to have information on desired queue families,
+	//the desired extensions need to be supported and the swap chain needs to have the desired
+	//features available.
+
+	//TODO: More verbose print of properties and features
+	//TODO: Better selection process among suitable devices
+
+	if (verbose) {
+		VkPhysicalDeviceProperties deviceProperties;
+		vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+		VkPhysicalDeviceFeatures deviceFeatures;
+		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+		std::cout << "Device properties: " << std::endl;
+		std::cout << '\t' << deviceProperties.deviceName << std::endl;
+		std::cout << '\t' << deviceProperties.deviceID << std::endl;
+		std::cout << '\t' << deviceProperties.deviceType << std::endl;
+	}
+
+	QueueFamilyIndices indices = findQueueFamilies(device);
+
+	bool extensionsSupported = checkDeviceExtensionSupport(device, true);
+
+	bool swapChainAdequate = false;
+	if (extensionsSupported) {
+		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
+		swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+	}
+
+	VkPhysicalDeviceFeatures supportedFeatures;
+	vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+
+	return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+}
+
+QueueFamilyIndices Application::findQueueFamilies(VkPhysicalDevice device) {
+
+	//We're interested in a queue family to serve for graphics calculation purposes
+	//and one to serve for screen presentation purposes. We list all available queue
+	//families on the device and check whether one supports one or both of desired purposes.
+	//We note the indices of the queue/s in the list and save them into our custom struct.
+
+	QueueFamilyIndices indices;
+
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+	int i = 0;
+	for (const auto &queueFamily : queueFamilies) {
+
+		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			indices.graphicsFamily = i;
+		}
+
+		VkBool32 presentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+		if (presentSupport) indices.presentFamily = i;
+
+		if (indices.isComplete()) break;
+
+		i++;
+	}
+
+	return indices;
+}
+
 void Application::createLogicalDevice() {
 
-	myDevice = Device(&physicalDevice, &surface);
-	device = myDevice.device;
-	graphicsQueue = myDevice.graphicsQueue;
-	presentQueue = myDevice.presentQueue;
+	//To create a logical device there needs to exist a physical device, a number of queues
+	//(with known indices) and an optional validation layer. We fill the create info with the
+	//needed data before creating the logical device and getting the handles for its queues.
+
+	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
+	float queuePriority = 1.0f;
+	for (uint32_t queueFamily : uniqueQueueFamilies) {
+		VkDeviceQueueCreateInfo queueCreateInfo{};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = queueFamily;
+		queueCreateInfo.queueCount = 1;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
+
+	VkPhysicalDeviceFeatures deviceFeatures{};
+	deviceFeatures.samplerAnisotropy = VK_TRUE;
+	//TODO: Look into sample shading
+
+	VkDeviceCreateInfo createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+	createInfo.pQueueCreateInfos = queueCreateInfos.data();
+	createInfo.pEnabledFeatures = &deviceFeatures;
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+	if (enableValidationLayers) {
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+	} else {
+		createInfo.enabledLayerCount = 0;
+	}
+
+	if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create logical device!");
+	}
+
+	vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+	vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
 void Application::createSurface() {
@@ -256,19 +434,173 @@ void Application::createSurface() {
 	}
 }
 
+bool Application::checkDeviceExtensionSupport(VkPhysicalDevice device, bool verbose) {
+
+	//Checking if all the device extensions defined (in the global vector in the .hpp file)
+	//as required for the application are present in the list of available device extensions.
+
+	uint32_t extensionCount;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+	std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+	if (verbose) {
+		std::cout << "Required device extensions: " << std::endl;
+		for (std::string extension : requiredExtensions) std::cout << '\t' << extension << std::endl;
+		std::cout << "Available device extensions: " << std::endl;
+		for (const auto &extension : availableExtensions) std::cout << '\t' << extension.extensionName << std::endl;
+	}
+
+	for (const auto &extension : availableExtensions) {
+		requiredExtensions.erase(extension.extensionName);
+	}
+
+	return requiredExtensions.empty();
+}
+
+SwapChainSupportDetails Application::querySwapChainSupport(VkPhysicalDevice device) {
+
+	//Querying for all the available features of the swap chain and adding them to a custom struct.
+
+	SwapChainSupportDetails details;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+	
+	if (formatCount != 0) {
+		details.formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+	}
+
+	uint32_t presentModeCount;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+
+	if (presentModeCount != 0) {
+		details.presentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+	}
+
+	return details;
+}
+
+VkSurfaceFormatKHR Application::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
+
+	//TODO: Explain what exactly surface format and color space mean.
+
+	for (const auto &availableFormat : availableFormats) {
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			return availableFormat;
+		}
+	}
+
+	return availableFormats[0];
+}
+
+VkPresentModeKHR Application::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
+
+	//Present mode describes how the images in a queue will behave in regard to adding and removing from the queue.
+
+	for (const auto &availablePresentMode : availablePresentModes) {
+		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+			return availablePresentMode;
+		}
+	}
+
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D Application::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) {
+
+	//Extent refers to the screen height and width in pixels.
+
+	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+		return capabilities.currentExtent;
+	} else {
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+		VkExtent2D actualExtent = {
+			static_cast<uint32_t>(width),
+			static_cast<uint32_t>(height)
+		};
+
+		actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+		actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+		return actualExtent;
+	}
+}
+
 void Application::createSwapChain() {
 
-	mySwapChain = SwapChain(&myDevice, &physicalDevice, &surface, window);
-	swapChain = mySwapChain.swapChain;
-	swapChainImages = mySwapChain.swapChainImages;
-	swapChainImageFormat = mySwapChain.swapChainImageFormat;
-	swapChainExtent = mySwapChain.swapChainExtent;
+	//To create a swap chain its create info needs to be filled with surface features, which we query
+	//with support functions. After creating the swap chain we get the handles for its images.
+
+	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+
+	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+	VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+	VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+
+	uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
+		imageCount = swapChainSupport.capabilities.maxImageCount;
+	}
+
+	VkSwapchainCreateInfoKHR createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	createInfo.surface = surface;
+	createInfo.minImageCount = imageCount;
+	createInfo.imageFormat = surfaceFormat.format;
+	createInfo.imageColorSpace = surfaceFormat.colorSpace;
+	createInfo.imageExtent = extent;
+	createInfo.imageArrayLayers = 1;
+	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
+	if (indices.graphicsFamily != indices.presentFamily) {
+		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		createInfo.queueFamilyIndexCount = 2;
+		createInfo.pQueueFamilyIndices = queueFamilyIndices;
+	} else {
+		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		createInfo.queueFamilyIndexCount = 0;
+		createInfo.pQueueFamilyIndices = nullptr;
+	}
+
+	createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	createInfo.presentMode = presentMode;
+	createInfo.clipped = VK_TRUE;
+	createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+	if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create swap chain!");
+	}
+
+	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+	swapChainImages.resize(imageCount);
+	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+
+	swapChainImageFormat = surfaceFormat.format;
+	swapChainExtent = extent;
 }
 
 void Application::createImageViews() {
 
-	mySwapChain.createImageViews();
-	swapChainImageViews = mySwapChain.swapChainImageViews;
+	//To create an image view we need to have a swap chain image we want to access through it.
+
+	swapChainImageViews.resize(swapChainImages.size());
+
+	for (size_t i = 0; i < swapChainImages.size(); i++) {
+		swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+	}
 }
 
 void Application::createGraphicsPipeline() {
@@ -574,7 +906,7 @@ void Application::createCommandPool() {
 	//Creating a command pool as a place to store command buffers.
 	//It is submitted to a queue, so we need to pass which queue it is to be submitted to.
 
-	QueueFamilyIndices queueFamilyIndices = DeviceUtils::findQueueFamilies(physicalDevice, surface);
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
 	VkCommandPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1323,7 +1655,26 @@ void Application::createTextureImageView() {
 
 VkImageView Application::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
 
-	return mySwapChain.createImageView(image, format, aspectFlags, mipLevels);
+	//We define the necessary members that describe how the images are treated and interpreted
+	//and create the views to store in an array of handles.
+
+	VkImageViewCreateInfo viewInfo{};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = format;
+	viewInfo.subresourceRange.aspectMask = aspectFlags;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = mipLevels;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	VkImageView imageView;
+	if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create texture image view!");
+	}
+
+	return imageView;
 }
 
 void Application::createTextureSampler() {

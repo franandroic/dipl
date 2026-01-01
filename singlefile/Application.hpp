@@ -1,5 +1,3 @@
-#pragma once
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -25,22 +23,103 @@
 #include <chrono>
 #include <unordered_map>
 
-#include "DeviceData.hpp"
-#include "DeviceUtils.hpp"
+const std::vector<const char *> validationLayers = {
+	"VK_LAYER_KHRONOS_validation"
+};
 
-#include "QueueFamilyIndices.hpp"
-#include "SwapChainSupportDetails.hpp"
-#include "UniformBufferObject.hpp"
-#include "Vertex.hpp"
-#include "Device.hpp"
-#include "SwapChain.hpp"
+const std::vector<const char *> deviceExtensions = {
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
+#ifdef NDEBUG
+	const bool enableValidationLayers = false;
+#else
+	const bool enableValidationLayers = true;
+#endif
+
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
+//STRUCTURE CONTAINING INFORMATION ABOUT A QUEUE FAMILY USED BY PHYSICAL AND LOGICAL DEVICE AND SWAP CHAIN
+struct QueueFamilyIndices {
+	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
+
+	bool isComplete() {
+		return graphicsFamily.has_value() && presentFamily.has_value();
+	}
+};
+
+//STRUCTURE CONTAINING DETAILS NEEDED TO CREATE A SWAP CHAIN
+struct SwapChainSupportDetails {
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+};
+
+//STRUCTURE TO BE PASSED TO A VERTEX SHADER AS A UNIFORM BUFFER
+//CONTAINING THE MODEL. VIEW AND PROJECTION MATRICES
+struct UniformBufferObject {
+	alignas(16) glm::mat4 model;
+	alignas(16) glm::mat4 view;
+	alignas(16) glm::mat4 proj;
+};
+
+//VERTEX STRUCTURE
+struct Vertex {
+	glm::vec3 pos;
+	glm::vec3 color;
+	glm::vec2 texCoord;
+
+	static VkVertexInputBindingDescription getBindingDescription() {
+
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(Vertex);
+		//TODO: Look into instanced rendering
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+		
+		attributeDescriptions[0].binding = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+
+		return attributeDescriptions;
+	}
+
+	bool operator==(const Vertex &other) const {
+		return pos == other.pos && color == other.color && texCoord == other.texCoord;
+	}
+};
+
+//NECESSARY TO BE ABLE TO HAVE THE VERTEX STRUCTURE AS KEY IN A STD C++ MAP
+template<> struct std::hash<Vertex> {
+	size_t operator()(Vertex const &vertex) const {
+		return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+			   (hash<glm::vec2>()(vertex.texCoord) << 1);
+	}
+};
 
 //THE MAIN APPLICATION CLASS
 class Application {
 
 public:
-
-	Application() = default;
 
 	const uint32_t WIDTH = 800;
 	const uint32_t HEIGHT = 600;
@@ -49,28 +128,43 @@ public:
 	const std::string TEXTURE_PATH = "textures/viking_room.png";
 
 	//VERTICES
+	/*
+	const std::vector<Vertex> vertices = {
+		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+
+		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+	};
+	*/
 	std::vector<Vertex> vertices;
 
 	//INDICES
+	/*
+	const std::vector<uint32_t> indices = {
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4
+	};
+	*/
 	std::vector<uint32_t> indices;
 
 private:
 
-	//MAIN OBJECTS RELATED TO INSTANCE, PHYSICAL DEVICE AND WINDOW
+	//MAIN OBJECTS RELATED TO INSTANCE, PHYSICAL AND LOGICAL DEVICE AND WINDOW
 	GLFWwindow *window;
 	VkInstance instance;
-	VkSurfaceKHR surface;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
-	//LOGICAL DEVICE OBJECTS
-	Device myDevice;
 	VkDevice device;
 	VkQueue graphicsQueue;
+	VkSurfaceKHR surface;
 	VkQueue presentQueue;
 
 	//SWAP CHAIN OBJECTS
-	SwapChain mySwapChain;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
 	VkFormat swapChainImageFormat;
@@ -176,7 +270,20 @@ private:
 	void updateUniformBuffer(uint32_t currentImage);
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
+	std::vector<const char *> getRequiredExtensions(bool verbose);
+	bool checkValidationLayerSupport(bool verbose);
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+
+	//PHYSICAL AND LOGICAL DEVICE SUPPORT FUNCTIONS
+	bool isDeviceSuitable(VkPhysicalDevice device, bool verbose);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device, bool verbose);
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+
+	//SWAP CHAIN SUPPORT FUNCTIONS
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
 	//GRAPHICS PIPELINE SUPPORT FUNCTIONS
 	VkShaderModule createShaderModule(const std::vector<char> &code);
