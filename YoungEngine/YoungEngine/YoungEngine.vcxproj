@@ -136,16 +136,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Description.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Description.hpp" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
+    <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="QueueFamilyIndices.hpp" />
+    <ClInclude Include="RenderPass.hpp" />
     <ClInclude Include="SwapChain.hpp" />
     <ClInclude Include="SwapChainSupportDetails.hpp" />
     <ClInclude Include="UniformBufferObject.hpp" />

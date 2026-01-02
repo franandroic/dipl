@@ -34,6 +34,9 @@
 #include "Vertex.hpp"
 #include "Device.hpp"
 #include "SwapChain.hpp"
+#include "Pipeline.hpp"
+#include "RenderPass.hpp"
+#include "Description.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -78,6 +81,9 @@ private:
 	std::vector<VkImageView> swapChainImageViews;
 
 	//GRAPHICS PIPELINE OBJECTS
+	Pipeline myPipeline;
+	RenderPass myRenderPass;
+	Description myDescription;
 	VkRenderPass renderPass;
 	VkDescriptorSetLayout descriptorSetLayout;
 	std::vector<VkDescriptorSet> descriptorSets;
@@ -178,9 +184,6 @@ private:
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 
-	//GRAPHICS PIPELINE SUPPORT FUNCTIONS
-	VkShaderModule createShaderModule(const std::vector<char> &code);
-
 	//COMMAND RECORDING FUNCTIONS
 	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	VkCommandBuffer beginSingleTimeCommands();
@@ -195,8 +198,6 @@ private:
 	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
 	void transitionImageLayout(VkImage image, VkFormat format, VkImageAspectFlagBits aspect, uint32_t mipLevels, VkImageLayout oldLayout, VkImageLayout newLayout);
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-	VkFormat findDepthFormat();
 	bool hasStencilComponent(VkFormat format);
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 	VkSampleCountFlagBits getMaxUsableSampleCount();
@@ -243,26 +244,6 @@ private:
 			if (func != nullptr) {
 				func(instance, debugMessenger, pAllocator);
 			}
-	}
-
-	//FUNCTION TO READ SHADER CODE COMPILED TO SPIR-V
-	static std::vector<char> readFile(const std::string &filename) {
-
-		std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-		if (!file.is_open()) {
-			throw std::runtime_error("Failed to open file!");
-		}
-
-		size_t fileSize = (size_t)file.tellg();
-		std::vector<char> buffer(fileSize);
-
-		file.seekg(0);
-		file.read(buffer.data(), fileSize);
-
-		file.close();
-
-		return buffer;
 	}
 
 };
