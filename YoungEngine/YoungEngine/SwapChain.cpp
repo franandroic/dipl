@@ -59,6 +59,41 @@ SwapChain::SwapChain(Device *inDevice, VkPhysicalDevice *physicalDevice, VkSurfa
 	swapChainExtent = extent;
 }
 
+void SwapChain::createImageViews() {
+
+	//To create an image view we need to have a swap chain image we want to access through it.
+
+	swapChainImageViews.resize(swapChainImages.size());
+
+	for (size_t i = 0; i < swapChainImages.size(); i++) {
+		swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+	}
+}
+
+VkImageView SwapChain::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+
+	//We define the necessary members that describe how the images are treated and interpreted
+	//and create the views to store in an array of handles.
+
+	VkImageViewCreateInfo viewInfo{};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = format;
+	viewInfo.subresourceRange.aspectMask = aspectFlags;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = mipLevels;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	VkImageView imageView;
+	if (vkCreateImageView(device->device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create texture image view!");
+	}
+
+	return imageView;
+}
+
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
 
 	//TODO: Explain what exactly surface format and color space mean.
@@ -104,39 +139,4 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
 
 		return actualExtent;
 	}
-}
-
-void SwapChain::createImageViews() {
-
-	//To create an image view we need to have a swap chain image we want to access through it.
-
-	swapChainImageViews.resize(swapChainImages.size());
-
-	for (size_t i = 0; i < swapChainImages.size(); i++) {
-		swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-	}
-}
-
-VkImageView SwapChain::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
-
-	//We define the necessary members that describe how the images are treated and interpreted
-	//and create the views to store in an array of handles.
-
-	VkImageViewCreateInfo viewInfo{};
-	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewInfo.image = image;
-	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewInfo.format = format;
-	viewInfo.subresourceRange.aspectMask = aspectFlags;
-	viewInfo.subresourceRange.baseMipLevel = 0;
-	viewInfo.subresourceRange.levelCount = mipLevels;
-	viewInfo.subresourceRange.baseArrayLayer = 0;
-	viewInfo.subresourceRange.layerCount = 1;
-
-	VkImageView imageView;
-	if (vkCreateImageView(device->device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create texture image view!");
-	}
-
-	return imageView;
 }

@@ -2,8 +2,6 @@
 
 RenderPass::RenderPass(Device *inDevice, VkPhysicalDevice physicalDevice, SwapChain *swapChain, VkSampleCountFlagBits msaaSamples) {
 
-	device = inDevice;
-
 	//Specifying the attachments and subpasses the render pass consist of.
 	//The attachments correspond to "canvases" we're drawing to using the render pass.
 
@@ -74,7 +72,7 @@ RenderPass::RenderPass(Device *inDevice, VkPhysicalDevice physicalDevice, SwapCh
 	createInfo.dependencyCount = 1;
 	createInfo.pDependencies = &dependency;
 
-	if (vkCreateRenderPass(device->device, &createInfo, nullptr, &renderPass) != VK_SUCCESS) {
+	if (vkCreateRenderPass(inDevice->device, &createInfo, nullptr, &renderPass) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create render pass!");
 	}
 }

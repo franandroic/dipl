@@ -37,6 +37,7 @@
 #include "Pipeline.hpp"
 #include "RenderPass.hpp"
 #include "Description.hpp"
+#include "Command.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -87,19 +88,19 @@ private:
 	VkRenderPass renderPass;
 	VkDescriptorSetLayout descriptorSetLayout;
 	std::vector<VkDescriptorSet> descriptorSets;
+	VkDescriptorPool descriptorPool;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 
-	//BUFFERS
+	Command myCommand;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
+	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
+
+	//BUFFERS
 	VkBuffer vertexBuffer;
 	VkBuffer indexBuffer;
 	std::vector<VkBuffer> uniformBuffers;
-
-	//OBJECT POOLS
-	VkCommandPool commandPool;
-	VkDescriptorPool descriptorPool;
 
 	//SYNCHRONISATION
 	std::vector<VkSemaphore> imageAvailableSemaphores;

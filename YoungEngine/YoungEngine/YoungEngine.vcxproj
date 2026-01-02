@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Command.cpp" />
     <ClCompile Include="Description.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="main.cpp" />
@@ -145,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Command.hpp" />
     <ClInclude Include="Description.hpp" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
