@@ -136,21 +136,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="BufferObject.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Description.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="IndexBufferObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="VertexBufferObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
+    <ClInclude Include="BufferObject.hpp" />
     <ClInclude Include="Command.hpp" />
+    <ClInclude Include="CommandUtils.hpp" />
     <ClInclude Include="Description.hpp" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
+    <ClInclude Include="IndexBufferObject.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="QueueFamilyIndices.hpp" />
     <ClInclude Include="RenderPass.hpp" />
@@ -158,6 +164,7 @@
     <ClInclude Include="SwapChainSupportDetails.hpp" />
     <ClInclude Include="UniformBufferObject.hpp" />
     <ClInclude Include="Vertex.hpp" />
+    <ClInclude Include="VertexBufferObject.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

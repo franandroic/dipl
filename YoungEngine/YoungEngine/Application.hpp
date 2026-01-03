@@ -27,6 +27,7 @@
 
 #include "DeviceData.hpp"
 #include "DeviceUtils.hpp"
+#include "CommandUtils.hpp"
 
 #include "QueueFamilyIndices.hpp"
 #include "SwapChainSupportDetails.hpp"
@@ -38,6 +39,8 @@
 #include "RenderPass.hpp"
 #include "Description.hpp"
 #include "Command.hpp"
+#include "VertexBufferObject.hpp"
+#include "IndexBufferObject.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -92,15 +95,28 @@ private:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 
+	//COMMAND OBJECTS
 	Command myCommand;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
 
-	//BUFFERS
+	//BUFFER OBJECTS
+	VertexBufferObject myVBO;
 	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexBufferMemory;
+
+	IndexBufferObject myIBO;
 	VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMemory;
+
+	std::vector<BufferObject> myUBOs;
 	std::vector<VkBuffer> uniformBuffers;
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
+	std::vector<void *> uniformBuffersMapped;
+	VkDeviceMemory textureImageMemory;
+	VkDeviceMemory depthImageMemory;
+	VkDeviceMemory colorImageMemory;
 
 	//SYNCHRONISATION
 	std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -110,15 +126,6 @@ private:
 	//DRAWING
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
-
-	//MEMORY
-	VkDeviceMemory vertexBufferMemory;
-	VkDeviceMemory indexBufferMemory;
-	std::vector<VkDeviceMemory> uniformBuffersMemory;
-	std::vector<void *> uniformBuffersMapped;
-	VkDeviceMemory textureImageMemory;
-	VkDeviceMemory depthImageMemory;
-	VkDeviceMemory colorImageMemory;
 
 	//IMAGE/TEXTURE OBJECTS
 	VkImage textureImage;
@@ -187,13 +194,6 @@ private:
 
 	//COMMAND RECORDING FUNCTIONS
 	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-	VkCommandBuffer beginSingleTimeCommands();
-	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
-
-	//BUFFER SUPPORT FUNCTIONS
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 	//IMAGE SUPPORT FUNCTIONS
 	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
