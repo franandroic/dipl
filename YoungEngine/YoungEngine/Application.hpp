@@ -31,7 +31,7 @@
 
 #include "QueueFamilyIndices.hpp"
 #include "SwapChainSupportDetails.hpp"
-#include "UniformBufferObject.hpp"
+#include "UniformBufferData.hpp"
 #include "Vertex.hpp"
 #include "Device.hpp"
 #include "SwapChain.hpp"
@@ -41,6 +41,9 @@
 #include "Command.hpp"
 #include "VertexBufferObject.hpp"
 #include "IndexBufferObject.hpp"
+#include "UniformBufferObject.hpp"
+#include "UniformBufferData.hpp"
+#include "UniformBufferOperator.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -110,7 +113,9 @@ private:
 	VkBuffer indexBuffer;
 	VkDeviceMemory indexBufferMemory;
 
-	std::vector<BufferObject> myUBOs;
+	std::vector<UniformBufferObject> myUBOs;
+	UniformBufferData myUBdata;
+	UniformBufferOperator myUBop;
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	std::vector<void *> uniformBuffersMapped;

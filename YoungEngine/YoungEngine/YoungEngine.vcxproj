@@ -145,6 +145,7 @@
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,7 +163,9 @@
     <ClInclude Include="RenderPass.hpp" />
     <ClInclude Include="SwapChain.hpp" />
     <ClInclude Include="SwapChainSupportDetails.hpp" />
+    <ClInclude Include="UniformBufferData.hpp" />
     <ClInclude Include="UniformBufferObject.hpp" />
+    <ClInclude Include="UniformBufferOperator.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexBufferObject.hpp" />
   </ItemGroup>

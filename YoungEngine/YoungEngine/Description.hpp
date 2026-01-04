@@ -9,7 +9,7 @@
 #include "DeviceData.hpp"
 
 #include "Device.hpp"
-#include "UniformBufferObject.hpp"
+#include "UniformBufferData.hpp"
 
 class Description {
 

@@ -1,15 +1,43 @@
 #pragma once
 
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
-#include <glm/glm.hpp>
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
-class UniformBufferObject {
+#include <algorithm>
 
-	//STRUCTURE TO BE PASSED TO A VERTEX SHADER AS A UNIFORM BUFFER
-	//CONTAINING THE MODEL. VIEW AND PROJECTION MATRICES
+#include "BufferObject.hpp"
+#include "UniformBufferData.hpp"
+#include "UniformBufferOperator.hpp"
+
+class UniformBufferObject : public BufferObject {
+
+	//TODO: Two strategy (I think) patterns, the idea is to switch out the data type and the operator
+	//for different UBOs
 
 public:
-	alignas(16) glm::mat4 model;
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
+
+	UniformBufferObject() = default;
+
+	UniformBufferObject(
+		Device *inDevice,
+		UniformBufferData *inData,
+		UniformBufferOperator *inOp,
+		VkBufferUsageFlags inUsage,
+		VkMemoryPropertyFlags inProperties
+	) : BufferObject(inDevice, sizeof(*inData), inUsage, inProperties) {
+			data = inData;
+			op = inOp;
+		}
+
+	void *bufferMapped;
+
+	void createBuffer(VkPhysicalDevice physicalDevice);
+
+	void updateBuffer();
+
+private:
+
+	UniformBufferData *data;
+
+	UniformBufferOperator *op;
 };

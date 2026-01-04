@@ -483,19 +483,20 @@ void Application::createUniformBuffers() {
 	//Creating and mapping a uniform buffer for each frame (imageView) we want to be able
 	//to draw to before presenting.
 
-	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
 	myUBOs.resize(MAX_FRAMES_IN_FLIGHT);
 
 	uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 	uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 	uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
+	myUBop = UniformBufferOperator(swapChainExtent.width / (float)swapChainExtent.height);
+
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 
-		myUBOs[i] = BufferObject(
+		myUBOs[i] = UniformBufferObject(
 			&myDevice,
-			bufferSize,
+			&myUBdata,
+			&myUBop,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
@@ -503,33 +504,13 @@ void Application::createUniformBuffers() {
 
 		uniformBuffers[i] = myUBOs[i].buffer;
 		uniformBuffersMemory[i] = myUBOs[i].bufferMemory;
-
-		vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+		uniformBuffersMapped[i] = myUBOs[i].bufferMapped;
 	}
 }
 
 void Application::updateUniformBuffer(uint32_t currentImage) {
 
-	//Updating the contents of a uniform buffer.
-	//This is called every frame and it updates the transformation matrices.
-	//Updating the contents of the memory mapped to the GPU passes values to shaders.
-
-	static auto startTime = std::chrono::high_resolution_clock::now();
-
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f),
-								swapChainExtent.width / (float) swapChainExtent.height,
-								0.1f,
-								10.0f);
-	ubo.proj[1][1] *= -1;
-
-	//TODO: Look into push constants
-	memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+	myUBOs[currentImage].updateBuffer();
 }
 
 void Application::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) {
