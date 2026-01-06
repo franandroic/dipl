@@ -1,9 +1,3 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
-
 #include "Application.hpp"
 
 void Application::run() {
@@ -27,6 +21,11 @@ void Application::initWindow() {
 }
 
 void Application::initVulkan() {
+
+	myModelLoader.setPath(MODEL_PATH);
+	myImageLoader.setPath(TEXTURE_PATH);
+	myLoader.setModelLoader(&myModelLoader);
+	myLoader.setImageLoader(&myImageLoader);
 
 	createInstance();
 	setupDebugMessenger();
@@ -228,7 +227,7 @@ void Application::pickPhysicalDevice() {
 	for (const auto &device : devices) {
 		if (DeviceUtils::isDeviceSuitable(device, surface, true)) {
 			physicalDevice = device;
-			msaaSamples = getMaxUsableSampleCount();
+			msaaSamples = DeviceUtils::getMaxUsableSampleCount(physicalDevice);
 			break;
 		}
 	}
@@ -562,7 +561,7 @@ void Application::createTextureImage() {
 
 	int texWidth, texHeight, texChannels;
 	
-	stbi_uc *pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	unsigned char *pixels = myLoader.loadImage(&texWidth, &texHeight, &texChannels);
 
 	mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
@@ -585,7 +584,7 @@ void Application::createTextureImage() {
 		memcpy(data, pixels, static_cast<size_t>(imageSize));
 	vkUnmapMemory(device, stagingBufferObject.bufferMemory);
 
-	stbi_image_free(pixels);
+	myLoader.unloadImage(pixels);
 
 	createImage(texWidth,
 				texHeight,
@@ -767,43 +766,7 @@ bool Application::hasStencilComponent(VkFormat format) {
 
 void Application::loadModel() {
 
-	tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string err;
-
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, nullptr, &err, MODEL_PATH.c_str())) {
-		throw std::runtime_error(err);
-	}
-
-	std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-	for (const auto &shape : shapes) {
-		for (const auto &index : shape.mesh.indices) {
-
-			Vertex vertex{};
-
-			vertex.pos = {
-				attrib.vertices[3 * index.vertex_index + 0],
-				attrib.vertices[3 * index.vertex_index + 1],
-				attrib.vertices[3 * index.vertex_index + 2]
-			};
-
-			vertex.texCoord = {
-				attrib.texcoords[2 * index.texcoord_index + 0],
-				1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-			};
-
-			vertex.color = {1.0f, 1.0f, 1.0f};
-
-			if (uniqueVertices.count(vertex) == 0) {
-				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-				vertices.push_back(vertex);
-			}
-
-			indices.push_back(uniqueVertices[vertex]);
-		}
-	}
+	myModelLoader.load(vertices, indices);
 }
 
 void Application::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
@@ -910,25 +873,6 @@ void Application::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t t
 						 &barrier);
 
 	CommandUtils::endSingleTimeCommands(commandBuffer, device, commandPool, graphicsQueue);
-}
-
-VkSampleCountFlagBits Application::getMaxUsableSampleCount() {
-
-	VkPhysicalDeviceProperties physicalDeviceProperties;
-	vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
-
-	VkSampleCountFlags counts
-		= physicalDeviceProperties.limits.framebufferColorSampleCounts
-		& physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-	if (counts & VK_SAMPLE_COUNT_64_BIT) return VK_SAMPLE_COUNT_64_BIT;
-	if (counts & VK_SAMPLE_COUNT_32_BIT) return VK_SAMPLE_COUNT_32_BIT;
-	if (counts & VK_SAMPLE_COUNT_16_BIT) return VK_SAMPLE_COUNT_16_BIT;
-	if (counts & VK_SAMPLE_COUNT_8_BIT) return VK_SAMPLE_COUNT_8_BIT;
-	if (counts & VK_SAMPLE_COUNT_4_BIT) return VK_SAMPLE_COUNT_4_BIT;
-	if (counts & VK_SAMPLE_COUNT_2_BIT) return VK_SAMPLE_COUNT_2_BIT;
-
-	return VK_SAMPLE_COUNT_1_BIT;
 }
 
 void Application::createColorResources() {

@@ -140,8 +140,10 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Description.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="IndexBufferObject.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
@@ -157,7 +159,10 @@
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
+    <ClInclude Include="ImageLoader.hpp" />
     <ClInclude Include="IndexBufferObject.hpp" />
+    <ClInclude Include="Loader.hpp" />
+    <ClInclude Include="ModelLoader.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="QueueFamilyIndices.hpp" />
     <ClInclude Include="RenderPass.hpp" />

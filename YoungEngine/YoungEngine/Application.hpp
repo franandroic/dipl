@@ -42,8 +42,10 @@
 #include "VertexBufferObject.hpp"
 #include "IndexBufferObject.hpp"
 #include "UniformBufferObject.hpp"
-#include "UniformBufferData.hpp"
 #include "UniformBufferOperator.hpp"
+#include "ModelLoader.hpp"
+#include "ImageLoader.hpp"
+#include "Loader.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -65,6 +67,11 @@ public:
 	std::vector<uint32_t> indices;
 
 private:
+
+	//LOADERS
+	ModelLoader myModelLoader;
+	ImageLoader myImageLoader;
+	Loader myLoader;
 
 	//MAIN OBJECTS RELATED TO INSTANCE, PHYSICAL DEVICE AND WINDOW
 	GLFWwindow *window;
@@ -206,7 +213,6 @@ private:
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	bool hasStencilComponent(VkFormat format);
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-	VkSampleCountFlagBits getMaxUsableSampleCount();
 	void createColorResources();
 
 	//DEBUG CALLBACK FUNCTION
