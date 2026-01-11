@@ -28,6 +28,7 @@
 #include "DeviceData.hpp"
 #include "DeviceUtils.hpp"
 #include "CommandUtils.hpp"
+#include "ImageUtils.hpp"
 
 #include "QueueFamilyIndices.hpp"
 #include "SwapChainSupportDetails.hpp"
@@ -209,8 +210,6 @@ private:
 
 	//IMAGE SUPPORT FUNCTIONS
 	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
-	void transitionImageLayout(VkImage image, VkFormat format, VkImageAspectFlagBits aspect, uint32_t mipLevels, VkImageLayout oldLayout, VkImageLayout newLayout);
-	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	bool hasStencilComponent(VkFormat format);
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 	void createColorResources();

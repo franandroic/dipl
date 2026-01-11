@@ -160,6 +160,7 @@
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
     <ClInclude Include="ImageLoader.hpp" />
+    <ClInclude Include="ImageUtils.hpp" />
     <ClInclude Include="IndexBufferObject.hpp" />
     <ClInclude Include="Loader.hpp" />
     <ClInclude Include="ModelLoader.hpp" />
