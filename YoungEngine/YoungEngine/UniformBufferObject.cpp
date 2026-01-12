@@ -2,6 +2,9 @@
 
 void UniformBufferObject::createBuffer(VkPhysicalDevice physicalDevice) {
 
+	//Creating and mapping a uniform buffer for each frame (imageView) we want to be able
+	//to draw to before presenting.
+
 	BufferObject::createBuffer(physicalDevice);
 
 	vkMapMemory(device->device, bufferMemory, 0, size, 0, &bufferMapped);

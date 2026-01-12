@@ -11,27 +11,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include <stdexcept>
-#include <vector>
-#include <iostream>
-#include <string>
-#include <optional>
-#include <set>
-#include <cstdint>
-#include <limits>
-#include <algorithm>
-#include <fstream>
-#include <array>
-#include <chrono>
-#include <unordered_map>
-
-#include "DeviceData.hpp"
 #include "DeviceUtils.hpp"
-#include "CommandUtils.hpp"
-#include "ImageUtils.hpp"
 
-#include "QueueFamilyIndices.hpp"
-#include "SwapChainSupportDetails.hpp"
 #include "UniformBufferData.hpp"
 #include "Vertex.hpp"
 #include "Device.hpp"
@@ -47,6 +28,9 @@
 #include "ModelLoader.hpp"
 #include "ImageLoader.hpp"
 #include "Loader.hpp"
+#include "TextureImageObject.hpp"
+#include "DepthImageObject.hpp"
+#include "ColorImageObject.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -83,53 +67,24 @@ private:
 
 	//LOGICAL DEVICE OBJECTS
 	Device myDevice;
-	VkDevice device;
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
 
 	//SWAP CHAIN OBJECTS
 	SwapChain mySwapChain;
-	VkSwapchainKHR swapChain;
-	std::vector<VkImage> swapChainImages;
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
-	std::vector<VkImageView> swapChainImageViews;
 
 	//GRAPHICS PIPELINE OBJECTS
 	Pipeline myPipeline;
 	RenderPass myRenderPass;
 	Description myDescription;
-	VkRenderPass renderPass;
-	VkDescriptorSetLayout descriptorSetLayout;
-	std::vector<VkDescriptorSet> descriptorSets;
-	VkDescriptorPool descriptorPool;
-	VkPipelineLayout pipelineLayout;
-	VkPipeline graphicsPipeline;
 
 	//COMMAND OBJECTS
 	Command myCommand;
-	std::vector<VkFramebuffer> swapChainFramebuffers;
-	VkCommandPool commandPool;
-	std::vector<VkCommandBuffer> commandBuffers;
 
 	//BUFFER OBJECTS
 	VertexBufferObject myVBO;
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-
 	IndexBufferObject myIBO;
-	VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;
-
 	std::vector<UniformBufferObject> myUBOs;
 	UniformBufferData myUBdata;
 	UniformBufferOperator myUBop;
-	std::vector<VkBuffer> uniformBuffers;
-	std::vector<VkDeviceMemory> uniformBuffersMemory;
-	std::vector<void *> uniformBuffersMapped;
-	VkDeviceMemory textureImageMemory;
-	VkDeviceMemory depthImageMemory;
-	VkDeviceMemory colorImageMemory;
 
 	//SYNCHRONISATION
 	std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -141,14 +96,13 @@ private:
 	bool framebufferResized = false;
 
 	//IMAGE/TEXTURE OBJECTS
-	VkImage textureImage;
+	TextureImageObject myTIO;
+	DepthImageObject myDIO;
+	ColorImageObject myCIO;
 	VkImageView textureImageView;
 	VkSampler textureSampler;
-	VkImage depthImage;
 	VkImageView depthImageView;
-	uint32_t mipLevels;
 	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-	VkImage colorImage;
 	VkImageView colorImageView;
 
 public:
@@ -172,35 +126,11 @@ private:
 	void setupDebugMessenger();
 	void createSurface();
 	void pickPhysicalDevice();
-	void createLogicalDevice();
-	void createSwapChain();
-	void createImageViews();
-	void createRenderPass();
-	void createDescriptorSetLayout();
-	void createGraphicsPipeline();
-	void createFramebuffers();
-	void createCommandPool();
-	void createDepthResources();
-	void createTextureImage();
-	void createTextureImageView();
 	void createTextureSampler();
-	void createVertexBuffer();
-	void createIndexBuffer();
-	void createUniformBuffers();
-	void createDescriptorPool();
-	void createDescriptorSets();
-	void createCommandBuffers();
 	void createSyncObjects();
-
-	//MODEL LOADING FUNCTIONS
-	void loadModel();
 
 	//OBJECT CREATION SUPPORT FUNCTIONS
 	void recreateSwapChain();
-	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-
-	//SUPPORT DRAWING FUNCTIONS
-	void updateUniformBuffer(uint32_t currentImage);
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
@@ -209,10 +139,7 @@ private:
 	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 	//IMAGE SUPPORT FUNCTIONS
-	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
-	bool hasStencilComponent(VkFormat format);
-	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-	void createColorResources();
+	bool hasStencilComponent(VkFormat format);;
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

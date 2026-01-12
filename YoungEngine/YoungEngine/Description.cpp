@@ -60,7 +60,7 @@ void Description::createDescriptorPool() {
 	}
 }
 
-void Description::createDescriptorSets(std::vector<VkBuffer> uniformBuffers, VkImageView textureImageView, VkSampler textureSampler) {
+void Description::createDescriptorSets(std::vector<UniformBufferObject> UBOs, VkImageView textureImageView, VkSampler textureSampler) {
 
 	//After we create the pool and define the layouts, we use those references to create
 	//the actual descriptor sets.
@@ -82,7 +82,7 @@ void Description::createDescriptorSets(std::vector<VkBuffer> uniformBuffers, VkI
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 
 		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = uniformBuffers[i];
+		bufferInfo.buffer = UBOs[i].buffer;
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(UniformBufferData);
 

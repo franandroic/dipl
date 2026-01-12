@@ -10,6 +10,7 @@
 
 #include "Device.hpp"
 #include "UniformBufferData.hpp"
+#include "UniformBufferObject.hpp"
 
 class Description {
 
@@ -27,7 +28,7 @@ public:
 
 	void createDescriptorPool();
 
-	void createDescriptorSets(std::vector<VkBuffer> uniformBuffers, VkImageView textureImageView, VkSampler textureSampler);
+	void createDescriptorSets(std::vector<UniformBufferObject> UBOs, VkImageView textureImageView, VkSampler textureSampler);
 
 private:
 

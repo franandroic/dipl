@@ -137,29 +137,36 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BufferObject.cpp" />
+    <ClCompile Include="ColorImageObject.cpp" />
     <ClCompile Include="Command.cpp" />
+    <ClCompile Include="DepthImageObject.cpp" />
     <ClCompile Include="Description.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
+    <ClCompile Include="ImageObject.cpp" />
     <ClCompile Include="IndexBufferObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="TextureImageObject.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
     <ClInclude Include="BufferObject.hpp" />
+    <ClInclude Include="ColorImageObject.hpp" />
     <ClInclude Include="Command.hpp" />
     <ClInclude Include="CommandUtils.hpp" />
+    <ClInclude Include="DepthImageObject.hpp" />
     <ClInclude Include="Description.hpp" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
     <ClInclude Include="ImageLoader.hpp" />
+    <ClInclude Include="ImageObject.hpp" />
     <ClInclude Include="ImageUtils.hpp" />
     <ClInclude Include="IndexBufferObject.hpp" />
     <ClInclude Include="Loader.hpp" />
@@ -169,6 +176,7 @@
     <ClInclude Include="RenderPass.hpp" />
     <ClInclude Include="SwapChain.hpp" />
     <ClInclude Include="SwapChainSupportDetails.hpp" />
+    <ClInclude Include="TextureImageObject.hpp" />
     <ClInclude Include="UniformBufferData.hpp" />
     <ClInclude Include="UniformBufferObject.hpp" />
     <ClInclude Include="UniformBufferOperator.hpp" />
