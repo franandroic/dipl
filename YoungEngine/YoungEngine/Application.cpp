@@ -29,32 +29,26 @@ void Application::initVulkan() {
 
 	createInstance();
 	setupDebugMessenger();
-	createSurface();
-	pickPhysicalDevice();
 	
-	myDevice = Device(&physicalDevice, &surface);
+	myDevice = Device(instance, window);
 
-	mySwapChain = SwapChain(&myDevice, &physicalDevice, &surface, window);
-
+	mySwapChain = SwapChain(&myDevice, window);
 	mySwapChain.createImageViews();
-
-	myRenderPass = RenderPass(&myDevice, physicalDevice, &mySwapChain, msaaSamples);
+	myRenderPass = RenderPass(&myDevice, &mySwapChain);
 
 	myDescription = Description(&myDevice);
 
-	myPipeline = Pipeline(&myDevice, &myRenderPass, &myDescription, msaaSamples);
+	myPipeline = Pipeline(&myDevice, &myRenderPass, &myDescription);
 	
 	myCommand = Command(&myDevice, &mySwapChain, &myRenderPass, &myPipeline, &myDescription);
-	myCommand.createCommandPool(physicalDevice, surface);
+	myCommand.createCommandPool();
 
 	myCIO = ColorImageObject(&myDevice, mySwapChain.swapChainImageFormat);
-	myCIO.createImage(physicalDevice, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height, msaaSamples);
-
+	myCIO.createImage(mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
 	colorImageView = mySwapChain.createImageView(myCIO.image, myCIO.colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
-	myDIO = DepthImageObject(&myDevice, DeviceUtils::findDepthFormat(physicalDevice));
-	myDIO.createImage(physicalDevice, myCommand.commandPool, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height, msaaSamples);
-
+	myDIO = DepthImageObject(&myDevice, DeviceUtils::findDepthFormat(myDevice.physical));
+	myDIO.createImage(myCommand.commandPool, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
 	depthImageView = mySwapChain.createImageView(myDIO.image, myDIO.depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
 	myCommand.createFramebuffers(colorImageView, depthImageView);
@@ -64,12 +58,9 @@ void Application::initVulkan() {
 	if (!pixels) {
 		throw std::runtime_error("Failed to load texture image!");
 	}
-
 	myTIO = TextureImageObject(&myDevice);
-	myTIO.createImage(physicalDevice, myCommand.commandPool, pixels, texWidth, texHeight, texChannels);
-
+	myTIO.createImage(myCommand.commandPool, pixels, texWidth, texHeight, texChannels);
 	myLoader.unloadImage(pixels);
-
 	textureImageView = mySwapChain.createImageView(myTIO.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, myTIO.mipLevels);
 
 	createTextureSampler();
@@ -82,7 +73,7 @@ void Application::initVulkan() {
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
-	myVBO.createBuffer(physicalDevice, myCommand.commandPool);
+	myVBO.createBuffer(myCommand.commandPool);
 
 	myIBO = IndexBufferObject(
 		&myDevice,
@@ -90,14 +81,11 @@ void Application::initVulkan() {
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
-	myIBO.createBuffer(physicalDevice, myCommand.commandPool);
+	myIBO.createBuffer(myCommand.commandPool);
 
 	myUBOs.resize(MAX_FRAMES_IN_FLIGHT);
-
 	myUBop = UniformBufferOperator(mySwapChain.swapChainExtent.width / (float)mySwapChain.swapChainExtent.height);
-
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-
 		myUBOs[i] = UniformBufferObject(
 			&myDevice,
 			&myUBdata,
@@ -105,11 +93,10 @@ void Application::initVulkan() {
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
-		myUBOs[i].createBuffer(physicalDevice);
+		myUBOs[i].createBuffer();
 	}
 	
 	myDescription.createDescriptorPool();
-
 	myDescription.createDescriptorSets(myUBOs, textureImageView, textureSampler);
 
 	myCommand.createCommandBuffers();
@@ -124,7 +111,7 @@ void Application::mainLoop() {
 		drawFrame();
 	}
 
-	vkDeviceWaitIdle(myDevice.device);
+	vkDeviceWaitIdle(myDevice.logical);
 }
 
 void Application::cleanup() {
@@ -132,44 +119,44 @@ void Application::cleanup() {
 	cleanupSwapChain();
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroyBuffer(myDevice.device, myUBOs[i].buffer, nullptr);
-		vkFreeMemory(myDevice.device, myUBOs[i].bufferMemory, nullptr);
+		vkDestroyBuffer(myDevice.logical, myUBOs[i].buffer, nullptr);
+		vkFreeMemory(myDevice.logical, myUBOs[i].bufferMemory, nullptr);
 	}
 
-	vkDestroySampler(myDevice.device, textureSampler, nullptr);
+	vkDestroySampler(myDevice.logical, textureSampler, nullptr);
 
-	vkDestroyImageView(myDevice.device, textureImageView, nullptr);
+	vkDestroyImageView(myDevice.logical, textureImageView, nullptr);
 
-	vkDestroyImage(myDevice.device, myTIO.image, nullptr);
-	vkFreeMemory(myDevice.device, myTIO.imageMemory, nullptr);
+	vkDestroyImage(myDevice.logical, myTIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myTIO.imageMemory, nullptr);
 
-	vkDestroyDescriptorPool(myDevice.device, myDescription.descriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(myDevice.device, myDescription.descriptorSetLayout, nullptr);
-	vkDestroyPipeline(myDevice.device, myPipeline.graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(myDevice.device, myPipeline.pipelineLayout, nullptr);
-	vkDestroyRenderPass(myDevice.device, myRenderPass.renderPass, nullptr);
+	vkDestroyDescriptorPool(myDevice.logical, myDescription.descriptorPool, nullptr);
+	vkDestroyDescriptorSetLayout(myDevice.logical, myDescription.descriptorSetLayout, nullptr);
+	vkDestroyPipeline(myDevice.logical, myPipeline.graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(myDevice.logical, myPipeline.pipelineLayout, nullptr);
+	vkDestroyRenderPass(myDevice.logical, myRenderPass.renderPass, nullptr);
 
-	vkDestroyBuffer(myDevice.device, myVBO.buffer, nullptr);
-	vkFreeMemory(myDevice.device, myVBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice.logical, myVBO.buffer, nullptr);
+	vkFreeMemory(myDevice.logical, myVBO.bufferMemory, nullptr);
 
-	vkDestroyBuffer(myDevice.device, myIBO.buffer, nullptr);
-	vkFreeMemory(myDevice.device, myIBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice.logical, myIBO.buffer, nullptr);
+	vkFreeMemory(myDevice.logical, myIBO.bufferMemory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(myDevice.device, imageAvailableSemaphores[i], nullptr);
-		vkDestroySemaphore(myDevice.device, renderFinishedSemaphores[i], nullptr);
-		vkDestroyFence(myDevice.device, inFlightFences[i], nullptr);
+		vkDestroySemaphore(myDevice.logical, imageAvailableSemaphores[i], nullptr);
+		vkDestroySemaphore(myDevice.logical, renderFinishedSemaphores[i], nullptr);
+		vkDestroyFence(myDevice.logical, inFlightFences[i], nullptr);
 	}
 
-	vkDestroyCommandPool(myDevice.device, myCommand.commandPool, nullptr);
+	vkDestroyCommandPool(myDevice.logical, myCommand.commandPool, nullptr);
 
-	vkDestroyDevice(myDevice.device, nullptr);
+	vkDestroyDevice(myDevice.logical, nullptr);
 
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
-	vkDestroySurfaceKHR(instance, surface, nullptr);
+	vkDestroySurfaceKHR(instance, myDevice.surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -177,23 +164,23 @@ void Application::cleanup() {
 
 void Application::cleanupSwapChain() {
 
-	vkDestroyImageView(myDevice.device, colorImageView, nullptr);
-	vkDestroyImage(myDevice.device, myCIO.image, nullptr);
-	vkFreeMemory(myDevice.device, myCIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice.logical, colorImageView, nullptr);
+	vkDestroyImage(myDevice.logical, myCIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myCIO.imageMemory, nullptr);
 
-	vkDestroyImageView(myDevice.device, depthImageView, nullptr);
-	vkDestroyImage(myDevice.device, myDIO.image, nullptr);
-	vkFreeMemory(myDevice.device, myDIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice.logical, depthImageView, nullptr);
+	vkDestroyImage(myDevice.logical, myDIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myDIO.imageMemory, nullptr);
 
 	for (auto framebuffer : myCommand.swapChainFramebuffers) {
-		vkDestroyFramebuffer(myDevice.device, framebuffer, nullptr);
+		vkDestroyFramebuffer(myDevice.logical, framebuffer, nullptr);
 	}
 
 	for (auto imageView : mySwapChain.swapChainImageViews) {
-		vkDestroyImageView(myDevice.device, imageView, nullptr);
+		vkDestroyImageView(myDevice.logical, imageView, nullptr);
 	}
 
-	vkDestroySwapchainKHR(myDevice.device, mySwapChain.swapChain, nullptr);
+	vkDestroySwapchainKHR(myDevice.logical, mySwapChain.swapChain, nullptr);
 }
 
 void Application::createInstance() {
@@ -272,44 +259,6 @@ void Application::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateIn
 	createInfo.pUserData = nullptr;
 }
 
-void Application::pickPhysicalDevice() {
-
-	//After listing existing physical devices on the machine, checking for first suitable one
-	//and assigning the handle to a member variable.
-
-	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-
-	if (deviceCount == 0) {
-		throw std::runtime_error("Failed to find GPUs with Vulkan support!");
-	}
-
-	std::vector<VkPhysicalDevice> devices(deviceCount);
-	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-	for (const auto &device : devices) {
-		if (DeviceUtils::isDeviceSuitable(device, surface, true)) {
-			physicalDevice = device;
-			msaaSamples = DeviceUtils::getMaxUsableSampleCount(physicalDevice);
-			break;
-		}
-	}
-
-	if (physicalDevice == VK_NULL_HANDLE) {
-		throw std::runtime_error("Failed to find a suitable GPU!");
-	}
-}
-
-void Application::createSurface() {
-
-	//Surface is an abstraction of the screen to which to draw onto through the graphics
-	//and presentation queues with the swap chain. GLFW provides a function to create it.
-
-	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create window surface!");
-	}
-}
-
 void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 
 	myCommand.recordCommandBuffer(commandBuffer, imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), myVBO.buffer, myIBO.buffer);
@@ -335,9 +284,9 @@ void Application::createSyncObjects() {
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 	
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		if (vkCreateSemaphore(myDevice.device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(myDevice.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(myDevice.device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+		if (vkCreateSemaphore(myDevice.logical, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(myDevice.logical, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(myDevice.logical, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create sync objects!");
 		}
 	}
@@ -356,10 +305,10 @@ void Application::drawFrame() {
 
 	myUBOs[currentFrame].updateBuffer();
 
-	vkWaitForFences(myDevice.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+	vkWaitForFences(myDevice.logical, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex;
-	VkResult result = vkAcquireNextImageKHR(myDevice.device, mySwapChain.swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(myDevice.logical, mySwapChain.swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 		recreateSwapChain();
 		return;
@@ -367,7 +316,7 @@ void Application::drawFrame() {
 		throw std::runtime_error("Failed to acquire swap chain image!");
 	}
 
-	vkResetFences(myDevice.device, 1, &inFlightFences[currentFrame]);
+	vkResetFences(myDevice.logical, 1, &inFlightFences[currentFrame]);
 
 	vkResetCommandBuffer(myCommand.commandBuffers[currentFrame], 0);
 	recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex);
@@ -428,21 +377,21 @@ void Application::recreateSwapChain() {
 		glfwWaitEvents();
 	}
 
-	vkDeviceWaitIdle(myDevice.device);
+	vkDeviceWaitIdle(myDevice.logical);
 
 	cleanupSwapChain();
 
-	mySwapChain = SwapChain(&myDevice, &physicalDevice, &surface, window);
+	mySwapChain = SwapChain(&myDevice, window);
 
 	mySwapChain.createImageViews();
 
 	myCIO = ColorImageObject(&myDevice, mySwapChain.swapChainImageFormat);
-	myCIO.createImage(physicalDevice, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height, msaaSamples);
+	myCIO.createImage(mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
 
 	colorImageView = mySwapChain.createImageView(myCIO.image, myCIO.colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
-	myDIO = DepthImageObject(&myDevice, DeviceUtils::findDepthFormat(physicalDevice));
-	myDIO.createImage(physicalDevice, myCommand.commandPool, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height, msaaSamples);
+	myDIO = DepthImageObject(&myDevice, DeviceUtils::findDepthFormat(myDevice.physical));
+	myDIO.createImage(myCommand.commandPool, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
 
 	depthImageView = mySwapChain.createImageView(myDIO.image, myDIO.depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
@@ -463,7 +412,7 @@ void Application::createTextureSampler() {
 	samplerInfo.anisotropyEnable = VK_TRUE;
 
 	VkPhysicalDeviceProperties properties{};
-	vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+	vkGetPhysicalDeviceProperties(myDevice.physical, &properties);
 	samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 	
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -477,7 +426,7 @@ void Application::createTextureSampler() {
 	samplerInfo.minLod = 0.0f;
 	samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
 
-	if (vkCreateSampler(myDevice.device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+	if (vkCreateSampler(myDevice.logical, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create texture sampler!");
 	}
 }

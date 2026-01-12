@@ -17,7 +17,7 @@ public:
 
 	Pipeline() = default;
 
-	Pipeline(Device *inDevice, RenderPass *renderPass, Description *description, VkSampleCountFlagBits msaaSamples);
+	Pipeline(Device *inDevice, RenderPass *renderPass, Description *description);
 
 	VkPipelineLayout pipelineLayout;
 

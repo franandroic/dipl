@@ -1,6 +1,6 @@
 #include "TextureImageObject.hpp"
 
-void TextureImageObject::createImage(VkPhysicalDevice physicalDevice, VkCommandPool commandPool, unsigned char *pixels, int width, int height, int channels) {
+void TextureImageObject::createImage(VkCommandPool commandPool, unsigned char *pixels, int width, int height, int channels) {
 
 	//Similar to buffer creation (regarding the use of two buffers),
 	//with the use of the stb library to load an image from disk and some additional
@@ -18,15 +18,14 @@ void TextureImageObject::createImage(VkPhysicalDevice physicalDevice, VkCommandP
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	);
-	stagingBufferObject.createBuffer(physicalDevice);
+	stagingBufferObject.createBuffer();
 
 	void *data;
-	vkMapMemory(device->device, stagingBufferObject.bufferMemory, 0, imageSize, 0, &data);
+	vkMapMemory(device->logical, stagingBufferObject.bufferMemory, 0, imageSize, 0, &data);
 	memcpy(data, pixels, static_cast<size_t>(imageSize));
-	vkUnmapMemory(device->device, stagingBufferObject.bufferMemory);
+	vkUnmapMemory(device->logical, stagingBufferObject.bufferMemory);
 
 	ImageObject::createImage(
-		physicalDevice,
 		width,
 		height,
 		mipLevels,
@@ -37,18 +36,17 @@ void TextureImageObject::createImage(VkPhysicalDevice physicalDevice, VkCommandP
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
 
-	ImageUtils::transitionImageLayout(device->device, commandPool, device->graphicsQueue, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	ImageUtils::copyBufferToImage(device->device, commandPool, device->graphicsQueue, stagingBufferObject.buffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+	ImageUtils::transitionImageLayout(device->logical, commandPool, device->graphicsQueue, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	ImageUtils::copyBufferToImage(device->logical, commandPool, device->graphicsQueue, stagingBufferObject.buffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
 	//transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	generateMipmaps(physicalDevice, commandPool, VK_FORMAT_R8G8B8A8_SRGB, width, height, mipLevels);
+	generateMipmaps(commandPool, VK_FORMAT_R8G8B8A8_SRGB, width, height, mipLevels);
 
-	vkDestroyBuffer(device->device, stagingBufferObject.buffer, nullptr);
-	vkFreeMemory(device->device, stagingBufferObject.bufferMemory, nullptr);
+	vkDestroyBuffer(device->logical, stagingBufferObject.buffer, nullptr);
+	vkFreeMemory(device->logical, stagingBufferObject.bufferMemory, nullptr);
 }
 
 void TextureImageObject::generateMipmaps(
-	VkPhysicalDevice physicalDevice,
 	VkCommandPool commandPool,
 	VkFormat imageFormat,
 	int32_t texWidth,
@@ -57,13 +55,13 @@ void TextureImageObject::generateMipmaps(
 	) {
 
 	VkFormatProperties formatProperties;
-	vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
+	vkGetPhysicalDeviceFormatProperties(device->physical, imageFormat, &formatProperties);
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
 		throw std::runtime_error("Texture image format does not support linear blitting!");
 	}
 
-	VkCommandBuffer commandBuffer = CommandUtils::beginSingleTimeCommands(device->device, commandPool);
+	VkCommandBuffer commandBuffer = CommandUtils::beginSingleTimeCommands(device->logical, commandPool);
 
 	VkImageMemoryBarrier barrier{};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -157,5 +155,5 @@ void TextureImageObject::generateMipmaps(
 		1,
 		&barrier);
 
-	CommandUtils::endSingleTimeCommands(commandBuffer, device->device, commandPool, device->graphicsQueue);
+	CommandUtils::endSingleTimeCommands(commandBuffer, device->logical, commandPool, device->graphicsQueue);
 }

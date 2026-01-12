@@ -61,9 +61,7 @@ private:
 	//MAIN OBJECTS RELATED TO INSTANCE, PHYSICAL DEVICE AND WINDOW
 	GLFWwindow *window;
 	VkInstance instance;
-	VkSurfaceKHR surface;
 	VkDebugUtilsMessengerEXT debugMessenger;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
 	//LOGICAL DEVICE OBJECTS
 	Device myDevice;
@@ -102,7 +100,6 @@ private:
 	VkImageView textureImageView;
 	VkSampler textureSampler;
 	VkImageView depthImageView;
-	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	VkImageView colorImageView;
 
 public:
@@ -124,8 +121,6 @@ private:
 	//OBJECT CREATION FUNCTIONS
 	void createInstance();
 	void setupDebugMessenger();
-	void createSurface();
-	void pickPhysicalDevice();
 	void createTextureSampler();
 	void createSyncObjects();
 

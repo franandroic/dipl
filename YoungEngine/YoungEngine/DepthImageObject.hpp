@@ -17,6 +17,6 @@ public:
 
 	VkFormat depthFormat;
 
-	void createImage(VkPhysicalDevice physicalDevice, VkCommandPool commandPool, uint32_t width, uint32_t height, VkSampleCountFlagBits msaaSamples);
+	void createImage(VkCommandPool commandPool, uint32_t width, uint32_t height);
 
 };

@@ -16,5 +16,5 @@ public:
 
 	VkFormat colorFormat;
 
-	void createImage(VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkSampleCountFlagBits msaaSamples);
+	void createImage(uint32_t width, uint32_t height);
 };

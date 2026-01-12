@@ -16,7 +16,7 @@ public:
 
 	SwapChain() = default;
 
-	SwapChain(Device *inDevice, VkPhysicalDevice *physicalDevice, VkSurfaceKHR *surface, GLFWwindow *window);
+	SwapChain(Device *inDevice, GLFWwindow *window);
 
 	VkSwapchainKHR swapChain;
 

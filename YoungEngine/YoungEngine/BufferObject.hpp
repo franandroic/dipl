@@ -33,7 +33,7 @@ public:
 
 	Device *device;
 
-	void createBuffer(VkPhysicalDevice physicalDevice);
+	void createBuffer();
 
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool);
 

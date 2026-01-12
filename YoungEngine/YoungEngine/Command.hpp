@@ -28,7 +28,7 @@ public:
 
 	void createFramebuffers(VkImageView colorImageView, VkImageView depthImageView);
 
-	void createCommandPool(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+	void createCommandPool();
 
 	void createCommandBuffers();
 

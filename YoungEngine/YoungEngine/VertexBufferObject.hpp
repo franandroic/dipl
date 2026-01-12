@@ -23,7 +23,7 @@ public:
 			vertices = inVertices;
 		}
 
-	void createBuffer(VkPhysicalDevice physicalDevice, VkCommandPool commandPool);
+	void createBuffer(VkCommandPool commandPool);
 
 private:
 

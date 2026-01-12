@@ -18,7 +18,6 @@ public:
 	VkDeviceMemory imageMemory;
 
 	void createImage(
-		VkPhysicalDevice physicalDevice,
 		uint32_t width,
 		uint32_t height,
 		uint32_t mipLevels,

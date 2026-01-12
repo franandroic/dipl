@@ -1,13 +1,13 @@
 #include "SwapChain.hpp"
 
-SwapChain::SwapChain(Device *inDevice, VkPhysicalDevice *physicalDevice, VkSurfaceKHR *surface, GLFWwindow *window) {
+SwapChain::SwapChain(Device *inDevice, GLFWwindow *window) {
 
 	device = inDevice;
 
 	//To create a swap chain its create info needs to be filled with surface features, which we query
 	//with support functions. After creating the swap chain we get the handles for its images.
 
-	SwapChainSupportDetails swapChainSupport = DeviceUtils::querySwapChainSupport(*physicalDevice, *surface);
+	SwapChainSupportDetails swapChainSupport = DeviceUtils::querySwapChainSupport(device->physical, device->surface);
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 	VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -20,7 +20,7 @@ SwapChain::SwapChain(Device *inDevice, VkPhysicalDevice *physicalDevice, VkSurfa
 
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = *surface;
+	createInfo.surface = device->surface;
 	createInfo.minImageCount = imageCount;
 	createInfo.imageFormat = surfaceFormat.format;
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -28,7 +28,7 @@ SwapChain::SwapChain(Device *inDevice, VkPhysicalDevice *physicalDevice, VkSurfa
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	QueueFamilyIndices indices = DeviceUtils::findQueueFamilies(*physicalDevice, *surface);
+	QueueFamilyIndices indices = DeviceUtils::findQueueFamilies(device->physical, device->surface);
 	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
 	if (indices.graphicsFamily != indices.presentFamily) {
@@ -47,13 +47,13 @@ SwapChain::SwapChain(Device *inDevice, VkPhysicalDevice *physicalDevice, VkSurfa
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	if (vkCreateSwapchainKHR(device->device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+	if (vkCreateSwapchainKHR(device->logical, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create swap chain!");
 	}
 
-	vkGetSwapchainImagesKHR(device->device, swapChain, &imageCount, nullptr);
+	vkGetSwapchainImagesKHR(device->logical, swapChain, &imageCount, nullptr);
 	swapChainImages.resize(imageCount);
-	vkGetSwapchainImagesKHR(device->device, swapChain, &imageCount, swapChainImages.data());
+	vkGetSwapchainImagesKHR(device->logical, swapChain, &imageCount, swapChainImages.data());
 
 	swapChainImageFormat = surfaceFormat.format;
 	swapChainExtent = extent;
@@ -87,7 +87,7 @@ VkImageView SwapChain::createImageView(VkImage image, VkFormat format, VkImageAs
 	viewInfo.subresourceRange.layerCount = 1;
 
 	VkImageView imageView;
-	if (vkCreateImageView(device->device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+	if (vkCreateImageView(device->logical, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create texture image view!");
 	}
 

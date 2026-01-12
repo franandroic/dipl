@@ -21,12 +21,11 @@ public:
 
 	uint32_t mipLevels;
 
-	void createImage(VkPhysicalDevice physicalDevice, VkCommandPool commandPool, unsigned char *pixels, int width, int height, int channels);
+	void createImage(VkCommandPool commandPool, unsigned char *pixels, int width, int height, int channels);
 
 private:
 
 	void generateMipmaps(
-		VkPhysicalDevice physicalDevice,
 		VkCommandPool commandPool,
 		VkFormat imageFormat,
 		int32_t texWidth,

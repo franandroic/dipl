@@ -16,11 +16,23 @@ public:
 
 	Device() = default;
 
-	Device(VkPhysicalDevice *physicalDevice, VkSurfaceKHR *surface);
+	Device(VkInstance instance, GLFWwindow *window);
 	
-	VkDevice device;
+	VkDevice logical;
+
+	VkPhysicalDevice physical;
+
+	VkSurfaceKHR surface;
 
 	VkQueue graphicsQueue;
 	
 	VkQueue presentQueue;
+
+	VkSampleCountFlagBits msaaSamples;
+
+private:
+
+	void pickPhysicalDevice(VkInstance instance);
+
+	void createSurface(VkInstance instance, GLFWwindow *window);
 };

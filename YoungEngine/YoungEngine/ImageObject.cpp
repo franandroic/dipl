@@ -6,7 +6,6 @@ ImageObject::ImageObject(Device *inDevice) {
 }
 
 void ImageObject::createImage(
-	VkPhysicalDevice physicalDevice,
 	uint32_t width,
 	uint32_t height,
 	uint32_t mipLevels,
@@ -35,21 +34,21 @@ void ImageObject::createImage(
 	imageInfo.samples = numSamples;
 	imageInfo.flags = 0;
 
-	if (vkCreateImage(device->device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+	if (vkCreateImage(device->logical, &imageInfo, nullptr, &image) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(device->device, image, &memRequirements);
+	vkGetImageMemoryRequirements(device->logical, image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = DeviceUtils::findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = DeviceUtils::findMemoryType(device->physical, memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(device->device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+	if (vkAllocateMemory(device->logical, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate image memory!");
 	}
 
-	vkBindImageMemory(device->device, image, imageMemory, 0);
+	vkBindImageMemory(device->logical, image, imageMemory, 0);
 }

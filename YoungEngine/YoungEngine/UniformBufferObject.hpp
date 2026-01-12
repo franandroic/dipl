@@ -31,7 +31,7 @@ public:
 
 	void *bufferMapped;
 
-	void createBuffer(VkPhysicalDevice physicalDevice);
+	void createBuffer();
 
 	void updateBuffer();
 

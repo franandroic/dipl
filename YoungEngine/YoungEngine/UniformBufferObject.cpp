@@ -1,13 +1,13 @@
 #include "UniformBufferObject.hpp"
 
-void UniformBufferObject::createBuffer(VkPhysicalDevice physicalDevice) {
+void UniformBufferObject::createBuffer() {
 
 	//Creating and mapping a uniform buffer for each frame (imageView) we want to be able
 	//to draw to before presenting.
 
-	BufferObject::createBuffer(physicalDevice);
+	BufferObject::createBuffer();
 
-	vkMapMemory(device->device, bufferMemory, 0, size, 0, &bufferMapped);
+	vkMapMemory(device->logical, bufferMemory, 0, size, 0, &bufferMapped);
 }
 
 void UniformBufferObject::updateBuffer() {

@@ -30,25 +30,25 @@ void Command::createFramebuffers(VkImageView colorImageView, VkImageView depthIm
 		framebufferInfo.height = swapChain->swapChainExtent.height;
 		framebufferInfo.layers = 1;
 
-		if (vkCreateFramebuffer(device->device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+		if (vkCreateFramebuffer(device->logical, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create framebuffer!");
 		}
 	}
 }
 
-void Command::createCommandPool(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+void Command::createCommandPool() {
 
 	//Creating a command pool as a place to store command buffers.
 	//It is submitted to a queue, so we need to pass which queue it is to be submitted to.
 
-	QueueFamilyIndices queueFamilyIndices = DeviceUtils::findQueueFamilies(physicalDevice, surface);
+	QueueFamilyIndices queueFamilyIndices = DeviceUtils::findQueueFamilies(device->physical, device->surface);
 
 	VkCommandPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-	if (vkCreateCommandPool(device->device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+	if (vkCreateCommandPool(device->logical, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create command pool!");
 	}
 }
@@ -68,7 +68,7 @@ void Command::createCommandBuffers() {
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-	if (vkAllocateCommandBuffers(device->device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(device->logical, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create command buffers!");
 	}
 }

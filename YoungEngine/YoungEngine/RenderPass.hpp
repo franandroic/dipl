@@ -16,8 +16,12 @@ public:
 
 	RenderPass() = default;
 
-	RenderPass(Device *inDevice, VkPhysicalDevice physicalDevice, SwapChain *swapChain, VkSampleCountFlagBits msaaSamples);
+	RenderPass(Device *inDevice, SwapChain *swapChain);
 
 	VkRenderPass renderPass;
+
+private:
+
+	Device *device;
 
 };
