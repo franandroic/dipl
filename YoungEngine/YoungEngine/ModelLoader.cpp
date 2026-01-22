@@ -43,6 +43,12 @@ void ModelLoader::load(std::vector<Vertex> &vertices, std::vector<uint32_t> &ind
 
 			vertex.color = { 1.0f, 1.0f, 1.0f };
 
+			vertex.normal = {
+				attrib.normals[3 * index.normal_index + 0],
+				attrib.normals[3 * index.normal_index + 1],
+				attrib.normals[3 * index.normal_index + 2]
+			};
+
 			if (uniqueVertices.count(vertex) == 0) {
 				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 				vertices.push_back(vertex);
