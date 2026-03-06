@@ -63,7 +63,7 @@ void Application::initVulkan() {
 	myLoader.unloadImage(pixels);
 	textureImageView = mySwapChain.createImageView(myTIO.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, myTIO.mipLevels);
 
-	createTextureSampler();
+	myTIO.createTextureSampler();
 	
 	myModelLoader.load(vertices, indices);
 
@@ -97,7 +97,7 @@ void Application::initVulkan() {
 	}
 	
 	myDescription.createDescriptorPool();
-	myDescription.createDescriptorSets(myUBOs, textureImageView, textureSampler);
+	myDescription.createDescriptorSets(myUBOs, textureImageView, myTIO.sampler);
 
 	myCommand.createCommandBuffers();
 
@@ -123,7 +123,7 @@ void Application::cleanup() {
 		vkFreeMemory(myDevice.logical, myUBOs[i].bufferMemory, nullptr);
 	}
 
-	vkDestroySampler(myDevice.logical, textureSampler, nullptr);
+	vkDestroySampler(myDevice.logical, myTIO.sampler, nullptr);
 
 	vkDestroyImageView(myDevice.logical, textureImageView, nullptr);
 
@@ -259,11 +259,6 @@ void Application::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateIn
 	createInfo.pUserData = nullptr;
 }
 
-void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-
-	myCommand.recordCommandBuffer(commandBuffer, imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), myVBO.buffer, myIBO.buffer);
-}
-
 void Application::createSyncObjects() {
 
 	//Creating the semaphores needed to synchronize work on the GPU and
@@ -319,7 +314,7 @@ void Application::drawFrame() {
 	vkResetFences(myDevice.logical, 1, &inFlightFences[currentFrame]);
 
 	vkResetCommandBuffer(myCommand.commandBuffers[currentFrame], 0);
-	recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex);
+	myCommand.recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), myVBO.buffer, myIBO.buffer);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -396,41 +391,4 @@ void Application::recreateSwapChain() {
 	depthImageView = mySwapChain.createImageView(myDIO.image, myDIO.depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
 	myCommand.createFramebuffers(colorImageView, depthImageView);
-}
-
-void Application::createTextureSampler() {
-
-	//Defining members that describe the sampler we use to sample a texture onto an object.
-
-	VkSamplerCreateInfo samplerInfo{};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-
-	VkPhysicalDeviceProperties properties{};
-	vkGetPhysicalDeviceProperties(myDevice.physical, &properties);
-	samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-	
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-
-	samplerInfo.compareEnable = VK_FALSE;
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	samplerInfo.mipLodBias = 0.0f;
-	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
-
-	if (vkCreateSampler(myDevice.logical, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create texture sampler!");
-	}
-}
-
-bool Application::hasStencilComponent(VkFormat format) {
-	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }

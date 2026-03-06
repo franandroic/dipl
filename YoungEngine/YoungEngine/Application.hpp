@@ -43,7 +43,7 @@ public:
 	const uint32_t HEIGHT = 600;
 
 	const std::string MODEL_PATH = "models/suzanne.obj";
-	const std::string TEXTURE_PATH = "textures/Discr2DTex6.png";
+	const std::string TEXTURE_PATH = "textures/Discr2DTex5.png";
 
 	//VERTICES
 	std::vector<Vertex> vertices;
@@ -98,7 +98,6 @@ private:
 	DepthImageObject myDIO;
 	ColorImageObject myCIO;
 	VkImageView textureImageView;
-	VkSampler textureSampler;
 	VkImageView depthImageView;
 	VkImageView colorImageView;
 
@@ -121,7 +120,6 @@ private:
 	//OBJECT CREATION FUNCTIONS
 	void createInstance();
 	void setupDebugMessenger();
-	void createTextureSampler();
 	void createSyncObjects();
 
 	//OBJECT CREATION SUPPORT FUNCTIONS
@@ -131,10 +129,8 @@ private:
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 
 	//COMMAND RECORDING FUNCTIONS
-	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 	//IMAGE SUPPORT FUNCTIONS
-	bool hasStencilComponent(VkFormat format);;
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

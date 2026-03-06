@@ -55,6 +55,7 @@ RenderPass::RenderPass(Device *inDevice, SwapChain *swapChain) {
 	subpass.pColorAttachments = &colorAttachmentRef;
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
 	subpass.pResolveAttachments = &colorAttachmentResolveRef;
+	//TODO: Look into multiple subpasses
 
 	VkSubpassDependency dependency{};
 	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;

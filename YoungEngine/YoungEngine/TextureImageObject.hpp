@@ -21,7 +21,11 @@ public:
 
 	uint32_t mipLevels;
 
+	VkSampler sampler;
+
 	void createImage(VkCommandPool commandPool, unsigned char *pixels, int width, int height, int channels);
+
+	void createTextureSampler();
 
 private:
 

@@ -113,6 +113,15 @@
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.321.1\Lib;C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(SolutionDir)Distribution\" mkdir "$(SolutionDir)Distribution\"
+xcopy "$(TargetPath)" "$(SolutionDir)Distribution\" /Y /D
+xcopy "$(ProjectDir)shaders\*.spv" "$(SolutionDir)Distribution\shaders\" /Y /I /D
+xcopy "$(ProjectDir)textures\*" "$(SolutionDir)Distribution\textures\" /Y /I /D /E
+xcopy "$(ProjectDir)models\*" "$(SolutionDir)Distribution\models\" /Y /I /D /E
+xcopy "$(VULKAN_SDK)\Bin\vulkan-1.dll" "$(SolutionDir)Distribution\" /Y /D
+xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir)Distribution\" /Y /D</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -133,6 +142,15 @@
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.321.1\Lib;C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(SolutionDir)Distribution\" mkdir "$(SolutionDir)Distribution\"
+xcopy "$(TargetPath)" "$(SolutionDir)Distribution\" /Y /D
+xcopy "$(ProjectDir)shaders\*.spv" "$(SolutionDir)Distribution\shaders\" /Y /I /D
+xcopy "$(ProjectDir)textures\*" "$(SolutionDir)Distribution\textures\" /Y /I /D /E
+xcopy "$(ProjectDir)models\*" "$(SolutionDir)Distribution\models\" /Y /I /D /E
+xcopy "$(VULKAN_SDK)\Bin\vulkan-1.dll" "$(SolutionDir)Distribution\" /Y /D
+xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir)Distribution\" /Y /D</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -182,6 +200,9 @@
     <ClInclude Include="UniformBufferOperator.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexBufferObject.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
