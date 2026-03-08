@@ -28,6 +28,8 @@ public:
 	
 	VkQueue presentQueue;
 
+	VkCommandPool commandPool;
+
 	VkSampleCountFlagBits msaaSamples;
 
 private:
@@ -35,4 +37,6 @@ private:
 	void pickPhysicalDevice(VkInstance instance);
 
 	void createSurface(VkInstance instance, GLFWwindow *window);
+
+	void createCommandPool();
 };

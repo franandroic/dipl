@@ -27,6 +27,12 @@ void Application::initVulkan() {
 	myLoader.setModelLoader(&myModelLoader);
 	myLoader.setImageLoader(&myImageLoader);
 
+	int texWidth, texHeight, texChannels;
+	unsigned char *pixels = myLoader.loadImage(&texWidth, &texHeight, &texChannels);
+	if (!pixels) {
+		throw std::runtime_error("Failed to load texture image!");
+	}
+
 	createInstance();
 	setupDebugMessenger();
 	
@@ -39,31 +45,10 @@ void Application::initVulkan() {
 	myDescription = Description(&myDevice);
 
 	myPipeline = Pipeline(&myDevice, &myRenderPass, &myDescription);
-	
-	myCommand = Command(&myDevice, &mySwapChain, &myRenderPass, &myPipeline, &myDescription);
-	myCommand.createCommandPool();
 
-	myCIO = ColorImageObject(&myDevice, mySwapChain.swapChainImageFormat);
-	myCIO.createImage(mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
-	colorImageView = mySwapChain.createImageView(myCIO.image, myCIO.colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
-	myDIO = DepthImageObject(&myDevice, DeviceUtils::findDepthFormat(myDevice.physical));
-	myDIO.createImage(myCommand.commandPool, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
-	depthImageView = mySwapChain.createImageView(myDIO.image, myDIO.depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-
-	myCommand.createFramebuffers(colorImageView, depthImageView);
-
-	int texWidth, texHeight, texChannels;
-	unsigned char *pixels = myLoader.loadImage(&texWidth, &texHeight, &texChannels);
-	if (!pixels) {
-		throw std::runtime_error("Failed to load texture image!");
-	}
-	myTIO = TextureImageObject(&myDevice);
-	myTIO.createImage(myCommand.commandPool, pixels, texWidth, texHeight, texChannels);
+	myFBO = FrameBufferObject(&mySwapChain, &myRenderPass, pixels, texWidth, texHeight, texChannels);
+	myCommand = Command(&myFBO, &myRenderPass, &myPipeline, &myDescription);
 	myLoader.unloadImage(pixels);
-	textureImageView = mySwapChain.createImageView(myTIO.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, myTIO.mipLevels);
-
-	myTIO.createTextureSampler();
 	
 	myModelLoader.load(vertices, indices);
 
@@ -73,7 +58,7 @@ void Application::initVulkan() {
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
-	myVBO.createBuffer(myCommand.commandPool);
+	myVBO.createBuffer(myDevice.commandPool);
 
 	myIBO = IndexBufferObject(
 		&myDevice,
@@ -81,7 +66,7 @@ void Application::initVulkan() {
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
-	myIBO.createBuffer(myCommand.commandPool);
+	myIBO.createBuffer(myDevice.commandPool);
 
 	myUBOs.resize(MAX_FRAMES_IN_FLIGHT);
 	myUBop = UniformBufferOperator(mySwapChain.swapChainExtent.width / (float)mySwapChain.swapChainExtent.height);
@@ -97,7 +82,7 @@ void Application::initVulkan() {
 	}
 	
 	myDescription.createDescriptorPool();
-	myDescription.createDescriptorSets(myUBOs, textureImageView, myTIO.sampler);
+	myDescription.createDescriptorSets(myUBOs, myFBO.TIO.imageView, myFBO.TIO.sampler);
 
 	myCommand.createCommandBuffers();
 
@@ -123,12 +108,12 @@ void Application::cleanup() {
 		vkFreeMemory(myDevice.logical, myUBOs[i].bufferMemory, nullptr);
 	}
 
-	vkDestroySampler(myDevice.logical, myTIO.sampler, nullptr);
+	vkDestroySampler(myDevice.logical, myFBO.TIO.sampler, nullptr);
 
-	vkDestroyImageView(myDevice.logical, textureImageView, nullptr);
+	vkDestroyImageView(myDevice.logical, myFBO.TIO.imageView, nullptr);
 
-	vkDestroyImage(myDevice.logical, myTIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myTIO.imageMemory, nullptr);
+	vkDestroyImage(myDevice.logical, myFBO.TIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myFBO.TIO.imageMemory, nullptr);
 
 	vkDestroyDescriptorPool(myDevice.logical, myDescription.descriptorPool, nullptr);
 	vkDestroyDescriptorSetLayout(myDevice.logical, myDescription.descriptorSetLayout, nullptr);
@@ -148,7 +133,7 @@ void Application::cleanup() {
 		vkDestroyFence(myDevice.logical, inFlightFences[i], nullptr);
 	}
 
-	vkDestroyCommandPool(myDevice.logical, myCommand.commandPool, nullptr);
+	vkDestroyCommandPool(myDevice.logical, myDevice.commandPool, nullptr);
 
 	vkDestroyDevice(myDevice.logical, nullptr);
 
@@ -164,15 +149,15 @@ void Application::cleanup() {
 
 void Application::cleanupSwapChain() {
 
-	vkDestroyImageView(myDevice.logical, colorImageView, nullptr);
-	vkDestroyImage(myDevice.logical, myCIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myCIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice.logical, myFBO.CIO.imageView, nullptr);
+	vkDestroyImage(myDevice.logical, myFBO.CIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myFBO.CIO.imageMemory, nullptr);
 
-	vkDestroyImageView(myDevice.logical, depthImageView, nullptr);
-	vkDestroyImage(myDevice.logical, myDIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myDIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice.logical, myFBO.DIO.imageView, nullptr);
+	vkDestroyImage(myDevice.logical, myFBO.DIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myFBO.DIO.imageMemory, nullptr);
 
-	for (auto framebuffer : myCommand.swapChainFramebuffers) {
+	for (auto framebuffer : myFBO.framebuffers) {
 		vkDestroyFramebuffer(myDevice.logical, framebuffer, nullptr);
 	}
 
@@ -380,15 +365,5 @@ void Application::recreateSwapChain() {
 
 	mySwapChain.createImageViews();
 
-	myCIO = ColorImageObject(&myDevice, mySwapChain.swapChainImageFormat);
-	myCIO.createImage(mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
-
-	colorImageView = mySwapChain.createImageView(myCIO.image, myCIO.colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
-	myDIO = DepthImageObject(&myDevice, DeviceUtils::findDepthFormat(myDevice.physical));
-	myDIO.createImage(myCommand.commandPool, mySwapChain.swapChainExtent.width, mySwapChain.swapChainExtent.height);
-
-	depthImageView = mySwapChain.createImageView(myDIO.image, myDIO.depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-
-	myCommand.createFramebuffers(colorImageView, depthImageView);
+	myFBO.recreateFramebuffers(&myRenderPass);
 }

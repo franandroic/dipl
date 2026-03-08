@@ -15,6 +15,8 @@ public:
 
 	VkImage image;
 
+	VkImageView imageView;
+
 	VkDeviceMemory imageMemory;
 
 	void createImage(
@@ -31,4 +33,6 @@ public:
 protected:
 
 	Device *device;
+
+	void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 };

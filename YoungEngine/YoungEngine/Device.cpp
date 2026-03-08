@@ -49,6 +49,8 @@ Device::Device(VkInstance instance, GLFWwindow *window) {
 
 	vkGetDeviceQueue(logical, indices.graphicsFamily.value(), 0, &graphicsQueue);
 	vkGetDeviceQueue(logical, indices.presentFamily.value(), 0, &presentQueue);
+
+	createCommandPool();
 }
 
 void Device::pickPhysicalDevice(VkInstance instance) {
@@ -86,5 +88,22 @@ void Device::createSurface(VkInstance instance, GLFWwindow *window) {
 
 	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create window surface!");
+	}
+}
+
+void Device::createCommandPool() {
+
+	//Creating a command pool as a place to store command buffers.
+	//It is submitted to a queue, so we need to pass which queue it is to be submitted to.
+
+	QueueFamilyIndices queueFamilyIndices = DeviceUtils::findQueueFamilies(physical, surface);
+
+	VkCommandPoolCreateInfo poolInfo{};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+	if (vkCreateCommandPool(logical, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create command pool!");
 	}
 }

@@ -44,6 +44,8 @@ void TextureImageObject::createImage(VkCommandPool commandPool, unsigned char *p
 
 	vkDestroyBuffer(device->logical, stagingBufferObject.buffer, nullptr);
 	vkFreeMemory(device->logical, stagingBufferObject.bufferMemory, nullptr);
+
+	createImageView(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
 }
 
 void TextureImageObject::generateMipmaps(

@@ -6,11 +6,10 @@
 #include "DeviceData.hpp"
 #include "DeviceUtils.hpp"
 
-#include "Device.hpp"
-#include "SwapChain.hpp"
 #include "RenderPass.hpp"
 #include "Pipeline.hpp"
 #include "Description.hpp"
+#include "FrameBufferObject.hpp"
 
 class Command {
 
@@ -18,27 +17,24 @@ public:
 
 	Command() = default;
 
-	Command(Device *inDevice, SwapChain *inSwapChain, RenderPass *inRenderPass, Pipeline *inPipeline, Description *inDescription);
-
-	std::vector<VkFramebuffer> swapChainFramebuffers;
-
-	VkCommandPool commandPool;
+	Command(FrameBufferObject *inFBO, RenderPass *inRenderPass, Pipeline *inPipeline, Description *inDescription);
 
 	std::vector<VkCommandBuffer> commandBuffers;
 
-	void createFramebuffers(VkImageView colorImageView, VkImageView depthImageView);
-
-	void createCommandPool();
-
 	void createCommandBuffers();
 
-	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame, uint32_t indicesSize, VkBuffer vertexBuffer, VkBuffer indexBuffer);
+	void recordCommandBuffer(
+		VkCommandBuffer commandBuffer,
+		uint32_t imageIndex,
+		uint32_t currentFrame,
+		uint32_t indicesSize,
+		VkBuffer vertexBuffer,
+		VkBuffer indexBuffer
+		);
 
 private:
 
-	Device *device;
-
-	SwapChain *swapChain;
+	FrameBufferObject *FBO;
 
 	RenderPass *renderPass;
 

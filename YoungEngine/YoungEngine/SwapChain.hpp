@@ -18,6 +18,8 @@ public:
 
 	SwapChain(Device *inDevice, GLFWwindow *window);
 
+	Device *device;
+
 	VkSwapchainKHR swapChain;
 
 	std::vector<VkImageView> swapChainImageViews;
@@ -33,8 +35,6 @@ public:
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 private:
-
-	Device *device;
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
 	

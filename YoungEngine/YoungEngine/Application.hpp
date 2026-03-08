@@ -31,6 +31,7 @@
 #include "TextureImageObject.hpp"
 #include "DepthImageObject.hpp"
 #include "ColorImageObject.hpp"
+#include "FrameBufferObject.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -83,6 +84,7 @@ private:
 	std::vector<UniformBufferObject> myUBOs;
 	UniformBufferData myUBdata;
 	UniformBufferOperator myUBop;
+	FrameBufferObject myFBO;
 
 	//SYNCHRONISATION
 	std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -92,14 +94,6 @@ private:
 	//DRAWING
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
-
-	//IMAGE/TEXTURE OBJECTS
-	TextureImageObject myTIO;
-	DepthImageObject myDIO;
-	ColorImageObject myCIO;
-	VkImageView textureImageView;
-	VkImageView depthImageView;
-	VkImageView colorImageView;
 
 public:
 
@@ -127,10 +121,6 @@ private:
 
 	//INSTANCE AND DEBUG MESSENGER SUPPORT FUNCTIONS
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-
-	//COMMAND RECORDING FUNCTIONS
-
-	//IMAGE SUPPORT FUNCTIONS
 
 	//DEBUG CALLBACK FUNCTION
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
