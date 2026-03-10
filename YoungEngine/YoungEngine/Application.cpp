@@ -52,21 +52,7 @@ void Application::initVulkan() {
 	
 	myModelLoader.load(vertices, indices);
 
-	myVBO = VertexBufferObject(
-		&myDevice,
-		&vertices,
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);
-	myVBO.createBuffer(myDevice.commandPool);
-
-	myIBO = IndexBufferObject(
-		&myDevice,
-		&indices,
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);
-	myIBO.createBuffer(myDevice.commandPool);
+	mySBO = StructureBufferObject(&myDevice, vertices, indices);
 
 	myUBOs.resize(MAX_FRAMES_IN_FLIGHT);
 	myUBop = UniformBufferOperator(mySwapChain.swapChainExtent.width / (float)mySwapChain.swapChainExtent.height);
@@ -121,11 +107,11 @@ void Application::cleanup() {
 	vkDestroyPipelineLayout(myDevice.logical, myPipeline.pipelineLayout, nullptr);
 	vkDestroyRenderPass(myDevice.logical, myRenderPass.renderPass, nullptr);
 
-	vkDestroyBuffer(myDevice.logical, myVBO.buffer, nullptr);
-	vkFreeMemory(myDevice.logical, myVBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice.logical, mySBO.VBO.buffer, nullptr);
+	vkFreeMemory(myDevice.logical, mySBO.VBO.bufferMemory, nullptr);
 
-	vkDestroyBuffer(myDevice.logical, myIBO.buffer, nullptr);
-	vkFreeMemory(myDevice.logical, myIBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice.logical, mySBO.IBO.buffer, nullptr);
+	vkFreeMemory(myDevice.logical, mySBO.IBO.bufferMemory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroySemaphore(myDevice.logical, imageAvailableSemaphores[i], nullptr);
@@ -299,7 +285,7 @@ void Application::drawFrame() {
 	vkResetFences(myDevice.logical, 1, &inFlightFences[currentFrame]);
 
 	vkResetCommandBuffer(myCommand.commandBuffers[currentFrame], 0);
-	myCommand.recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), myVBO.buffer, myIBO.buffer);
+	myCommand.recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), mySBO.VBO.buffer, mySBO.IBO.buffer);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

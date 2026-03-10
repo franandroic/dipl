@@ -32,6 +32,7 @@
 #include "DepthImageObject.hpp"
 #include "ColorImageObject.hpp"
 #include "FrameBufferObject.hpp"
+#include "StructureBufferObject.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -79,8 +80,7 @@ private:
 	Command myCommand;
 
 	//BUFFER OBJECTS
-	VertexBufferObject myVBO;
-	IndexBufferObject myIBO;
+	StructureBufferObject mySBO;
 	std::vector<UniformBufferObject> myUBOs;
 	UniformBufferData myUBdata;
 	UniformBufferOperator myUBop;
