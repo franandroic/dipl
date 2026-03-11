@@ -10,13 +10,13 @@
 #include "VertexBufferObject.hpp"
 #include "IndexBufferObject.hpp"
 
-class StructureBufferObject {
+class Mesh {
 
 public:
 	
-	StructureBufferObject() = default;
+	Mesh() = default;
 
-	StructureBufferObject(Device *inDevice, std::vector<Vertex> &inVertices, std::vector<uint32_t> &inIndices);
+	Mesh(Device *inDevice, std::vector<Vertex> &inVertices, std::vector<uint32_t> &inIndices);
 
 	VertexBufferObject VBO;
 	IndexBufferObject IBO;

@@ -1,6 +1,6 @@
-#include "StructureBufferObject.hpp"
+#include "Mesh.hpp"
 
-StructureBufferObject::StructureBufferObject(Device *inDevice, std::vector<Vertex> &inVertices, std::vector<uint32_t> &inIndices) {
+Mesh::Mesh(Device *inDevice, std::vector<Vertex> &inVertices, std::vector<uint32_t> &inIndices) {
 
 	VBO = VertexBufferObject(
 		inDevice,

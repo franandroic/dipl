@@ -16,12 +16,7 @@ public:
 
 	RenderPass() = default;
 
-	RenderPass(Device *inDevice, SwapChain *swapChain);
+	RenderPass(SwapChain *swapChain);
 
 	VkRenderPass renderPass;
-
-private:
-
-	Device *device;
-
 };

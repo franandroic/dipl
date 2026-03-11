@@ -2,12 +2,10 @@
 
 Description::Description(Device *inDevice) {
 
-	device = inDevice;
-
-	createDescriptorSetLayout();
+	createDescriptorSetLayout(*inDevice);
 }
 
-void Description::createDescriptorSetLayout() {
+void Description::createDescriptorSetLayout(Device &device) {
 
 	//Specifying what kind of descriptor sets we're going to bind to a render pass, to which bindings
 	//and to which shader stages.
@@ -33,34 +31,18 @@ void Description::createDescriptorSetLayout() {
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutInfo.pBindings = bindings.data();
 
-	if (vkCreateDescriptorSetLayout(device->logical, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+	if (vkCreateDescriptorSetLayout(device.logical, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor set layout!");
 	}
 }
 
-void Description::createDescriptorPool() {
-
-	//Creating a descriptor pool, with a pool size for each descriptor set type and amount.
-
-	std::array<VkDescriptorPoolSize, 2> poolSizes{};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-	VkDescriptorPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-	poolInfo.flags = 0;
-
-	if (vkCreateDescriptorPool(device->logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create descriptor pool!");
-	}
-}
-
-void Description::createDescriptorSets(std::vector<UniformBufferObject> UBOs, VkImageView textureImageView, VkSampler textureSampler) {
+void Description::createDescriptorSets(
+	Device &device,
+	VkDescriptorPool &descriptorPool,
+	std::vector<UniformBufferObject> &UBOs,
+	VkImageView textureImageView,
+	VkSampler textureSampler
+	) {
 
 	//After we create the pool and define the layouts, we use those references to create
 	//the actual descriptor sets.
@@ -75,7 +57,7 @@ void Description::createDescriptorSets(std::vector<UniformBufferObject> UBOs, Vk
 
 	descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
-	if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+	if (vkAllocateDescriptorSets(device.logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate descriptor sets!");
 	}
 
@@ -113,6 +95,6 @@ void Description::createDescriptorSets(std::vector<UniformBufferObject> UBOs, Vk
 		descriptorWrites[1].pImageInfo = &imageInfo;
 		descriptorWrites[1].pTexelBufferView = nullptr;
 
-		vkUpdateDescriptorSets(device->logical, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(device.logical, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 }

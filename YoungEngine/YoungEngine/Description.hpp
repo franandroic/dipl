@@ -22,17 +22,17 @@ public:
 
 	VkDescriptorSetLayout descriptorSetLayout;
 
-	VkDescriptorPool descriptorPool;
-
 	std::vector<VkDescriptorSet> descriptorSets;
 
-	void createDescriptorPool();
-
-	void createDescriptorSets(std::vector<UniformBufferObject> UBOs, VkImageView textureImageView, VkSampler textureSampler);
+	void createDescriptorSets(
+		Device &device,
+		VkDescriptorPool &descriptorPool,
+		std::vector<UniformBufferObject> &UBOs,
+		VkImageView textureImageView,
+		VkSampler textureSampler
+		);
 
 private:
 
-	Device *device;
-
-	void createDescriptorSetLayout();
+	void createDescriptorSetLayout(Device &device);
 };

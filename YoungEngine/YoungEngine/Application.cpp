@@ -40,35 +40,17 @@ void Application::initVulkan() {
 
 	mySwapChain = SwapChain(&myDevice, window);
 	mySwapChain.createImageViews();
-	myRenderPass = RenderPass(&myDevice, &mySwapChain);
 
-	myDescription = Description(&myDevice);
+	myCanvas = std::make_unique<Canvas>(&mySwapChain, pixels, texWidth, texHeight, texChannels);
 
-	myPipeline = Pipeline(&myDevice, &myRenderPass, &myDescription);
+	myPipeline = Pipeline(&myDevice, &myCanvas->renderPass, &myCanvas->description);
 
-	myFBO = FrameBufferObject(&mySwapChain, &myRenderPass, pixels, texWidth, texHeight, texChannels);
-	myCommand = Command(&myFBO, &myRenderPass, &myPipeline, &myDescription);
+	myCommand = Command(&myCanvas->FBO, &myCanvas->renderPass, &myPipeline, &myCanvas->description);
 	myLoader.unloadImage(pixels);
 	
 	myModelLoader.load(vertices, indices);
 
-	mySBO = StructureBufferObject(&myDevice, vertices, indices);
-
-	myUBOs.resize(MAX_FRAMES_IN_FLIGHT);
-	myUBop = UniformBufferOperator(mySwapChain.swapChainExtent.width / (float)mySwapChain.swapChainExtent.height);
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		myUBOs[i] = UniformBufferObject(
-			&myDevice,
-			&myUBdata,
-			&myUBop,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-		);
-		myUBOs[i].createBuffer();
-	}
-	
-	myDescription.createDescriptorPool();
-	myDescription.createDescriptorSets(myUBOs, myFBO.TIO.imageView, myFBO.TIO.sampler);
+	myMesh = Mesh(&myDevice, vertices, indices);
 
 	myCommand.createCommandBuffers();
 
@@ -90,28 +72,28 @@ void Application::cleanup() {
 	cleanupSwapChain();
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroyBuffer(myDevice.logical, myUBOs[i].buffer, nullptr);
-		vkFreeMemory(myDevice.logical, myUBOs[i].bufferMemory, nullptr);
+		vkDestroyBuffer(myDevice.logical, myCanvas->UBOs[i].buffer, nullptr);
+		vkFreeMemory(myDevice.logical, myCanvas->UBOs[i].bufferMemory, nullptr);
 	}
 
-	vkDestroySampler(myDevice.logical, myFBO.TIO.sampler, nullptr);
+	vkDestroySampler(myDevice.logical, myCanvas->FBO.TIO.sampler, nullptr);
 
-	vkDestroyImageView(myDevice.logical, myFBO.TIO.imageView, nullptr);
+	vkDestroyImageView(myDevice.logical, myCanvas->FBO.TIO.imageView, nullptr);
 
-	vkDestroyImage(myDevice.logical, myFBO.TIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myFBO.TIO.imageMemory, nullptr);
+	vkDestroyImage(myDevice.logical, myCanvas->FBO.TIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myCanvas->FBO.TIO.imageMemory, nullptr);
 
-	vkDestroyDescriptorPool(myDevice.logical, myDescription.descriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(myDevice.logical, myDescription.descriptorSetLayout, nullptr);
+	vkDestroyDescriptorPool(myDevice.logical, myCanvas->descriptorPool, nullptr);
+	vkDestroyDescriptorSetLayout(myDevice.logical, myCanvas->description.descriptorSetLayout, nullptr);
 	vkDestroyPipeline(myDevice.logical, myPipeline.graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(myDevice.logical, myPipeline.pipelineLayout, nullptr);
-	vkDestroyRenderPass(myDevice.logical, myRenderPass.renderPass, nullptr);
+	vkDestroyRenderPass(myDevice.logical, myCanvas->renderPass.renderPass, nullptr);
 
-	vkDestroyBuffer(myDevice.logical, mySBO.VBO.buffer, nullptr);
-	vkFreeMemory(myDevice.logical, mySBO.VBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice.logical, myMesh.VBO.buffer, nullptr);
+	vkFreeMemory(myDevice.logical, myMesh.VBO.bufferMemory, nullptr);
 
-	vkDestroyBuffer(myDevice.logical, mySBO.IBO.buffer, nullptr);
-	vkFreeMemory(myDevice.logical, mySBO.IBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice.logical, myMesh.IBO.buffer, nullptr);
+	vkFreeMemory(myDevice.logical, myMesh.IBO.bufferMemory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroySemaphore(myDevice.logical, imageAvailableSemaphores[i], nullptr);
@@ -135,15 +117,15 @@ void Application::cleanup() {
 
 void Application::cleanupSwapChain() {
 
-	vkDestroyImageView(myDevice.logical, myFBO.CIO.imageView, nullptr);
-	vkDestroyImage(myDevice.logical, myFBO.CIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myFBO.CIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice.logical, myCanvas->FBO.CIO.imageView, nullptr);
+	vkDestroyImage(myDevice.logical, myCanvas->FBO.CIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myCanvas->FBO.CIO.imageMemory, nullptr);
 
-	vkDestroyImageView(myDevice.logical, myFBO.DIO.imageView, nullptr);
-	vkDestroyImage(myDevice.logical, myFBO.DIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myFBO.DIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice.logical, myCanvas->FBO.DIO.imageView, nullptr);
+	vkDestroyImage(myDevice.logical, myCanvas->FBO.DIO.image, nullptr);
+	vkFreeMemory(myDevice.logical, myCanvas->FBO.DIO.imageMemory, nullptr);
 
-	for (auto framebuffer : myFBO.framebuffers) {
+	for (auto framebuffer : myCanvas->FBO.framebuffers) {
 		vkDestroyFramebuffer(myDevice.logical, framebuffer, nullptr);
 	}
 
@@ -269,7 +251,7 @@ void Application::drawFrame() {
 	//We are able to render to multiple (MAX_FRAMES_IN_FLIGHT) frames before waiting for previous renders to finish.
 	//We need to update the uniform buffer that contains constantly-changing data (transformation matrices) every frame.
 
-	myUBOs[currentFrame].updateBuffer();
+	myCanvas->UBOs[currentFrame].updateBuffer();
 
 	vkWaitForFences(myDevice.logical, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -285,7 +267,7 @@ void Application::drawFrame() {
 	vkResetFences(myDevice.logical, 1, &inFlightFences[currentFrame]);
 
 	vkResetCommandBuffer(myCommand.commandBuffers[currentFrame], 0);
-	myCommand.recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), mySBO.VBO.buffer, mySBO.IBO.buffer);
+	myCommand.recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), myMesh.VBO.buffer, myMesh.IBO.buffer);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -351,5 +333,5 @@ void Application::recreateSwapChain() {
 
 	mySwapChain.createImageViews();
 
-	myFBO.recreateFramebuffers(&myRenderPass);
+	myCanvas->FBO.recreateFramebuffers(&myCanvas->renderPass);
 }

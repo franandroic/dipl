@@ -32,7 +32,8 @@
 #include "DepthImageObject.hpp"
 #include "ColorImageObject.hpp"
 #include "FrameBufferObject.hpp"
-#include "StructureBufferObject.hpp"
+#include "Mesh.hpp"
+#include "Canvas.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -73,18 +74,13 @@ private:
 
 	//GRAPHICS PIPELINE OBJECTS
 	Pipeline myPipeline;
-	RenderPass myRenderPass;
-	Description myDescription;
+	std::unique_ptr<Canvas> myCanvas;
 
 	//COMMAND OBJECTS
 	Command myCommand;
 
 	//BUFFER OBJECTS
-	StructureBufferObject mySBO;
-	std::vector<UniformBufferObject> myUBOs;
-	UniformBufferData myUBdata;
-	UniformBufferOperator myUBop;
-	FrameBufferObject myFBO;
+	Mesh myMesh;
 
 	//SYNCHRONISATION
 	std::vector<VkSemaphore> imageAvailableSemaphores;

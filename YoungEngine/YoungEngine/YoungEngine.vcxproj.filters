@@ -72,10 +72,10 @@
     <ClCompile Include="FrameBufferObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StructureBufferObject.cpp">
+    <ClCompile Include="Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CompoundUniversalBufferObject.cpp">
+    <ClCompile Include="Canvas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -164,10 +164,10 @@
     <ClInclude Include="FrameBufferObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StructureBufferObject.hpp">
+    <ClInclude Include="Mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CompoundUniversalBufferObject.hpp">
+    <ClInclude Include="Canvas.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
