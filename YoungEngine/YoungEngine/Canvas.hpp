@@ -15,17 +15,28 @@
 #include "UniformBufferData.hpp"
 #include "UniformBufferOperator.hpp"
 
+//Contains objects used to define the look of an object
 class Canvas {
 
 public:
 
-	Canvas() = default;
+	//Constructor
+	Canvas(
+		SwapChain &inSwapChain,
+		unsigned char *pixels,
+		int texWidth, int texHeight, int texChannels
+	);
 
-	Canvas(SwapChain *inSwapChain, unsigned char *pixels, int texWidth, int texHeight, int texChannels);
+	//Copy and Move constructors
+	Canvas(const Canvas &) = delete;
+	Canvas &operator=(const Canvas &) = delete;
+	Canvas(Canvas &&) = delete;
+	Canvas &operator=(Canvas &&) = delete;
 
+	//Member variables
 	RenderPass renderPass;
 
-	VkDescriptorPool descriptorPool;
+	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	Description description;
 
 	FrameBufferObject FBO;

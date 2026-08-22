@@ -6,7 +6,7 @@ void ColorImageObject::createImage(uint32_t width, uint32_t height) {
 		width,
 		height,
 		1,
-		device->msaaSamples,
+		device.msaaSamples,
 		colorFormat,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,

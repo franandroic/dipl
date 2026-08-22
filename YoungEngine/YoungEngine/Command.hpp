@@ -11,17 +11,18 @@
 #include "Description.hpp"
 #include "FrameBufferObject.hpp"
 
+//Wrapper for Vulkan Command Buffers
 class Command {
 
 public:
 
+	//Constructor
 	Command() = default;
 
-	Command(FrameBufferObject *inFBO, RenderPass *inRenderPass, Pipeline *inPipeline, Description *inDescription);
-
+	//Member variables
 	std::vector<VkCommandBuffer> commandBuffers;
 
-	void createCommandBuffers();
+	void createCommandBuffers(Device &device);
 
 	void recordCommandBuffer(
 		VkCommandBuffer commandBuffer,
@@ -29,16 +30,10 @@ public:
 		uint32_t currentFrame,
 		uint32_t indicesSize,
 		VkBuffer vertexBuffer,
-		VkBuffer indexBuffer
+		VkBuffer indexBuffer,
+		FrameBufferObject &FBO,
+		RenderPass &renderPass,
+		Pipeline &pipeline,
+		Description &description
 		);
-
-private:
-
-	FrameBufferObject *FBO;
-
-	RenderPass *renderPass;
-
-	Pipeline *pipeline;
-
-	Description *description;
 };

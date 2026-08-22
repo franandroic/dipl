@@ -1,14 +1,6 @@
 #include "Command.hpp"
 
-Command::Command(FrameBufferObject *inFBO, RenderPass *inRenderPass, Pipeline *inPipeline, Description *inDescription) {
-
-	FBO = inFBO;
-	renderPass = inRenderPass;
-	pipeline = inPipeline;
-	description = inDescription;
-}
-
-void Command::createCommandBuffers() {
+void Command::createCommandBuffers(Device &device) {
 
 	//Creating a command buffer to which we will record commands, before storing
 	//them in a pool and submitting them to a queue to be executed.
@@ -19,11 +11,11 @@ void Command::createCommandBuffers() {
 
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = FBO->swapChain->device->commandPool;
+	allocInfo.commandPool = device.commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-	if (vkAllocateCommandBuffers(FBO->swapChain->device->logical, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(device.logical, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create command buffers!");
 	}
 }
@@ -34,7 +26,11 @@ void Command::recordCommandBuffer(
 	uint32_t currentFrame,
 	uint32_t indicesSize,
 	VkBuffer vertexBuffer,
-	VkBuffer indexBuffer
+	VkBuffer indexBuffer,
+	FrameBufferObject &FBO,
+	RenderPass &renderPass,
+	Pipeline &pipeline,
+	Description &description
 	) {
 
 	//This is where the recording of commands happens. Before recording we need to "begin"
@@ -54,10 +50,10 @@ void Command::recordCommandBuffer(
 
 	VkRenderPassBeginInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassInfo.renderPass = renderPass->renderPass;
-	renderPassInfo.framebuffer = FBO->framebuffers[imageIndex];
+	renderPassInfo.renderPass = renderPass.renderPass;
+	renderPassInfo.framebuffer = FBO.framebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
-	renderPassInfo.renderArea.extent = FBO->swapChain->swapChainExtent;
+	renderPassInfo.renderArea.extent = FBO.swapChain.swapChainExtent;
 
 	//Ensure that the order of clear values is identical to the order of render pass attachments
 	std::array<VkClearValue, 2> clearValues{};
@@ -69,20 +65,20 @@ void Command::recordCommandBuffer(
 	//Thus begins the recording of commands to command buffers of the render pass
 	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.graphicsPipeline);
 
 	VkViewport viewport{};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(FBO->swapChain->swapChainExtent.width);
-	viewport.height = static_cast<float>(FBO->swapChain->swapChainExtent.height);
+	viewport.width = static_cast<float>(FBO.swapChain.swapChainExtent.width);
+	viewport.height = static_cast<float>(FBO.swapChain.swapChainExtent.height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
-	scissor.extent = FBO->swapChain->swapChainExtent;
+	scissor.extent = FBO.swapChain.swapChainExtent;
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 	VkBuffer vertexBuffers[] = { vertexBuffer };
@@ -91,7 +87,7 @@ void Command::recordCommandBuffer(
 
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout, 0, 1, &description->descriptorSets[currentFrame], 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipelineLayout, 0, 1, &description.descriptorSets[currentFrame], 0, nullptr);
 
 	//vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0); //For using just the vertex buffer
 	vkCmdDrawIndexed(commandBuffer, indicesSize, 1, 0, 0, 0);

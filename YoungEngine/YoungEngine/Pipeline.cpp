@@ -1,8 +1,6 @@
 #include "Pipeline.hpp"
 
-Pipeline::Pipeline(Device *inDevice, RenderPass *renderPass, Description *description) {
-
-	device = inDevice;
+Pipeline::Pipeline(Device &inDevice, RenderPass &renderPass, Description &description) : device(inDevice) {
 
 	//The graphics pipeline consists of programmable (shaders) and fixed functions. We create shader modules
 	//with the compiled code read from a file and save them into shader stages.
@@ -90,7 +88,7 @@ Pipeline::Pipeline(Device *inDevice, RenderPass *renderPass, Description *descri
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_FALSE;
-	multisampling.rasterizationSamples = device->msaaSamples;
+	multisampling.rasterizationSamples = device.msaaSamples;
 	multisampling.minSampleShading = 1.0f;
 	multisampling.pSampleMask = nullptr;
 	multisampling.alphaToCoverageEnable = VK_FALSE;
@@ -141,11 +139,11 @@ Pipeline::Pipeline(Device *inDevice, RenderPass *renderPass, Description *descri
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &(description->descriptorSetLayout);
+	pipelineLayoutInfo.pSetLayouts = &(description.descriptorSetLayout);
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-	if (vkCreatePipelineLayout(device->logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(device.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create pipeline layout!");
 	}
 
@@ -162,17 +160,17 @@ Pipeline::Pipeline(Device *inDevice, RenderPass *renderPass, Description *descri
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = &dynamicState;
 	pipelineInfo.layout = pipelineLayout;
-	pipelineInfo.renderPass = renderPass->renderPass;
+	pipelineInfo.renderPass = renderPass.renderPass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = -1;
 
-	if (vkCreateGraphicsPipelines(device->logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+	if (vkCreateGraphicsPipelines(device.logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create graphics pipeline!");
 	}
 
-	vkDestroyShaderModule(device->logical, fragShaderModule, nullptr);
-	vkDestroyShaderModule(device->logical, vertShaderModule, nullptr);
+	vkDestroyShaderModule(device.logical, fragShaderModule, nullptr);
+	vkDestroyShaderModule(device.logical, vertShaderModule, nullptr);
 }
 
 VkShaderModule Pipeline::createShaderModule(const std::vector<char> &code) {
@@ -188,7 +186,7 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char> &code) {
 
 	VkShaderModule shaderModule;
 
-	if (vkCreateShaderModule(device->logical, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+	if (vkCreateShaderModule(device.logical, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create shader module!");
 	}
 

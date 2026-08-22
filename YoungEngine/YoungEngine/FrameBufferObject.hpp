@@ -13,23 +13,35 @@
 #include "TextureImageObject.hpp"
 #include "RenderPass.hpp"
 
+//Encapsulates Vulkan's buffer objects that contain images
+//to be rendered to and sampled from.
 class FrameBufferObject {
 
 public:
 
-	FrameBufferObject() = default;
+	//Constructor
+	FrameBufferObject(
+		SwapChain &inSwapChain,
+		RenderPass &renderPass,
+		unsigned char *pixels,
+		int texWidth, int texHeight, int texChannels
+	);
 
-	FrameBufferObject(SwapChain *inSwapChain, RenderPass *renderPass, unsigned char *pixels, int texWidth, int texHeight, int texChannels);
+	//Copy and Move constructor
+	FrameBufferObject(const FrameBufferObject &) = delete;
+	FrameBufferObject &operator=(const FrameBufferObject &) = delete;
+	FrameBufferObject(FrameBufferObject &&) = delete;
+	FrameBufferObject &operator=(FrameBufferObject &&) = delete;
 
+	//Member variables
 	std::vector<VkFramebuffer> framebuffers;
-
-	SwapChain *swapChain;
+	
+	SwapChain &swapChain;
 
 	ColorImageObject CIO;
 	DepthImageObject DIO;
 	TextureImageObject TIO;
 
-	void createFramebuffers(RenderPass *renderPass);
-
-	void recreateFramebuffers(RenderPass *renderPass);
+	void createFramebuffers(RenderPass &renderPass);
+	void recreateFramebuffers(RenderPass &renderPass);
 };

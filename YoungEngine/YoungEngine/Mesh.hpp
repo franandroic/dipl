@@ -10,14 +10,21 @@
 #include "VertexBufferObject.hpp"
 #include "IndexBufferObject.hpp"
 
+//Describes a mesh by encapsulating its data buffers
 class Mesh {
 
 public:
-	
-	Mesh() = default;
 
-	Mesh(Device *inDevice, std::vector<Vertex> &inVertices, std::vector<uint32_t> &inIndices);
+	//Constructor
+	Mesh(Device &inDevice, std::vector<Vertex> &inVertices, std::vector<uint32_t> &inIndices);
 
+	//Copy and Move constructors
+	Mesh(const Mesh &) = delete;
+	Mesh &operator=(const Mesh &) = delete;
+	Mesh(Mesh &&) = delete;
+	Mesh &operator=(Mesh &&) = delete;
+
+	//Member variables
 	VertexBufferObject VBO;
 	IndexBufferObject IBO;
 };

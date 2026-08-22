@@ -67,20 +67,20 @@ private:
 	VkDebugUtilsMessengerEXT debugMessenger;
 
 	//LOGICAL DEVICE OBJECTS
-	Device myDevice;
+	std::unique_ptr<Device> myDevice;
 
 	//SWAP CHAIN OBJECTS
-	SwapChain mySwapChain;
+	std::unique_ptr<SwapChain> mySwapChain;
 
 	//GRAPHICS PIPELINE OBJECTS
-	Pipeline myPipeline;
+	std::unique_ptr<Pipeline> myPipeline;
 	std::unique_ptr<Canvas> myCanvas;
 
 	//COMMAND OBJECTS
 	Command myCommand;
 
 	//BUFFER OBJECTS
-	Mesh myMesh;
+	std::unique_ptr<Mesh> myMesh;
 
 	//SYNCHRONISATION
 	std::vector<VkSemaphore> imageAvailableSemaphores;

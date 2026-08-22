@@ -10,13 +10,20 @@
 #include "Device.hpp"
 #include "SwapChain.hpp"
 
+//Wrapper for Vulkan RenderPass
 class RenderPass {
 
 public:
 
-	RenderPass() = default;
+	//Constructor
+	RenderPass(SwapChain &swapChain);
 
-	RenderPass(SwapChain *swapChain);
+	//Copy and Move constructors
+	RenderPass(const RenderPass &) = delete;
+	RenderPass &operator=(const RenderPass &) = delete;
+	RenderPass(RenderPass &&) = delete;
+	RenderPass &operator=(RenderPass &&) = delete;
 
-	VkRenderPass renderPass;
+	//Member variables
+	VkRenderPass renderPass = VK_NULL_HANDLE;
 };

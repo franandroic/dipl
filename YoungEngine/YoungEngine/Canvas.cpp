@@ -1,20 +1,21 @@
 #include "Canvas.hpp"
 
-Canvas::Canvas(SwapChain *inSwapChain, unsigned char *pixels, int texWidth, int texHeight, int texChannels) {
+Canvas::Canvas(
+	SwapChain &inSwapChain,
+	unsigned char *pixels,
+	int texWidth, int texHeight, int texChannels
+) : renderPass(inSwapChain),
+	description(inSwapChain.device),
+	FBO(inSwapChain, renderPass, pixels, texWidth, texHeight, texChannels)
+{
 
-
-	renderPass = RenderPass(inSwapChain);
-
-	description = Description(inSwapChain->device);
-	createDescriptorPool(inSwapChain);
-
-	FBO = FrameBufferObject(inSwapChain, &renderPass, pixels, texWidth, texHeight, texChannels);
+	createDescriptorPool(&inSwapChain);
 
 	UBOs.resize(MAX_FRAMES_IN_FLIGHT);
-	UBop = UniformBufferOperator(FBO.swapChain->swapChainExtent.width / (float)FBO.swapChain->swapChainExtent.height);
+	UBop = UniformBufferOperator(FBO.swapChain.swapChainExtent.width / (float)FBO.swapChain.swapChainExtent.height);
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		UBOs[i] = UniformBufferObject(
-			FBO.swapChain->device,
+			&(FBO.swapChain.device),
 			&UBdata,
 			&UBop,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -23,7 +24,7 @@ Canvas::Canvas(SwapChain *inSwapChain, unsigned char *pixels, int texWidth, int 
 		UBOs[i].createBuffer();
 	}
 
-	description.createDescriptorSets(*FBO.swapChain->device, descriptorPool, UBOs, FBO.TIO.imageView, FBO.TIO.sampler);
+	description.createDescriptorSets(FBO.swapChain.device, descriptorPool, UBOs, FBO.TIO.imageView, FBO.TIO.sampler);
 }
 
 void Canvas::createDescriptorPool(SwapChain *swapChain) {
@@ -43,7 +44,7 @@ void Canvas::createDescriptorPool(SwapChain *swapChain) {
 	poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 	poolInfo.flags = 0;
 
-	if (vkCreateDescriptorPool(swapChain->device->logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+	if (vkCreateDescriptorPool(swapChain->device.logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor pool!");
 	}
 }

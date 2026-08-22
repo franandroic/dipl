@@ -1,8 +1,8 @@
 #include "Description.hpp"
 
-Description::Description(Device *inDevice) {
+Description::Description(Device &inDevice) {
 
-	createDescriptorSetLayout(*inDevice);
+	createDescriptorSetLayout(inDevice);
 }
 
 void Description::createDescriptorSetLayout(Device &device) {

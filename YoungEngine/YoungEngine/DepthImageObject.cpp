@@ -6,7 +6,7 @@ void DepthImageObject::createImage(VkCommandPool commandPool, uint32_t width, ui
 		width,
 		height,
 		1,
-		device->msaaSamples,
+		device.msaaSamples,
 		depthFormat,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -14,9 +14,9 @@ void DepthImageObject::createImage(VkCommandPool commandPool, uint32_t width, ui
 	);
 
 	ImageUtils::transitionImageLayout(
-		device->logical,
+		device.logical,
 		commandPool,
-		device->graphicsQueue,
+		device.graphicsQueue,
 		image,
 		depthFormat,
 		VK_IMAGE_ASPECT_DEPTH_BIT,

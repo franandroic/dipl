@@ -5,19 +5,24 @@
 
 #include "Device.hpp"
 
+//Abstract class for any object that represents a rendering target
 class ImageObject {
 
 public:
 
-	ImageObject() = default;
+	//Constructor
+	ImageObject(Device &inDevice) : device(inDevice) {}
 
-	ImageObject(Device *inDevice);
+	//Copy and Move constructors
+	ImageObject(const ImageObject &) = delete;
+	ImageObject &operator=(const ImageObject &) = delete;
+	ImageObject(ImageObject &&) = delete;
+	ImageObject &operator=(ImageObject &&) = delete;
 
-	VkImage image;
-
-	VkImageView imageView;
-
-	VkDeviceMemory imageMemory;
+	//Member variables
+	VkImage image = VK_NULL_HANDLE;
+	VkImageView imageView = VK_NULL_HANDLE;
+	VkDeviceMemory imageMemory = VK_NULL_HANDLE;
 
 	void createImage(
 		uint32_t width,
@@ -32,7 +37,7 @@ public:
 
 protected:
 
-	Device *device;
+	Device &device;
 
 	void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 };

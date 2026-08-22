@@ -12,16 +12,22 @@
 #include "UniformBufferData.hpp"
 #include "UniformBufferObject.hpp"
 
+//Encapsulates the Vulkan objects related to descriptors
 class Description {
 
 public:
 
-	Description() = default;
+	//Constructor
+	Description(Device &inDevice);
 
-	Description(Device *inDevice);
+	//Copy and Move constructors
+	Description(const Description &) = delete;
+	Description &operator=(const Description &) = delete;
+	Description(Description &&) = delete;
+	Description &operator=(Description &&) = delete;
 
-	VkDescriptorSetLayout descriptorSetLayout;
-
+	//Member variables
+	VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 	std::vector<VkDescriptorSet> descriptorSets;
 
 	void createDescriptorSets(

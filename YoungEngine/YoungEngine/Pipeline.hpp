@@ -11,24 +11,30 @@
 #include "RenderPass.hpp"
 #include "Description.hpp"
 
+//Contains definition of the graphics pipeline and handles shader code
 class Pipeline {
 
 public:
 
-	Pipeline() = default;
+	//Constructor
+	Pipeline(Device &inDevice, RenderPass &renderPass, Description &description);
 
-	Pipeline(Device *inDevice, RenderPass *renderPass, Description *description);
+	//Copy and Move constructors
+	Pipeline(const Pipeline &) = delete;
+	Pipeline &operator=(const Pipeline &) = delete;
+	Pipeline(Pipeline &&) = delete;
+	Pipeline &operator=(Pipeline &&) = delete;
 
-	VkPipelineLayout pipelineLayout;
-
-	VkPipeline graphicsPipeline;
+	//Member variables
+	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
 private:
 
-	Device *device;
+	Device &device;
 
+	//Creating a shader module from SPIR-V code
 	VkShaderModule createShaderModule(const std::vector<char> &code);
-
-	//FUNCTION TO READ SHADER CODE COMPILED TO SPIR-V
+	//Reading shader code compiled to SPIR-V
 	std::vector<char> readFile(const std::string &filename);
 };

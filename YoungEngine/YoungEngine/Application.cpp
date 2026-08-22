@@ -36,23 +36,22 @@ void Application::initVulkan() {
 	createInstance();
 	setupDebugMessenger();
 	
-	myDevice = Device(instance, window);
+	myDevice = std::make_unique<Device>(instance, window);
 
-	mySwapChain = SwapChain(&myDevice, window);
-	mySwapChain.createImageViews();
+	mySwapChain = std::make_unique<SwapChain>(*myDevice, window);
+	mySwapChain->createImageViews();
 
-	myCanvas = std::make_unique<Canvas>(&mySwapChain, pixels, texWidth, texHeight, texChannels);
+	myCanvas = std::make_unique<Canvas>(*mySwapChain, pixels, texWidth, texHeight, texChannels);
 
-	myPipeline = Pipeline(&myDevice, &myCanvas->renderPass, &myCanvas->description);
+	myPipeline = std::make_unique<Pipeline>(*myDevice, myCanvas->renderPass, myCanvas->description);
 
-	myCommand = Command(&myCanvas->FBO, &myCanvas->renderPass, &myPipeline, &myCanvas->description);
 	myLoader.unloadImage(pixels);
 	
 	myModelLoader.load(vertices, indices);
 
-	myMesh = Mesh(&myDevice, vertices, indices);
+	myMesh = std::make_unique<Mesh>(*myDevice, vertices, indices);
 
-	myCommand.createCommandBuffers();
+	myCommand.createCommandBuffers(*myDevice);
 
 	createSyncObjects();
 }
@@ -64,7 +63,7 @@ void Application::mainLoop() {
 		drawFrame();
 	}
 
-	vkDeviceWaitIdle(myDevice.logical);
+	vkDeviceWaitIdle(myDevice->logical);
 }
 
 void Application::cleanup() {
@@ -72,44 +71,44 @@ void Application::cleanup() {
 	cleanupSwapChain();
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroyBuffer(myDevice.logical, myCanvas->UBOs[i].buffer, nullptr);
-		vkFreeMemory(myDevice.logical, myCanvas->UBOs[i].bufferMemory, nullptr);
+		vkDestroyBuffer(myDevice->logical, myCanvas->UBOs[i].buffer, nullptr);
+		vkFreeMemory(myDevice->logical, myCanvas->UBOs[i].bufferMemory, nullptr);
 	}
 
-	vkDestroySampler(myDevice.logical, myCanvas->FBO.TIO.sampler, nullptr);
+	vkDestroySampler(myDevice->logical, myCanvas->FBO.TIO.sampler, nullptr);
 
-	vkDestroyImageView(myDevice.logical, myCanvas->FBO.TIO.imageView, nullptr);
+	vkDestroyImageView(myDevice->logical, myCanvas->FBO.TIO.imageView, nullptr);
 
-	vkDestroyImage(myDevice.logical, myCanvas->FBO.TIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myCanvas->FBO.TIO.imageMemory, nullptr);
+	vkDestroyImage(myDevice->logical, myCanvas->FBO.TIO.image, nullptr);
+	vkFreeMemory(myDevice->logical, myCanvas->FBO.TIO.imageMemory, nullptr);
 
-	vkDestroyDescriptorPool(myDevice.logical, myCanvas->descriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(myDevice.logical, myCanvas->description.descriptorSetLayout, nullptr);
-	vkDestroyPipeline(myDevice.logical, myPipeline.graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(myDevice.logical, myPipeline.pipelineLayout, nullptr);
-	vkDestroyRenderPass(myDevice.logical, myCanvas->renderPass.renderPass, nullptr);
+	vkDestroyDescriptorPool(myDevice->logical, myCanvas->descriptorPool, nullptr);
+	vkDestroyDescriptorSetLayout(myDevice->logical, myCanvas->description.descriptorSetLayout, nullptr);
+	vkDestroyPipeline(myDevice->logical, myPipeline->graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(myDevice->logical, myPipeline->pipelineLayout, nullptr);
+	vkDestroyRenderPass(myDevice->logical, myCanvas->renderPass.renderPass, nullptr);
 
-	vkDestroyBuffer(myDevice.logical, myMesh.VBO.buffer, nullptr);
-	vkFreeMemory(myDevice.logical, myMesh.VBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice->logical, myMesh->VBO.buffer, nullptr);
+	vkFreeMemory(myDevice->logical, myMesh->VBO.bufferMemory, nullptr);
 
-	vkDestroyBuffer(myDevice.logical, myMesh.IBO.buffer, nullptr);
-	vkFreeMemory(myDevice.logical, myMesh.IBO.bufferMemory, nullptr);
+	vkDestroyBuffer(myDevice->logical, myMesh->IBO.buffer, nullptr);
+	vkFreeMemory(myDevice->logical, myMesh->IBO.bufferMemory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(myDevice.logical, imageAvailableSemaphores[i], nullptr);
-		vkDestroySemaphore(myDevice.logical, renderFinishedSemaphores[i], nullptr);
-		vkDestroyFence(myDevice.logical, inFlightFences[i], nullptr);
+		vkDestroySemaphore(myDevice->logical, imageAvailableSemaphores[i], nullptr);
+		vkDestroySemaphore(myDevice->logical, renderFinishedSemaphores[i], nullptr);
+		vkDestroyFence(myDevice->logical, inFlightFences[i], nullptr);
 	}
 
-	vkDestroyCommandPool(myDevice.logical, myDevice.commandPool, nullptr);
+	vkDestroyCommandPool(myDevice->logical, myDevice->commandPool, nullptr);
 
-	vkDestroyDevice(myDevice.logical, nullptr);
+	vkDestroyDevice(myDevice->logical, nullptr);
 
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
-	vkDestroySurfaceKHR(instance, myDevice.surface, nullptr);
+	vkDestroySurfaceKHR(instance, myDevice->surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -117,23 +116,23 @@ void Application::cleanup() {
 
 void Application::cleanupSwapChain() {
 
-	vkDestroyImageView(myDevice.logical, myCanvas->FBO.CIO.imageView, nullptr);
-	vkDestroyImage(myDevice.logical, myCanvas->FBO.CIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myCanvas->FBO.CIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice->logical, myCanvas->FBO.CIO.imageView, nullptr);
+	vkDestroyImage(myDevice->logical, myCanvas->FBO.CIO.image, nullptr);
+	vkFreeMemory(myDevice->logical, myCanvas->FBO.CIO.imageMemory, nullptr);
 
-	vkDestroyImageView(myDevice.logical, myCanvas->FBO.DIO.imageView, nullptr);
-	vkDestroyImage(myDevice.logical, myCanvas->FBO.DIO.image, nullptr);
-	vkFreeMemory(myDevice.logical, myCanvas->FBO.DIO.imageMemory, nullptr);
+	vkDestroyImageView(myDevice->logical, myCanvas->FBO.DIO.imageView, nullptr);
+	vkDestroyImage(myDevice->logical, myCanvas->FBO.DIO.image, nullptr);
+	vkFreeMemory(myDevice->logical, myCanvas->FBO.DIO.imageMemory, nullptr);
 
 	for (auto framebuffer : myCanvas->FBO.framebuffers) {
-		vkDestroyFramebuffer(myDevice.logical, framebuffer, nullptr);
+		vkDestroyFramebuffer(myDevice->logical, framebuffer, nullptr);
 	}
 
-	for (auto imageView : mySwapChain.swapChainImageViews) {
-		vkDestroyImageView(myDevice.logical, imageView, nullptr);
+	for (auto imageView : mySwapChain->swapChainImageViews) {
+		vkDestroyImageView(myDevice->logical, imageView, nullptr);
 	}
 
-	vkDestroySwapchainKHR(myDevice.logical, mySwapChain.swapChain, nullptr);
+	vkDestroySwapchainKHR(myDevice->logical, mySwapChain->swapChain, nullptr);
 }
 
 void Application::createInstance() {
@@ -232,9 +231,9 @@ void Application::createSyncObjects() {
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 	
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		if (vkCreateSemaphore(myDevice.logical, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(myDevice.logical, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(myDevice.logical, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+		if (vkCreateSemaphore(myDevice->logical, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(myDevice->logical, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(myDevice->logical, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create sync objects!");
 		}
 	}
@@ -253,10 +252,10 @@ void Application::drawFrame() {
 
 	myCanvas->UBOs[currentFrame].updateBuffer();
 
-	vkWaitForFences(myDevice.logical, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+	vkWaitForFences(myDevice->logical, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex;
-	VkResult result = vkAcquireNextImageKHR(myDevice.logical, mySwapChain.swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(myDevice->logical, mySwapChain->swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 		recreateSwapChain();
 		return;
@@ -264,10 +263,20 @@ void Application::drawFrame() {
 		throw std::runtime_error("Failed to acquire swap chain image!");
 	}
 
-	vkResetFences(myDevice.logical, 1, &inFlightFences[currentFrame]);
+	vkResetFences(myDevice->logical, 1, &inFlightFences[currentFrame]);
 
 	vkResetCommandBuffer(myCommand.commandBuffers[currentFrame], 0);
-	myCommand.recordCommandBuffer(myCommand.commandBuffers[currentFrame], imageIndex, currentFrame, static_cast<uint32_t>(indices.size()), myMesh.VBO.buffer, myMesh.IBO.buffer);
+	myCommand.recordCommandBuffer(
+		myCommand.commandBuffers[currentFrame],
+		imageIndex,
+		currentFrame,
+		static_cast<uint32_t>(indices.size()),
+		myMesh->VBO.buffer,
+		myMesh->IBO.buffer,
+		myCanvas->FBO,
+		myCanvas->renderPass,
+		*myPipeline,
+		myCanvas->description);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -286,7 +295,7 @@ void Application::drawFrame() {
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	if (vkQueueSubmit(myDevice.graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+	if (vkQueueSubmit(myDevice->graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to submit draw command buffer!");
 	}
 
@@ -295,14 +304,14 @@ void Application::drawFrame() {
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = signalSemaphores;
 
-	VkSwapchainKHR swapChains[] = { mySwapChain.swapChain };
+	VkSwapchainKHR swapChains[] = { mySwapChain->swapChain };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
 	presentInfo.pImageIndices = &imageIndex;
 	
 	presentInfo.pResults = nullptr;
 
-	result = vkQueuePresentKHR(myDevice.presentQueue, &presentInfo);
+	result = vkQueuePresentKHR(myDevice->presentQueue, &presentInfo);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 		framebufferResized = false;
 		recreateSwapChain();
@@ -325,13 +334,12 @@ void Application::recreateSwapChain() {
 		glfwWaitEvents();
 	}
 
-	vkDeviceWaitIdle(myDevice.logical);
+	vkDeviceWaitIdle(myDevice->logical);
 
 	cleanupSwapChain();
 
-	mySwapChain = SwapChain(&myDevice, window);
+	mySwapChain->recreate(window);
+	mySwapChain->createImageViews();
 
-	mySwapChain.createImageViews();
-
-	myCanvas->FBO.recreateFramebuffers(&myCanvas->renderPass);
+	myCanvas->FBO.recreateFramebuffers(myCanvas->renderPass);
 }

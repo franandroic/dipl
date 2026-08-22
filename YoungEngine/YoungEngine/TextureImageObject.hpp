@@ -11,20 +11,19 @@
 #include "Device.hpp"
 #include "BufferObject.hpp"
 
+//Image object used to store texture data
 class TextureImageObject : public ImageObject {
 
 public:
 
-	TextureImageObject() = default;
+	//Constructor
+	TextureImageObject(Device &inDevice) : ImageObject(inDevice) {}
 
-	TextureImageObject(Device *inDevice) : ImageObject(inDevice) {}
-
-	uint32_t mipLevels;
-
-	VkSampler sampler;
+	//Member variables
+	uint32_t mipLevels = 0;
+	VkSampler sampler = VK_NULL_HANDLE;
 
 	void createImage(VkCommandPool commandPool, unsigned char *pixels, int width, int height, int channels);
-
 	void createTextureSampler();
 
 private:

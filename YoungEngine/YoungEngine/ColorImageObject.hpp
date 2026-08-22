@@ -6,15 +6,16 @@
 #include "Device.hpp"
 #include "ImageObject.hpp"
 
+//Image object used to store color data
 class ColorImageObject : public ImageObject {
 
 public:
 
-	ColorImageObject() = default;
+	//Constructor
+	ColorImageObject(Device &inDevice, VkFormat inFormat) : ImageObject(inDevice), colorFormat(inFormat) {}
 
-	ColorImageObject(Device *inDevice, VkFormat inFormat) : ImageObject(inDevice) { colorFormat = inFormat; }
-
-	VkFormat colorFormat;
+	//Member variables
+	const VkFormat colorFormat;
 
 	void createImage(uint32_t width, uint32_t height);
 };
