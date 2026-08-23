@@ -67,7 +67,7 @@ public:
 
 		if (verbose) {
 			std::cout << "Required extensions (GLFW): " << std::endl;
-			for (int i = 0; i < glfwExtensionCount; i++) std::cout << '\t' << glfwExtensions[i] << std::endl;
+			for (unsigned int i = 0; i < glfwExtensionCount; i++) std::cout << '\t' << glfwExtensions[i] << std::endl;
 			std::cout << "Required extensions (validation): " << std::endl;
 			std::cout << '\t' << VK_EXT_DEBUG_UTILS_EXTENSION_NAME << std::endl;
 			std::cout << "Available extensions: " << std::endl;
