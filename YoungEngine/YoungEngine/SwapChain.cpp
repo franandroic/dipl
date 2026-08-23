@@ -5,6 +5,11 @@ SwapChain::SwapChain(Device &inDevice, GLFWwindow *window) : device(inDevice) {
 	create(window);
 }
 
+SwapChain::~SwapChain() {
+	
+	destroy();
+}
+
 void SwapChain::createImageViews() {
 
 	//To create an image view we need to have a swap chain image we want to access through it.
@@ -42,6 +47,7 @@ VkImageView SwapChain::createImageView(VkImage image, VkFormat format, VkImageAs
 
 void SwapChain::recreate(GLFWwindow *window) {
 
+	destroy();
 	create(window);
 }
 
@@ -100,6 +106,17 @@ void SwapChain::create(GLFWwindow *window) {
 
 	swapChainImageFormat = surfaceFormat.format;
 	swapChainExtent = extent;
+}
+
+void SwapChain::destroy() {
+
+	for (auto imageView : swapChainImageViews) {
+		vkDestroyImageView(device.logical, imageView, nullptr);
+	}
+
+	swapChainImageViews.clear();
+	vkDestroySwapchainKHR(device.logical, swapChain, nullptr);
+	swapChain = VK_NULL_HANDLE;
 }
 
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {

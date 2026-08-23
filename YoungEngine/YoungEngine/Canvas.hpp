@@ -21,12 +21,13 @@ class Canvas {
 
 public:
 
-	//Constructor
+	//Construction
 	Canvas(
 		SwapChain &inSwapChain,
 		unsigned char *pixels,
 		int texWidth, int texHeight, int texChannels
 	);
+	~Canvas();
 
 	//Copy and Move constructors
 	Canvas(const Canvas &) = delete;
@@ -47,6 +48,8 @@ public:
 	UniformBufferOperator UBop;
 
 private:
+
+	Device &device;
 
 	void createDescriptorPool(SwapChain &swapChain);
 };

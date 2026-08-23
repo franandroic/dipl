@@ -11,7 +11,7 @@ class ColorImageObject : public ImageObject {
 
 public:
 
-	//Constructor
+	//Construction
 	ColorImageObject(Device &inDevice, VkFormat inFormat) : ImageObject(inDevice), colorFormat(inFormat) {}
 
 	//Member variables

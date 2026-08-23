@@ -16,8 +16,9 @@ class Pipeline {
 
 public:
 
-	//Constructor
+	//Construction
 	Pipeline(Device &inDevice, RenderPass &renderPass, Description &description);
+	~Pipeline();
 
 	//Copy and Move constructors
 	Pipeline(const Pipeline &) = delete;

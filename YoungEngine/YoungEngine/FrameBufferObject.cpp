@@ -18,6 +18,13 @@ FrameBufferObject::FrameBufferObject(
 	createFramebuffers(renderPass);
 }
 
+FrameBufferObject::~FrameBufferObject() {
+
+	for (auto framebuffer : framebuffers) {
+		vkDestroyFramebuffer(swapChain.device.logical, framebuffer, nullptr);
+	}
+}
+
 void FrameBufferObject::createFramebuffers(RenderPass &renderPass) {
 
 	//Frame buffers need references to swap chain images (accessed through image views)
@@ -46,6 +53,14 @@ void FrameBufferObject::createFramebuffers(RenderPass &renderPass) {
 }
 
 void FrameBufferObject::recreateFramebuffers(RenderPass &renderPass) {
+
+	for (auto framebuffer : framebuffers) {
+		vkDestroyFramebuffer(swapChain.device.logical, framebuffer, nullptr);
+	}
+	framebuffers.clear();
+
+	CIO.destroyImage();
+	DIO.destroyImage();
 
 	CIO.createImage(swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);
 	DIO.createImage(swapChain.device.commandPool, swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);

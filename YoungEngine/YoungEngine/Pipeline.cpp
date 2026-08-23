@@ -173,6 +173,12 @@ Pipeline::Pipeline(Device &inDevice, RenderPass &renderPass, Description &descri
 	vkDestroyShaderModule(device.logical, vertShaderModule, nullptr);
 }
 
+Pipeline::~Pipeline() {
+
+	vkDestroyPipeline(device.logical, graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(device.logical, pipelineLayout, nullptr);
+}
+
 VkShaderModule Pipeline::createShaderModule(const std::vector<char> &code) {
 
 	//The bytes of code passed as the argument need to be forcibly cast to unit32_t

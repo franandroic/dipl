@@ -15,8 +15,9 @@ class SwapChain {
 
 public:
 
-	//Constructor
+	//Construction
 	SwapChain(Device &inDevice, GLFWwindow *window);
+	~SwapChain();
 
 	//Copy and Move constructors
 	SwapChain(const SwapChain &) = delete;
@@ -40,6 +41,7 @@ public:
 private:
 
 	void create(GLFWwindow *window);
+	void destroy();
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);

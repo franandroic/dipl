@@ -13,7 +13,7 @@ class VertexBufferObject : public BufferObject {
 
 public:
 	
-	//Constructor
+	//Construction
 	VertexBufferObject(
 		Device &inDevice,
 		const std::vector<Vertex> &inVertices,

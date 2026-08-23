@@ -1,6 +1,6 @@
 #include "Device.hpp"
 
-Device::Device(VkInstance instance, GLFWwindow *window) {
+Device::Device(VkInstance inInstance, GLFWwindow *window) : instance(inInstance) {
 
 	createSurface(instance, window);
 	pickPhysicalDevice(instance);
@@ -51,6 +51,19 @@ Device::Device(VkInstance instance, GLFWwindow *window) {
 	vkGetDeviceQueue(logical, indices.presentFamily.value(), 0, &presentQueue);
 
 	createCommandPool();
+}
+
+Device::~Device() {
+
+	if (logical != VK_NULL_HANDLE) {
+		vkDeviceWaitIdle(logical);
+		vkDestroyCommandPool(logical, commandPool, nullptr);
+		vkDestroyDevice(logical, nullptr);
+	}
+
+	if (surface != VK_NULL_HANDLE) {
+		vkDestroySurfaceKHR(instance, surface, nullptr);
+	}
 }
 
 void Device::pickPhysicalDevice(VkInstance instance) {

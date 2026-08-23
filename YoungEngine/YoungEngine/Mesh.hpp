@@ -15,7 +15,7 @@ class Mesh {
 
 public:
 
-	//Constructor
+	//Construction
 	Mesh(Device &inDevice, std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices);
 
 	//Copy and Move constructors
