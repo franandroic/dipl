@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include <vector>
+#include <memory>
 
 #include "DeviceData.hpp"
 
@@ -41,11 +42,11 @@ public:
 
 	FrameBufferObject FBO;
 
-	std::vector<UniformBufferObject> UBOs;
+	std::vector<std::unique_ptr<UniformBufferObject>> UBOs;
 	UniformBufferData UBdata;
 	UniformBufferOperator UBop;
 
 private:
 
-	void createDescriptorPool(SwapChain *swapChain);
+	void createDescriptorPool(SwapChain &swapChain);
 };

@@ -1,6 +1,6 @@
 #include "IndexBufferObject.hpp"
 
-void IndexBufferObject::createBuffer(VkCommandPool commandPool) {
+void IndexBufferObject::createBuffer(VkCommandPool commandPool, const std::vector<uint32_t> &indices) {
 
 	//Same as the vertex memory, but for the index buffer.
 
@@ -13,14 +13,13 @@ void IndexBufferObject::createBuffer(VkCommandPool commandPool) {
 	stagingBufferObject.createBuffer();
 
 	void *data;
-	vkMapMemory(device->logical, stagingBufferObject.bufferMemory, 0, size, 0, &data);
-	memcpy(data, (*indices).data(), (size_t)size);
-	vkUnmapMemory(device->logical, stagingBufferObject.bufferMemory);
+	vkMapMemory(device.logical, stagingBufferObject.bufferMemory, 0, size, 0, &data);
+	memcpy(data, indices.data(), (size_t)size);
+	vkUnmapMemory(device.logical, stagingBufferObject.bufferMemory);
 
 	BufferObject::createBuffer();
 
 	copyBuffer(stagingBufferObject.buffer, buffer, size, commandPool);
 
-	vkDestroyBuffer(device->logical, stagingBufferObject.buffer, nullptr);
-	vkFreeMemory(device->logical, stagingBufferObject.bufferMemory, nullptr);
+	stagingBufferObject.destroyBuffer();
 }

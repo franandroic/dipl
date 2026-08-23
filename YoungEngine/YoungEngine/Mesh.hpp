@@ -16,7 +16,7 @@ class Mesh {
 public:
 
 	//Constructor
-	Mesh(Device &inDevice, std::vector<Vertex> &inVertices, std::vector<uint32_t> &inIndices);
+	Mesh(Device &inDevice, std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices);
 
 	//Copy and Move constructors
 	Mesh(const Mesh &) = delete;
@@ -25,6 +25,17 @@ public:
 	Mesh &operator=(Mesh &&) = delete;
 
 	//Member variables
+	std::vector<Vertex> vertices;
+	std::vector<uint32_t> indices;
+
 	VertexBufferObject VBO;
 	IndexBufferObject IBO;
+
+	bool isResidentOnGPU();
+	void createBuffers();
+	void destroyBuffers();
+
+private:
+
+	Device &device;
 };

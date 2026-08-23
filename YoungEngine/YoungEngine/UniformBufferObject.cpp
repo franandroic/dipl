@@ -7,13 +7,13 @@ void UniformBufferObject::createBuffer() {
 
 	BufferObject::createBuffer();
 
-	vkMapMemory(device->logical, bufferMemory, 0, size, 0, &bufferMapped);
+	vkMapMemory(device.logical, bufferMemory, 0, size, 0, &bufferMapped);
 }
 
 void UniformBufferObject::updateBuffer() {
 
-	op->operate(data);
+	op.operate(&data);
 
 	//TODO: Look into push constants
-	memcpy(bufferMapped, data, sizeof(*data));
+	memcpy(bufferMapped, &data, sizeof(data));
 }

@@ -71,8 +71,8 @@ void Application::cleanup() {
 	cleanupSwapChain();
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroyBuffer(myDevice->logical, myCanvas->UBOs[i].buffer, nullptr);
-		vkFreeMemory(myDevice->logical, myCanvas->UBOs[i].bufferMemory, nullptr);
+		vkDestroyBuffer(myDevice->logical, myCanvas->UBOs[i]->buffer, nullptr);
+		vkFreeMemory(myDevice->logical, myCanvas->UBOs[i]->bufferMemory, nullptr);
 	}
 
 	vkDestroySampler(myDevice->logical, myCanvas->FBO.TIO.sampler, nullptr);
@@ -250,7 +250,7 @@ void Application::drawFrame() {
 	//We are able to render to multiple (MAX_FRAMES_IN_FLIGHT) frames before waiting for previous renders to finish.
 	//We need to update the uniform buffer that contains constantly-changing data (transformation matrices) every frame.
 
-	myCanvas->UBOs[currentFrame].updateBuffer();
+	myCanvas->UBOs[currentFrame]->updateBuffer();
 
 	vkWaitForFences(myDevice->logical, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 

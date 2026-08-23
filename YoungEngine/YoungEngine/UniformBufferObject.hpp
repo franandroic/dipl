@@ -9,6 +9,7 @@
 #include "UniformBufferData.hpp"
 #include "UniformBufferOperator.hpp"
 
+//Buffer object that defines uniform data to be passed to a shader.
 class UniformBufferObject : public BufferObject {
 
 	//TODO: Two strategy (I think) patterns, the idea is to switch out the data type and the operator
@@ -16,28 +17,25 @@ class UniformBufferObject : public BufferObject {
 
 public:
 
-	UniformBufferObject() = default;
-
+	//Constructor
 	UniformBufferObject(
-		Device *inDevice,
-		UniformBufferData *inData,
-		UniformBufferOperator *inOp,
+		Device &inDevice,
+		UniformBufferData &inData,
+		UniformBufferOperator &inOp,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
-	) : BufferObject(inDevice, sizeof(*inData), inUsage, inProperties) {
-			data = inData;
-			op = inOp;
-		}
+	) : BufferObject(inDevice, sizeof(inData), inUsage, inProperties),
+		data(inData),
+		op(inOp) {}
 
-	void *bufferMapped;
+	//Member variables
+	void *bufferMapped = nullptr;
 
 	void createBuffer();
-
 	void updateBuffer();
 
 private:
 
-	UniformBufferData *data;
-
-	UniformBufferOperator *op;
+	UniformBufferData &data;
+	UniformBufferOperator &op;
 };

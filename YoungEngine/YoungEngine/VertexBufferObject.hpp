@@ -8,24 +8,18 @@
 #include "BufferObject.hpp"
 #include "Vertex.hpp"
 
+//Buffer object that handles vertex data
 class VertexBufferObject : public BufferObject {
 
 public:
-
-	VertexBufferObject() = default;
-
+	
+	//Constructor
 	VertexBufferObject(
-		Device *inDevice,
-		std::vector<Vertex> *inVertices,
+		Device &inDevice,
+		const std::vector<Vertex> &inVertices,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
-	) : BufferObject(inDevice, sizeof((*inVertices)[0]) * (*inVertices).size(), inUsage, inProperties) {
-			vertices = inVertices;
-		}
+	) : BufferObject(inDevice, sizeof((inVertices)[0]) * (inVertices).size(), inUsage, inProperties) {}
 
-	void createBuffer(VkCommandPool commandPool);
-
-private:
-
-	std::vector<Vertex> *vertices;
+	void createBuffer(VkCommandPool commandPool, const std::vector<Vertex> &vertices);
 };

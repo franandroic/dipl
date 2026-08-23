@@ -39,7 +39,7 @@ void Description::createDescriptorSetLayout(Device &device) {
 void Description::createDescriptorSets(
 	Device &device,
 	VkDescriptorPool &descriptorPool,
-	std::vector<UniformBufferObject> &UBOs,
+	std::vector<std::unique_ptr<UniformBufferObject>> &UBOs,
 	VkImageView textureImageView,
 	VkSampler textureSampler
 	) {
@@ -64,7 +64,7 @@ void Description::createDescriptorSets(
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 
 		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = UBOs[i].buffer;
+		bufferInfo.buffer = UBOs[i]->buffer;
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(UniformBufferData);
 

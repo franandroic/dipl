@@ -7,24 +7,22 @@
 
 #include "BufferObject.hpp"
 
+//Buffer object that handles index data
 class IndexBufferObject : public BufferObject {
 
 public:
 
-	IndexBufferObject() = default;
-
+	//Constructor
 	IndexBufferObject(
-		Device *inDevice,
-		std::vector<uint32_t> *inIndices,
+		Device &inDevice,
+		const std::vector<uint32_t> &inIndices,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
-	) : BufferObject(inDevice, sizeof((*inIndices)[0]) * (*inIndices).size(), inUsage, inProperties) {
-			indices = inIndices;
-		}
+	) : BufferObject(inDevice, sizeof(inIndices[0]) * inIndices.size(), inUsage, inProperties),
+		indexCount(static_cast<uint32_t>(inIndices.size())) {}
 
-	void createBuffer(VkCommandPool commandPool);
+	//Member variables
+	const uint32_t indexCount;
 
-private:
-
-	std::vector<uint32_t> *indices;
+	void createBuffer(VkCommandPool commandPool, const std::vector<uint32_t> &indices);
 };

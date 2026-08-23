@@ -1,6 +1,6 @@
 #include "VertexBufferObject.hpp"
 
-void VertexBufferObject::createBuffer(VkCommandPool commandPool) {
+void VertexBufferObject::createBuffer(VkCommandPool commandPool, const std::vector<Vertex> &vertices) {
 
 	//Creating a vertex buffer, by a two-step process of first creating a CPU-accessible buffer on the GPU,
 	//copying the vertex data from the CPU memory to the GPU staging memory, and finally
@@ -16,14 +16,13 @@ void VertexBufferObject::createBuffer(VkCommandPool commandPool) {
 	stagingBufferObject.createBuffer();
 
 	void *data;
-	vkMapMemory(device->logical, stagingBufferObject.bufferMemory, 0, size, 0, &data);
-	memcpy(data, (*vertices).data(), (size_t)size);
-	vkUnmapMemory(device->logical, stagingBufferObject.bufferMemory);
+	vkMapMemory(device.logical, stagingBufferObject.bufferMemory, 0, size, 0, &data);
+	memcpy(data, vertices.data(), (size_t)size);
+	vkUnmapMemory(device.logical, stagingBufferObject.bufferMemory);
 
 	BufferObject::createBuffer();
 
 	copyBuffer(stagingBufferObject.buffer, buffer, size, commandPool);
 
-	vkDestroyBuffer(device->logical, stagingBufferObject.buffer, nullptr);
-	vkFreeMemory(device->logical, stagingBufferObject.bufferMemory, nullptr);
+	stagingBufferObject.destroyBuffer();
 }

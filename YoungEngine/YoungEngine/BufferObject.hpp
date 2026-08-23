@@ -8,33 +8,39 @@
 
 #include "Device.hpp"
 
+//Responsible for handling buffers and their related structures
 class BufferObject {
 
 public:
 
-	BufferObject() = default;
-
+	//Constructor
 	BufferObject(
-		Device *inDevice,
+		Device &inDevice,
 		VkDeviceSize inSize,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
 	);
 
-	VkDeviceSize size;
+	//Copy and Move constructors
+	BufferObject(const BufferObject &) = delete;
+	BufferObject &operator=(const BufferObject &) = delete;
+	BufferObject(BufferObject &&) = delete;
+	BufferObject &operator=(BufferObject &&) = delete;
 
-	VkBufferUsageFlags usage;
+	//Member variables
+	Device &device;
 
-	VkMemoryPropertyFlags properties;
+	const VkDeviceSize size;
+	const VkBufferUsageFlags usage;
+	const VkMemoryPropertyFlags properties;
 
-	VkBuffer buffer;
+	VkBuffer buffer = VK_NULL_HANDLE;
+	VkDeviceMemory bufferMemory = VK_NULL_HANDLE;
 
-	VkDeviceMemory bufferMemory;
-
-	Device *device;
+	bool isResidentOnGPU();
 
 	void createBuffer();
-
+	void destroyBuffer();
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool);
 
 };

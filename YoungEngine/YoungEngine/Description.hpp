@@ -33,7 +33,7 @@ public:
 	void createDescriptorSets(
 		Device &device,
 		VkDescriptorPool &descriptorPool,
-		std::vector<UniformBufferObject> &UBOs,
+		std::vector<std::unique_ptr<UniformBufferObject>> &UBOs,
 		VkImageView textureImageView,
 		VkSampler textureSampler
 		);
