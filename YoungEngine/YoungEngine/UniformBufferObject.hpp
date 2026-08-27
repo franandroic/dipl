@@ -17,7 +17,7 @@ class UniformBufferObject : public BufferObject {
 
 public:
 
-	//Constructor
+	//Construction
 	UniformBufferObject(
 		Device &inDevice,
 		UniformBufferData &inData,

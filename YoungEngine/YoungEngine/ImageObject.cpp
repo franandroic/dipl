@@ -48,6 +48,17 @@ void ImageObject::createImage(
 	vkBindImageMemory(device.logical, image, imageMemory, 0);
 }
 
+void ImageObject::destroyImage() {
+
+	vkDestroyImageView(device.logical, imageView, nullptr);
+	vkDestroyImage(device.logical, image, nullptr);
+	vkFreeMemory(device.logical, imageMemory, nullptr);
+
+	imageView = VK_NULL_HANDLE;
+	image = VK_NULL_HANDLE;
+	imageMemory = VK_NULL_HANDLE;
+}
+
 void ImageObject::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
 
 	//We define the necessary members that describe how the images are treated and interpreted

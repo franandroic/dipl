@@ -16,8 +16,9 @@ class TextureImageObject : public ImageObject {
 
 public:
 
-	//Constructor
+	//Construction
 	TextureImageObject(Device &inDevice) : ImageObject(inDevice) {}
+	~TextureImageObject() override { vkDestroySampler(device.logical, sampler, nullptr); }
 
 	//Member variables
 	uint32_t mipLevels = 0;

@@ -17,8 +17,9 @@ class Description {
 
 public:
 
-	//Constructor
+	//Construction
 	Description(Device &inDevice);
+	~Description();
 
 	//Copy and Move constructors
 	Description(const Description &) = delete;
@@ -31,7 +32,6 @@ public:
 	std::vector<VkDescriptorSet> descriptorSets;
 
 	void createDescriptorSets(
-		Device &device,
 		VkDescriptorPool &descriptorPool,
 		std::vector<std::unique_ptr<UniformBufferObject>> &UBOs,
 		VkImageView textureImageView,
@@ -40,5 +40,7 @@ public:
 
 private:
 
-	void createDescriptorSetLayout(Device &device);
+	Device &device;
+
+	void createDescriptorSetLayout();
 };

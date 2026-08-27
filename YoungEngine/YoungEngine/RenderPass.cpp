@@ -1,13 +1,13 @@
 #include "RenderPass.hpp"
 
-RenderPass::RenderPass(SwapChain &swapChain) {
+RenderPass::RenderPass(SwapChain &swapChain) : device(swapChain.device) {
 
 	//Specifying the attachments and subpasses the render pass consist of.
 	//The attachments correspond to "canvases" we're drawing to using the render pass.
 
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = swapChain.swapChainImageFormat;
-	colorAttachment.samples = swapChain.device.msaaSamples;
+	colorAttachment.samples = device.msaaSamples;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -20,8 +20,8 @@ RenderPass::RenderPass(SwapChain &swapChain) {
 	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentDescription depthAttachment{};
-	depthAttachment.format = DeviceUtils::findDepthFormat(swapChain.device.physical);
-	depthAttachment.samples = swapChain.device.msaaSamples;
+	depthAttachment.format = DeviceUtils::findDepthFormat(device.physical);
+	depthAttachment.samples = device.msaaSamples;
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -73,7 +73,12 @@ RenderPass::RenderPass(SwapChain &swapChain) {
 	createInfo.dependencyCount = 1;
 	createInfo.pDependencies = &dependency;
 
-	if (vkCreateRenderPass(swapChain.device.logical, &createInfo, nullptr, &renderPass) != VK_SUCCESS) {
+	if (vkCreateRenderPass(device.logical, &createInfo, nullptr, &renderPass) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create render pass!");
 	}
+}
+
+RenderPass::~RenderPass() {
+
+	vkDestroyRenderPass(device.logical, renderPass, nullptr);
 }

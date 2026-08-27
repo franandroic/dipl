@@ -4,7 +4,8 @@ Canvas::Canvas(
 	SwapChain &inSwapChain,
 	unsigned char *pixels,
 	int texWidth, int texHeight, int texChannels
-) : renderPass(inSwapChain),
+) : device(inSwapChain.device),
+	renderPass(inSwapChain),
 	description(inSwapChain.device),
 	FBO(inSwapChain, renderPass, pixels, texWidth, texHeight, texChannels)
 {
@@ -25,7 +26,12 @@ Canvas::Canvas(
 		UBOs[i]->createBuffer();
 	}
 
-	description.createDescriptorSets(FBO.swapChain.device, descriptorPool, UBOs, FBO.TIO.imageView, FBO.TIO.sampler);
+	description.createDescriptorSets(descriptorPool, UBOs, FBO.TIO.imageView, FBO.TIO.sampler);
+}
+
+Canvas::~Canvas() {
+	
+	vkDestroyDescriptorPool(device.logical, descriptorPool, nullptr);
 }
 
 void Canvas::createDescriptorPool(SwapChain &swapChain) {

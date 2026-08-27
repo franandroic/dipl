@@ -10,6 +10,11 @@ BufferObject::BufferObject(
 	usage(inUsage),
 	properties(inProperties) {}
 
+BufferObject::~BufferObject() {
+
+	destroyBuffer();
+}
+
 bool BufferObject::isResidentOnGPU() {
 	
 	//Checks whether the data of the buffer object is currently on GPU memory

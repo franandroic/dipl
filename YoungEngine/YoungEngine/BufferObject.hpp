@@ -13,13 +13,14 @@ class BufferObject {
 
 public:
 
-	//Constructor
+	//Construction
 	BufferObject(
 		Device &inDevice,
 		VkDeviceSize inSize,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
 	);
+	~BufferObject();
 
 	//Copy and Move constructors
 	BufferObject(const BufferObject &) = delete;

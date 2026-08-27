@@ -15,8 +15,9 @@ class RenderPass {
 
 public:
 
-	//Constructor
+	//Construction
 	RenderPass(SwapChain &swapChain);
+	~RenderPass();
 
 	//Copy and Move constructors
 	RenderPass(const RenderPass &) = delete;
@@ -26,4 +27,8 @@ public:
 
 	//Member variables
 	VkRenderPass renderPass = VK_NULL_HANDLE;
+
+private:
+
+	Device &device;
 };

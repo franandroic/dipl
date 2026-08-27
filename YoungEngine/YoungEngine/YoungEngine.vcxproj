@@ -161,6 +161,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="DepthImageObject.cpp" />
     <ClCompile Include="Description.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="EngineUtility.cpp" />
     <ClCompile Include="FrameBufferObject.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="ImageObject.cpp" />
@@ -174,6 +175,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="TextureImageObject.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
@@ -187,6 +189,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
+    <ClInclude Include="EngineUtility.hpp" />
     <ClInclude Include="FrameBufferObject.hpp" />
     <ClInclude Include="ImageLoader.hpp" />
     <ClInclude Include="ImageObject.hpp" />
@@ -206,6 +209,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="UniformBufferOperator.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexBufferObject.hpp" />
+    <ClInclude Include="Window.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

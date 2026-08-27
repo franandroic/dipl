@@ -19,13 +19,14 @@ class FrameBufferObject {
 
 public:
 
-	//Constructor
+	//Construction
 	FrameBufferObject(
 		SwapChain &inSwapChain,
 		RenderPass &renderPass,
 		unsigned char *pixels,
 		int texWidth, int texHeight, int texChannels
 	);
+	~FrameBufferObject();
 
 	//Copy and Move constructor
 	FrameBufferObject(const FrameBufferObject &) = delete;

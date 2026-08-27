@@ -1,23 +1,22 @@
 #include "Application.hpp"
 
-void Application::run() {
+Application::Application() : myWindow(WIDTH, HEIGHT, "Vulkan") {}
 
-	initWindow();
-	initVulkan();
-	mainLoop();
-	cleanup();
+Application::~Application() {
+
+	if (!myDevice) return;
+
+	for (size_t i = 0; i < imageAvailableSemaphores.size(); i++) {
+		vkDestroySemaphore(myDevice->logical, imageAvailableSemaphores[i], nullptr);
+		vkDestroySemaphore(myDevice->logical, renderFinishedSemaphores[i], nullptr);
+		vkDestroyFence(myDevice->logical, inFlightFences[i], nullptr);
+	}
 }
 
-void Application::initWindow() {
+void Application::run() {
 
-	glfwInit();
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	//glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-	window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-
-	glfwSetWindowUserPointer(window, this);
-	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+	initVulkan();
+	mainLoop();
 }
 
 void Application::initVulkan() {
@@ -32,13 +31,10 @@ void Application::initVulkan() {
 	if (!pixels) {
 		throw std::runtime_error("Failed to load texture image!");
 	}
-
-	createInstance();
-	setupDebugMessenger();
 	
-	myDevice = std::make_unique<Device>(instance, window);
+	myDevice = std::make_unique<Device>(myEngineUtility.instance, myWindow.window);
 
-	mySwapChain = std::make_unique<SwapChain>(*myDevice, window);
+	mySwapChain = std::make_unique<SwapChain>(*myDevice, myWindow.window);
 	mySwapChain->createImageViews();
 
 	myCanvas = std::make_unique<Canvas>(*mySwapChain, pixels, texWidth, texHeight, texChannels);
@@ -58,157 +54,12 @@ void Application::initVulkan() {
 
 void Application::mainLoop() {
 
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(myWindow.window)) {
 		glfwPollEvents();
 		drawFrame();
 	}
 
 	vkDeviceWaitIdle(myDevice->logical);
-}
-
-void Application::cleanup() {
-
-	cleanupSwapChain();
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroyBuffer(myDevice->logical, myCanvas->UBOs[i]->buffer, nullptr);
-		vkFreeMemory(myDevice->logical, myCanvas->UBOs[i]->bufferMemory, nullptr);
-	}
-
-	vkDestroySampler(myDevice->logical, myCanvas->FBO.TIO.sampler, nullptr);
-
-	vkDestroyImageView(myDevice->logical, myCanvas->FBO.TIO.imageView, nullptr);
-
-	vkDestroyImage(myDevice->logical, myCanvas->FBO.TIO.image, nullptr);
-	vkFreeMemory(myDevice->logical, myCanvas->FBO.TIO.imageMemory, nullptr);
-
-	vkDestroyDescriptorPool(myDevice->logical, myCanvas->descriptorPool, nullptr);
-	vkDestroyDescriptorSetLayout(myDevice->logical, myCanvas->description.descriptorSetLayout, nullptr);
-	vkDestroyPipeline(myDevice->logical, myPipeline->graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(myDevice->logical, myPipeline->pipelineLayout, nullptr);
-	vkDestroyRenderPass(myDevice->logical, myCanvas->renderPass.renderPass, nullptr);
-
-	vkDestroyBuffer(myDevice->logical, myMesh->VBO.buffer, nullptr);
-	vkFreeMemory(myDevice->logical, myMesh->VBO.bufferMemory, nullptr);
-
-	vkDestroyBuffer(myDevice->logical, myMesh->IBO.buffer, nullptr);
-	vkFreeMemory(myDevice->logical, myMesh->IBO.bufferMemory, nullptr);
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(myDevice->logical, imageAvailableSemaphores[i], nullptr);
-		vkDestroySemaphore(myDevice->logical, renderFinishedSemaphores[i], nullptr);
-		vkDestroyFence(myDevice->logical, inFlightFences[i], nullptr);
-	}
-
-	vkDestroyCommandPool(myDevice->logical, myDevice->commandPool, nullptr);
-
-	vkDestroyDevice(myDevice->logical, nullptr);
-
-	if (enableValidationLayers) {
-		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-	}
-
-	vkDestroySurfaceKHR(instance, myDevice->surface, nullptr);
-	vkDestroyInstance(instance, nullptr);
-	glfwDestroyWindow(window);
-	glfwTerminate();
-}
-
-void Application::cleanupSwapChain() {
-
-	vkDestroyImageView(myDevice->logical, myCanvas->FBO.CIO.imageView, nullptr);
-	vkDestroyImage(myDevice->logical, myCanvas->FBO.CIO.image, nullptr);
-	vkFreeMemory(myDevice->logical, myCanvas->FBO.CIO.imageMemory, nullptr);
-
-	vkDestroyImageView(myDevice->logical, myCanvas->FBO.DIO.imageView, nullptr);
-	vkDestroyImage(myDevice->logical, myCanvas->FBO.DIO.image, nullptr);
-	vkFreeMemory(myDevice->logical, myCanvas->FBO.DIO.imageMemory, nullptr);
-
-	for (auto framebuffer : myCanvas->FBO.framebuffers) {
-		vkDestroyFramebuffer(myDevice->logical, framebuffer, nullptr);
-	}
-
-	for (auto imageView : mySwapChain->swapChainImageViews) {
-		vkDestroyImageView(myDevice->logical, imageView, nullptr);
-	}
-
-	vkDestroySwapchainKHR(myDevice->logical, mySwapChain->swapChain, nullptr);
-}
-
-void Application::createInstance() {
-
-	//To create a Vulkan instance it's necessary to fill out info about the application and
-	//info about the instance, which requires checking for and enabling the required extensions.
-	//Before creating the instance we create a special debug messenger for this object/code.
-
-	VkApplicationInfo appInfo{};
-
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "Application";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.pEngineName = "Young Engine";
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_0;
-
-	VkInstanceCreateInfo createInfo{};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.pApplicationInfo = &appInfo;
-
-	auto extensions = DeviceUtils::getRequiredExtensions(true);
-
-	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-	createInfo.ppEnabledExtensionNames = extensions.data();
-
-	if (enableValidationLayers && !DeviceUtils::checkValidationLayerSupport(true)) {
-		throw std::runtime_error("Validation layers requested, but not available!");
-	}
-
-	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-	if (enableValidationLayers) {
-		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-		createInfo.ppEnabledLayerNames = validationLayers.data();
-		populateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;
-	} else {
-		createInfo.enabledLayerCount = 0;
-		createInfo.pNext = nullptr;
-	}
-
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create instance!");
-	}
-}
-
-void Application::setupDebugMessenger() {
-
-	//Creating a debug messenger after populating it with needed data.
-
-	if (!enableValidationLayers) return;
-
-	VkDebugUtilsMessengerCreateInfoEXT createInfo {};
-	populateDebugMessengerCreateInfo(createInfo);
-
-	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to set up debug messenger!");
-	}
-}
-
-void Application::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
-
-	//Populating debug messenger creation info.
-
-	createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-		| VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-		| VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-		| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-		| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-	createInfo.pfnUserCallback = debugCallback;
-	createInfo.pUserData = nullptr;
 }
 
 void Application::createSyncObjects() {
@@ -312,8 +163,8 @@ void Application::drawFrame() {
 	presentInfo.pResults = nullptr;
 
 	result = vkQueuePresentKHR(myDevice->presentQueue, &presentInfo);
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
-		framebufferResized = false;
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || myWindow.framebufferResized) {
+		myWindow.framebufferResized = false;
 		recreateSwapChain();
 	} else if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failed to acquire swap chain image!");
@@ -330,15 +181,13 @@ void Application::recreateSwapChain() {
 	int width = 0;
 	int height = 0;
 	while (width == 0 || height == 0) {
-		glfwGetFramebufferSize(window, &width, &height);
+		glfwGetFramebufferSize(myWindow.window, &width, &height);
 		glfwWaitEvents();
 	}
 
 	vkDeviceWaitIdle(myDevice->logical);
 
-	cleanupSwapChain();
-
-	mySwapChain->recreate(window);
+	mySwapChain->recreate(myWindow.window);
 	mySwapChain->createImageViews();
 
 	myCanvas->FBO.recreateFramebuffers(myCanvas->renderPass);

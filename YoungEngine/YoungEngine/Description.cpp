@@ -1,11 +1,16 @@
 #include "Description.hpp"
 
-Description::Description(Device &inDevice) {
+Description::Description(Device &inDevice) : device(inDevice) {
 
-	createDescriptorSetLayout(inDevice);
+	createDescriptorSetLayout();
 }
 
-void Description::createDescriptorSetLayout(Device &device) {
+Description::~Description() {
+
+	vkDestroyDescriptorSetLayout(device.logical, descriptorSetLayout, nullptr);
+}
+
+void Description::createDescriptorSetLayout() {
 
 	//Specifying what kind of descriptor sets we're going to bind to a render pass, to which bindings
 	//and to which shader stages.
@@ -37,7 +42,6 @@ void Description::createDescriptorSetLayout(Device &device) {
 }
 
 void Description::createDescriptorSets(
-	Device &device,
 	VkDescriptorPool &descriptorPool,
 	std::vector<std::unique_ptr<UniformBufferObject>> &UBOs,
 	VkImageView textureImageView,

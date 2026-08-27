@@ -10,8 +10,9 @@ class ImageObject {
 
 public:
 
-	//Constructor
+	//Construction
 	ImageObject(Device &inDevice) : device(inDevice) {}
+	virtual ~ImageObject() { destroyImage(); }
 
 	//Copy and Move constructors
 	ImageObject(const ImageObject &) = delete;
@@ -34,6 +35,7 @@ public:
 		VkImageUsageFlags usage,
 		VkMemoryPropertyFlags properties
 	);
+	void destroyImage();
 
 protected:
 

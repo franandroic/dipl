@@ -16,8 +16,9 @@ class Device {
 
 public:
 
-	//Constructor
-	Device(VkInstance instance, GLFWwindow *window);
+	//Construction
+	Device(VkInstance inInstance, GLFWwindow *window);
+	~Device();
 
 	//Copy and Move constructors
 	Device(const Device &) = delete;
@@ -35,7 +36,7 @@ public:
 	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 private:
-
+	VkInstance instance = VK_NULL_HANDLE;
 	void pickPhysicalDevice(VkInstance instance);
 	void createSurface(VkInstance instance, GLFWwindow *window);
 	void createCommandPool();

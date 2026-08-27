@@ -16,7 +16,7 @@ class Command {
 
 public:
 
-	//Constructor
+	//Construction
 	Command() = default;
 
 	//Member variables

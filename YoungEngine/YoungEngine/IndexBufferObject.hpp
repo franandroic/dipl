@@ -12,7 +12,7 @@ class IndexBufferObject : public BufferObject {
 
 public:
 
-	//Constructor
+	//Construction
 	IndexBufferObject(
 		Device &inDevice,
 		const std::vector<uint32_t> &inIndices,
