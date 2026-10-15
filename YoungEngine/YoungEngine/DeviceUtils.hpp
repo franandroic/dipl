@@ -118,7 +118,8 @@ public:
 
 		//For a physical device to be suitable we need to have information on desired queue families,
 		//the desired extensions need to be supported and the swap chain needs to have the desired
-		//features available.
+		//features available. Dynamic rendering needs to be supported as well, which means
+		//the device has to implement Vulkan 1.3 and report the dynamicRendering feature.
 
 		//TODO: More verbose print of properties and features
 		//TODO: Better selection process among suitable devices
@@ -149,7 +150,33 @@ public:
 		VkPhysicalDeviceFeatures supportedFeatures;
 		vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-		return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+		return indices.isComplete()
+			&& extensionsSupported
+			&& swapChainAdequate
+			&& supportedFeatures.samplerAnisotropy
+			&& DeviceUtils::checkDynamicRenderingSupport(device);
+	}
+
+	static bool checkDynamicRenderingSupport(VkPhysicalDevice device) {
+
+		//The Vulkan 1.3 feature struct can only be queried on a device that implements Vulkan 1.3,
+		//so we check the API version first and only then ask for the dynamicRendering feature.
+
+		VkPhysicalDeviceProperties apiProperties;
+		vkGetPhysicalDeviceProperties(device, &apiProperties);
+
+		if (apiProperties.apiVersion < VK_API_VERSION_1_3) return false;
+
+		VkPhysicalDeviceVulkan13Features features13{};
+		features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
+		VkPhysicalDeviceFeatures2 features2{};
+		features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		features2.pNext = &features13;
+
+		vkGetPhysicalDeviceFeatures2(device, &features2);
+
+		return features13.dynamicRendering == VK_TRUE;
 	}
 
 	static bool checkDeviceExtensionSupport(VkPhysicalDevice device, bool verbose) {

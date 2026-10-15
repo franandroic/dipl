@@ -1,6 +1,6 @@
 #include "Pipeline.hpp"
 
-Pipeline::Pipeline(Device &inDevice, RenderPass &renderPass, Description &description) : device(inDevice) {
+Pipeline::Pipeline(Device &inDevice, VkFormat colorFormat, VkFormat depthFormat, Description &description) : device(inDevice) {
 
 	//The graphics pipeline consists of programmable (shaders) and fixed functions. We create shader modules
 	//with the compiled code read from a file and save them into shader stages.
@@ -147,8 +147,19 @@ Pipeline::Pipeline(Device &inDevice, RenderPass &renderPass, Description &descri
 		throw std::runtime_error("Failed to create pipeline layout!");
 	}
 
+	//Dynamic rendering: instead of a render pass, we state which attachment formats the pipeline renders to.
+	//These have to match the formats of the image views passed to vkCmdBeginRendering when the pipeline is used.
+	VkPipelineRenderingCreateInfo renderingInfo{};
+	renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+	renderingInfo.viewMask = 0;
+	renderingInfo.colorAttachmentCount = 1;
+	renderingInfo.pColorAttachmentFormats = &colorFormat;
+	renderingInfo.depthAttachmentFormat = depthFormat;
+	renderingInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
+
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineInfo.pNext = &renderingInfo;
 	pipelineInfo.stageCount = 2;
 	pipelineInfo.pStages = shaderStages;
 	pipelineInfo.pVertexInputState = &vertexInputInfo;
@@ -160,8 +171,7 @@ Pipeline::Pipeline(Device &inDevice, RenderPass &renderPass, Description &descri
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = &dynamicState;
 	pipelineInfo.layout = pipelineLayout;
-	pipelineInfo.renderPass = renderPass.renderPass;
-	pipelineInfo.subpass = 0;
+	pipelineInfo.renderPass = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = -1;
 

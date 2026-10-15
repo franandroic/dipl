@@ -35,7 +35,6 @@ void MeshRenderer::recordFrame(uint32_t imageIndex, size_t frame) {
 		mesh.VBO.buffer,
 		mesh.IBO.buffer,
 		canvas.FBO,
-		canvas.renderPass,
 		pipeline,
 		canvas.description
 	);
@@ -78,5 +77,5 @@ void MeshRenderer::recreateSwapChain() {
 	swapChain.recreate(window.window);
 	swapChain.createImageViews();
 
-	canvas.FBO.recreateFramebuffers(canvas.renderPass);
+	canvas.FBO.recreateAttachments();
 }

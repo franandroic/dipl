@@ -4,7 +4,6 @@
 #include "DeviceData.hpp"
 #include "DeviceUtils.hpp"
 
-#include "RenderPass.hpp"
 #include "Pipeline.hpp"
 #include "Description.hpp"
 #include "FrameBufferObject.hpp"
@@ -30,7 +29,6 @@ public:
 		VkBuffer vertexBuffer,
 		VkBuffer indexBuffer,
 		FrameBufferObject &FBO,
-		RenderPass &renderPass,
 		Pipeline &pipeline,
 		Description &description
 		);

@@ -6,7 +6,6 @@
 
 #include "Device.hpp"
 #include "Vertex.hpp"
-#include "RenderPass.hpp"
 #include "Description.hpp"
 
 //Contains definition of the graphics pipeline and handles shader code
@@ -15,7 +14,7 @@ class Pipeline {
 public:
 
 	//Construction
-	Pipeline(Device &inDevice, RenderPass &renderPass, Description &description);
+	Pipeline(Device &inDevice, VkFormat colorFormat, VkFormat depthFormat, Description &description);
 	~Pipeline();
 
 	//Copy and Move constructors

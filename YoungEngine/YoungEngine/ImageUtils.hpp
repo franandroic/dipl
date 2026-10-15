@@ -84,6 +84,54 @@ public:
 		CommandUtils::endSingleTimeCommands(commandBuffer, device, commandPool, queue);
 	}
 
+	static void recordImageLayoutTransition(
+		VkCommandBuffer commandBuffer,
+		VkImage image,
+		VkImageAspectFlags aspect,
+		VkImageLayout oldLayout,
+		VkImageLayout newLayout,
+		VkPipelineStageFlags srcStage,
+		VkAccessFlags srcAccess,
+		VkPipelineStageFlags dstStage,
+		VkAccessFlags dstAccess
+	) {
+
+		//Records an image layout transition into a command buffer that's already being recorded,
+		//as opposed to transitionImageLayout above, which submits its own single-use command buffer.
+		//With dynamic rendering nothing transitions the layouts of the attachments for us, so the
+		//renderer records these at the start and end of each frame. The stages and access masks
+		//are passed in by the caller because the same helper serves color, depth and present transitions.
+		//Only for single mip level, single layer images (which render targets are).
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.srcAccessMask = srcAccess;
+		barrier.dstAccessMask = dstAccess;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange.aspectMask = aspect;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			srcStage,
+			dstStage,
+			0,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			1,
+			&barrier
+		);
+	}
+
 	static void copyBufferToImage(
 		VkDevice device,
 		VkCommandPool commandPool,

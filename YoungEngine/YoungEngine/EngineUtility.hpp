@@ -1,6 +1,9 @@
 #pragma once
 #include "GLFWConfig.hpp"
 
+#include <iostream>
+#include <stdexcept>
+
 #include "DeviceUtils.hpp"
 
 //Contains Vulkan instance and basic engine utility,

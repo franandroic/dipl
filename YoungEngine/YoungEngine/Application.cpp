@@ -34,7 +34,7 @@ void Application::initVulkan() {
 	mySwapChain->createImageViews();
 
 	myCanvas = std::make_unique<Canvas>(*mySwapChain, pixels, texWidth, texHeight, texChannels);
-	myPipeline = std::make_unique<Pipeline>(*myDevice, myCanvas->renderPass, myCanvas->description);
+	myPipeline = std::make_unique<Pipeline>(*myDevice, mySwapChain->swapChainImageFormat, myCanvas->FBO.DIO.depthFormat, myCanvas->description);
 
 	myLoader.unloadImage(pixels);
 	myModelLoader.load(vertices, indices);

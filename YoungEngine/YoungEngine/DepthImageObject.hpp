@@ -1,7 +1,6 @@
 #pragma once
 #include "GLFWConfig.hpp"
 
-#include "ImageUtils.hpp"
 #include "Device.hpp"
 #include "ImageObject.hpp"
 
@@ -16,5 +15,5 @@ public:
 	//Member variables
 	const VkFormat depthFormat;
 
-	void createImage(VkCommandPool commandPool, uint32_t width, uint32_t height);
+	void createImage(uint32_t width, uint32_t height);
 };

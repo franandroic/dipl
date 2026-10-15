@@ -7,7 +7,6 @@
 #include "DeviceData.hpp"
 
 #include "SwapChain.hpp"
-#include "RenderPass.hpp"
 #include "Description.hpp"
 #include "FrameBufferObject.hpp"
 #include "UniformBufferObject.hpp"
@@ -34,8 +33,6 @@ public:
 	Canvas &operator=(Canvas &&) = delete;
 
 	//Member variables
-	RenderPass renderPass;
-
 	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	Description description;
 

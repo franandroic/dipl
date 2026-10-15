@@ -5,11 +5,9 @@ Canvas::Canvas(
 	unsigned char *pixels,
 	int texWidth, int texHeight, int texChannels
 ) : device(inSwapChain.device),
-	renderPass(inSwapChain),
 	description(inSwapChain.device),
-	FBO(inSwapChain, renderPass, pixels, texWidth, texHeight, texChannels)
+	FBO(inSwapChain, pixels, texWidth, texHeight, texChannels)
 {
-
 	createDescriptorPool(inSwapChain);
 
 	UBOs.reserve(MAX_FRAMES_IN_FLIGHT);
