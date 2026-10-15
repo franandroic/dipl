@@ -37,6 +37,9 @@
 #include "Mesh.hpp"
 #include "Canvas.hpp"
 
+#include "Renderer.hpp"
+#include "MeshRenderer.hpp"
+
 //THE MAIN APPLICATION CLASS
 class Application {
 
@@ -44,7 +47,7 @@ public:
 
 	//Construction
 	Application();
-	~Application();
+	~Application() = default;
 
 	//Copy and Move constructors
 	Application(const Application &) = delete;
@@ -93,30 +96,16 @@ private:
 	//BUFFER OBJECTS
 	std::unique_ptr<Mesh> myMesh;
 
-	//SYNCHRONISATION
-	std::vector<VkSemaphore> imageAvailableSemaphores;
-	std::vector<VkSemaphore> renderFinishedSemaphores;
-	std::vector<VkFence> inFlightFences;
-
-	//DRAWING
-	uint32_t currentFrame = 0;
+	//RENDERER
+	std::unique_ptr<Renderer> myRenderer;
 
 public:
 
 	void run();
 
 private:
-
-	//DRAWING FUNCTIONS
-	void drawFrame();
 	
 	//MAIN SETUP AND RUNTIME FUNCTIONS
 	void initVulkan();
 	void mainLoop();
-
-	//OBJECT CREATION FUNCTIONS
-	void createSyncObjects();
-
-	//OBJECT CREATION SUPPORT FUNCTIONS
-	void recreateSwapChain();
 };

@@ -25,6 +25,13 @@ public:
 	SwapChain(SwapChain &&) = delete;
 	SwapChain &operator=(SwapChain &&) = delete;
 
+	//Local enums
+	enum class AcquireResult {
+		Success,
+		Suboptimal,
+		OutOfDate
+	};
+
 	//Member variables
 	Device &device;
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
@@ -35,8 +42,11 @@ public:
 
 	void createImageViews();
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-
+	
 	void recreate(GLFWwindow *window);
+
+	AcquireResult acquireNextImage(VkSemaphore signalSemaphore, uint32_t &outImageIndex);
+	bool present(VkSemaphore waitSemaphore, uint32_t imageIndex);
 
 private:
 

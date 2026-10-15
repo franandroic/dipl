@@ -78,6 +78,21 @@
     <ClCompile Include="Canvas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EngineUtility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Synchronizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp">
@@ -168,6 +183,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineUtility.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Synchronizer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

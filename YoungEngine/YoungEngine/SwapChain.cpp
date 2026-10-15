@@ -51,6 +51,43 @@ void SwapChain::recreate(GLFWwindow *window) {
 	create(window);
 }
 
+SwapChain::AcquireResult SwapChain::acquireNextImage(VkSemaphore signalSemaphore, uint32_t &outImageIndex) {
+
+	VkResult result = vkAcquireNextImageKHR(device.logical, swapChain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &outImageIndex);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		return AcquireResult::OutOfDate;
+	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("Failed to acquire swap chain image!");
+	}
+
+	return (result == VK_SUBOPTIMAL_KHR) ? AcquireResult::Suboptimal : AcquireResult::Success;
+}
+
+bool SwapChain::present(VkSemaphore waitSemaphore, uint32_t imageIndex) {
+
+	VkPresentInfoKHR presentInfo{};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = &waitSemaphore;
+
+	VkSwapchainKHR swapChains[] = { swapChain };
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pResults = nullptr;
+
+	VkResult result = vkQueuePresentKHR(device.presentQueue, &presentInfo);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+		return true;
+	} else if (result != VK_SUCCESS) {
+		throw std::runtime_error("Failed to present swap chain image!");
+	}
+
+	return false;
+}
+
 void SwapChain::create(GLFWwindow *window) {
 
 	//To create a swap chain its create info needs to be filled with surface features, which we query
