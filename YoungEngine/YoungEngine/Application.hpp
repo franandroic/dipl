@@ -1,39 +1,17 @@
 #pragma once
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/hash.hpp>
+#include "GLMConfig.hpp"
 
 #include "EngineUtility.hpp"
-#include "DeviceUtils.hpp"
 
 #include "Window.hpp"
-#include "UniformBufferData.hpp"
 #include "Vertex.hpp"
 #include "Device.hpp"
 #include "SwapChain.hpp"
 #include "Pipeline.hpp"
-#include "RenderPass.hpp"
-#include "Description.hpp"
 #include "Command.hpp"
-#include "VertexBufferObject.hpp"
-#include "IndexBufferObject.hpp"
-#include "UniformBufferObject.hpp"
-#include "UniformBufferOperator.hpp"
 #include "ModelLoader.hpp"
 #include "ImageLoader.hpp"
 #include "Loader.hpp"
-#include "TextureImageObject.hpp"
-#include "DepthImageObject.hpp"
-#include "ColorImageObject.hpp"
-#include "FrameBufferObject.hpp"
 #include "Mesh.hpp"
 #include "Canvas.hpp"
 
@@ -69,34 +47,19 @@ public:
 
 private:
 
-	//Loading
 	ModelLoader myModelLoader;
 	ImageLoader myImageLoader;
 	Loader myLoader;
 
-	//Window
 	Window myWindow;
-	
-	//Utility
 	EngineUtility myEngineUtility;
 
-	//LOGICAL DEVICE OBJECTS
 	std::unique_ptr<Device> myDevice;
-
-	//SWAP CHAIN OBJECTS
 	std::unique_ptr<SwapChain> mySwapChain;
-
-	//GRAPHICS PIPELINE OBJECTS
 	std::unique_ptr<Pipeline> myPipeline;
 	std::unique_ptr<Canvas> myCanvas;
-
-	//COMMAND OBJECTS
 	Command myCommand;
-
-	//BUFFER OBJECTS
 	std::unique_ptr<Mesh> myMesh;
-
-	//RENDERER
 	std::unique_ptr<Renderer> myRenderer;
 
 public:
@@ -105,7 +68,6 @@ public:
 
 private:
 	
-	//MAIN SETUP AND RUNTIME FUNCTIONS
 	void initVulkan();
 	void mainLoop();
 };

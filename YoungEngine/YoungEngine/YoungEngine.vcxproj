@@ -194,6 +194,8 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="DeviceUtils.hpp" />
     <ClInclude Include="EngineUtility.hpp" />
     <ClInclude Include="FrameBufferObject.hpp" />
+    <ClInclude Include="GLFWConfig.hpp" />
+    <ClInclude Include="GLMConfig.hpp" />
     <ClInclude Include="ImageLoader.hpp" />
     <ClInclude Include="ImageObject.hpp" />
     <ClInclude Include="ImageUtils.hpp" />

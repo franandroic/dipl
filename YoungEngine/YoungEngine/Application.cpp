@@ -1,6 +1,13 @@
 #include "Application.hpp"
 
-Application::Application() : myWindow(WIDTH, HEIGHT, "Vulkan") {}
+Application::Application() :
+	myModelLoader(),
+	myImageLoader(),
+	myLoader(),
+	myWindow(WIDTH, HEIGHT, "Vulkan"),
+	myEngineUtility(),
+	myCommand() {
+}
 
 void Application::run() {
 
@@ -27,17 +34,13 @@ void Application::initVulkan() {
 	mySwapChain->createImageViews();
 
 	myCanvas = std::make_unique<Canvas>(*mySwapChain, pixels, texWidth, texHeight, texChannels);
-
 	myPipeline = std::make_unique<Pipeline>(*myDevice, myCanvas->renderPass, myCanvas->description);
 
 	myLoader.unloadImage(pixels);
-	
 	myModelLoader.load(vertices, indices);
 
 	myMesh = std::make_unique<Mesh>(*myDevice, vertices, indices);
-
 	myCommand.createCommandBuffers(*myDevice);
-
 	myRenderer = std::make_unique<MeshRenderer>(
 		*myDevice,
 		*mySwapChain,
