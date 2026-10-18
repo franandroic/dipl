@@ -7,7 +7,6 @@
 #include "DeviceData.hpp"
 
 #include "Device.hpp"
-#include "UniformBufferData.hpp"
 #include "UniformBufferObject.hpp"
 
 //Encapsulates the Vulkan objects related to descriptors

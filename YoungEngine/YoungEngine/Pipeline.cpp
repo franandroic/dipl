@@ -1,6 +1,12 @@
 #include "Pipeline.hpp"
 
-Pipeline::Pipeline(Device &inDevice, VkFormat colorFormat, VkFormat depthFormat, Description &description) : device(inDevice) {
+Pipeline::Pipeline(
+	Device &inDevice,
+	VkFormat colorFormat,
+	VkFormat depthFormat,
+	Description &description,
+	const VkPushConstantRange &pushConstantRange
+) : device(inDevice) {
 
 	//The graphics pipeline consists of programmable (shaders) and fixed functions. We create shader modules
 	//with the compiled code read from a file and save them into shader stages.
@@ -140,8 +146,10 @@ Pipeline::Pipeline(Device &inDevice, VkFormat colorFormat, VkFormat depthFormat,
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &(description.descriptorSetLayout);
-	pipelineLayoutInfo.pushConstantRangeCount = 0;
-	pipelineLayoutInfo.pPushConstantRanges = nullptr;
+	//A range of size zero means the pipeline uses no push constants.
+	bool usesPushConstants = pushConstantRange.size > 0;
+	pipelineLayoutInfo.pushConstantRangeCount = usesPushConstants ? 1 : 0;
+	pipelineLayoutInfo.pPushConstantRanges = usesPushConstants ? &pushConstantRange : nullptr;
 
 	if (vkCreatePipelineLayout(device.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create pipeline layout!");

@@ -3,21 +3,22 @@
 Canvas::Canvas(
 	SwapChain &inSwapChain,
 	unsigned char *pixels,
-	int texWidth, int texHeight, int texChannels
-) : device(inSwapChain.device),
-	description(inSwapChain.device),
-	FBO(inSwapChain, pixels, texWidth, texHeight, texChannels)
+	int texWidth, int texHeight, int texChannels,
+	std::unique_ptr<UniformData> inUniformData,
+	std::unique_ptr<UniformOperator> inUniformOperator
+) : description(inSwapChain.device),
+	FBO(inSwapChain, pixels, texWidth, texHeight, texChannels),
+	uniformity(inSwapChain.device, std::move(inUniformData), std::move(inUniformOperator), MAX_FRAMES_IN_FLIGHT),
+	device(inSwapChain.device)
 {
 	createDescriptorPool(inSwapChain);
 
 	UBOs.reserve(MAX_FRAMES_IN_FLIGHT);
-	UBop = UniformBufferOperator(FBO.swapChain.swapChainExtent.width / (float)FBO.swapChain.swapChainExtent.height);
 	
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		UBOs.push_back(std::make_unique<UniformBufferObject>(
 			FBO.swapChain.device,
-			UBdata,
-			UBop,
+			sizeof(Camera::UniformBlock),
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		));

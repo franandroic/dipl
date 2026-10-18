@@ -14,6 +14,10 @@
 #include "Loader.hpp"
 #include "Mesh.hpp"
 #include "Canvas.hpp"
+#include "Camera.hpp"
+
+#include "SimpleModelUD.hpp"
+#include "InPlaceYRotationUO.hpp"
 
 #include "Renderer.hpp"
 #include "MeshRenderer.hpp"
@@ -59,6 +63,7 @@ private:
 	std::unique_ptr<Pipeline> myPipeline;
 	std::unique_ptr<Canvas> myCanvas;
 	Command myCommand;
+	Camera myCamera;
 	std::unique_ptr<Mesh> myMesh;
 	std::unique_ptr<Renderer> myRenderer;
 

@@ -6,9 +6,9 @@ Renderer::Renderer(Device &inDevice, SwapChain &inSwapChain, size_t framesInFlig
 
 void Renderer::render(bool externalResizeRequested) {
 
-	updateFrame(currentFrame);
-
 	sync.stop(currentFrame);
+
+	updateFrame(currentFrame);
 
 	uint32_t imageIndex;
 	SwapChain::AcquireResult acquireResult = swapChain.acquireNextImage(

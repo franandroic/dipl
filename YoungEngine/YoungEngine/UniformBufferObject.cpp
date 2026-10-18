@@ -1,5 +1,8 @@
 #include "UniformBufferObject.hpp"
 
+#include <cstring>
+#include <stdexcept>
+
 void UniformBufferObject::createBuffer() {
 
 	//Creating and mapping a uniform buffer for each frame (imageView) we want to be able
@@ -10,10 +13,13 @@ void UniformBufferObject::createBuffer() {
 	vkMapMemory(device.logical, bufferMemory, 0, size, 0, &bufferMapped);
 }
 
-void UniformBufferObject::updateBuffer() {
+void UniformBufferObject::updateBuffer(const void *data, size_t dataSize) {
 
-	op.operate(&data);
+	//Updating the contents of the memory mapped to the GPU passes the values to the shaders.
 
-	//TODO: Look into push constants
-	memcpy(bufferMapped, &data, sizeof(data));
+	if (dataSize > size) {
+		throw std::length_error("Data doesn't fit into the uniform buffer!");
+	}
+
+	memcpy(bufferMapped, data, dataSize);
 }

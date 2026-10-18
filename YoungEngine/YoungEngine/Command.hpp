@@ -7,6 +7,7 @@
 #include "Pipeline.hpp"
 #include "Description.hpp"
 #include "FrameBufferObject.hpp"
+#include "Uniformity.hpp"
 
 //Wrapper for Vulkan Command Buffers
 class Command {
@@ -30,6 +31,7 @@ public:
 		VkBuffer indexBuffer,
 		FrameBufferObject &FBO,
 		Pipeline &pipeline,
-		Description &description
+		Description &description,
+		const Uniformity &uniformity
 		);
 };

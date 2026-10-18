@@ -10,8 +10,10 @@
 #include "Description.hpp"
 #include "FrameBufferObject.hpp"
 #include "UniformBufferObject.hpp"
-#include "UniformBufferData.hpp"
-#include "UniformBufferOperator.hpp"
+#include "UniformData.hpp"
+#include "UniformOperator.hpp"
+#include "Uniformity.hpp"
+#include "Camera.hpp"
 
 //Contains objects used to define the look of an object
 class Canvas {
@@ -22,7 +24,9 @@ public:
 	Canvas(
 		SwapChain &inSwapChain,
 		unsigned char *pixels,
-		int texWidth, int texHeight, int texChannels
+		int texWidth, int texHeight, int texChannels,
+		std::unique_ptr<UniformData> inUniformData,
+		std::unique_ptr<UniformOperator> inUniformOperator
 	);
 	~Canvas();
 
@@ -38,9 +42,12 @@ public:
 
 	FrameBufferObject FBO;
 
+	//The camera's uniform buffers, one for each frame in flight.
+	//They're shared by all objects, so they're temporarily here until the descriptors are reworked.
 	std::vector<std::unique_ptr<UniformBufferObject>> UBOs;
-	UniformBufferData UBdata;
-	UniformBufferOperator UBop;
+
+	//The uniforms of the object. Canvas stands in for the future GameObject, which will own this.
+	Uniformity uniformity;
 
 private:
 

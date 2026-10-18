@@ -1,39 +1,27 @@
 #pragma once
 #include "GLFWConfig.hpp"
 
-#include <algorithm>
+#include <cstddef>
 
 #include "BufferObject.hpp"
-#include "UniformBufferData.hpp"
-#include "UniformBufferOperator.hpp"
 
-//Buffer object that defines uniform data to be passed to a shader.
+//Thin wrapper around a buffer used as a uniform buffer: persistently mapped, host-visible memory
+//that the CPU can write to. It knows nothing about what it contains.
 class UniformBufferObject : public BufferObject {
-
-	//TODO: Two strategy (I think) patterns, the idea is to switch out the data type and the operator
-	//for different UBOs
 
 public:
 
 	//Construction
 	UniformBufferObject(
 		Device &inDevice,
-		UniformBufferData &inData,
-		UniformBufferOperator &inOp,
+		VkDeviceSize inSize,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
-	) : BufferObject(inDevice, sizeof(inData), inUsage, inProperties),
-		data(inData),
-		op(inOp) {}
+	) : BufferObject(inDevice, inSize, inUsage, inProperties) {}
 
 	//Member variables
 	void *bufferMapped = nullptr;
 
 	void createBuffer();
-	void updateBuffer();
-
-private:
-
-	UniformBufferData &data;
-	UniformBufferOperator &op;
+	void updateBuffer(const void *data, size_t dataSize);
 };

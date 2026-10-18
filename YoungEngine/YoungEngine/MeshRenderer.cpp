@@ -8,6 +8,7 @@ MeshRenderer::MeshRenderer(
 	Pipeline &inPipeline,
 	Mesh &inMesh,
 	Command &inCommand,
+	Camera &inCamera,
 	uint32_t inIndexCount,
 	size_t inFramesInFlight
 ) : Renderer(inDevice, inSwapChain, inFramesInFlight),
@@ -16,11 +17,19 @@ MeshRenderer::MeshRenderer(
 	pipeline(inPipeline),
 	mesh(inMesh),
 	command(inCommand),
+	camera(inCamera),
 	indexCount(inIndexCount) {
 }
 
 void MeshRenderer::updateFrame(size_t frame) {
-	canvas.UBOs[frame]->updateBuffer();
+
+	//The object's uniforms are updated by its own operator, while the camera's data
+	//goes into the camera uniform buffer of this frame.
+
+	canvas.uniformity.update(frame);
+
+	Camera::UniformBlock cameraBlock = camera.getUniformBlock();
+	canvas.UBOs[frame]->updateBuffer(&cameraBlock, sizeof(cameraBlock));
 }
 
 void MeshRenderer::recordFrame(uint32_t imageIndex, size_t frame) {
@@ -36,7 +45,8 @@ void MeshRenderer::recordFrame(uint32_t imageIndex, size_t frame) {
 		mesh.IBO.buffer,
 		canvas.FBO,
 		pipeline,
-		canvas.description
+		canvas.description,
+		canvas.uniformity
 	);
 }
 

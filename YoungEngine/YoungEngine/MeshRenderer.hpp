@@ -8,6 +8,7 @@
 #include "Pipeline.hpp"
 #include "Mesh.hpp"
 #include "Command.hpp"
+#include "Camera.hpp"
 
 class MeshRenderer : public Renderer {
 
@@ -21,6 +22,7 @@ public:
 		Pipeline &pipeline,
 		Mesh &mesh,
 		Command &command,
+		Camera &camera,
 		uint32_t indexCount,
 		size_t framesInFlight
 	);
@@ -39,5 +41,6 @@ private:
 	Pipeline &pipeline;
 	Mesh &mesh;
 	Command &command;
+	Camera &camera;
 	uint32_t indexCount;
 };

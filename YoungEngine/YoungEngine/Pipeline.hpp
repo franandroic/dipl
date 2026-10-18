@@ -14,7 +14,13 @@ class Pipeline {
 public:
 
 	//Construction
-	Pipeline(Device &inDevice, VkFormat colorFormat, VkFormat depthFormat, Description &description);
+	Pipeline(
+		Device &inDevice,
+		VkFormat colorFormat,
+		VkFormat depthFormat,
+		Description &description,
+		const VkPushConstantRange &pushConstantRange
+	);
 	~Pipeline();
 
 	//Copy and Move constructors

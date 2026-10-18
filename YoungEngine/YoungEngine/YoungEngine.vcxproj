@@ -155,6 +155,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BufferObject.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ColorImageObject.cpp" />
     <ClCompile Include="Command.cpp" />
@@ -176,12 +177,14 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Synchronizer.cpp" />
     <ClCompile Include="TextureImageObject.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
+    <ClCompile Include="Uniformity.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
     <ClInclude Include="BufferObject.hpp" />
+    <ClInclude Include="Camera.hpp" />
     <ClInclude Include="Canvas.hpp" />
     <ClInclude Include="ColorImageObject.hpp" />
     <ClInclude Include="Command.hpp" />
@@ -199,6 +202,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="ImageObject.hpp" />
     <ClInclude Include="ImageUtils.hpp" />
     <ClInclude Include="IndexBufferObject.hpp" />
+    <ClInclude Include="InPlaceYRotationUO.hpp" />
     <ClInclude Include="Loader.hpp" />
     <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="ModelLoader.hpp" />
@@ -206,13 +210,15 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="QueueFamilyIndices.hpp" />
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="SimpleModelUD.hpp" />
     <ClInclude Include="SwapChain.hpp" />
     <ClInclude Include="SwapChainSupportDetails.hpp" />
     <ClInclude Include="Synchronizer.hpp" />
     <ClInclude Include="TextureImageObject.hpp" />
-    <ClInclude Include="UniformBufferData.hpp" />
     <ClInclude Include="UniformBufferObject.hpp" />
-    <ClInclude Include="UniformBufferOperator.hpp" />
+    <ClInclude Include="UniformData.hpp" />
+    <ClInclude Include="Uniformity.hpp" />
+    <ClInclude Include="UniformOperator.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexBufferObject.hpp" />
     <ClInclude Include="Window.hpp" />

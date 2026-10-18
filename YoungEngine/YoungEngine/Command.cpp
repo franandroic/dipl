@@ -29,11 +29,11 @@ void Command::recordCommandBuffer(
 	VkBuffer indexBuffer,
 	FrameBufferObject &FBO,
 	Pipeline &pipeline,
-	Description &description
+	Description &description,
+	const Uniformity &uniformity
 	) {
 
-	//This is where the recording of commands happens. Before recording we need to "begin"
-	//the command buffer and the render pass.
+	//This is where the recording of commands happens. Before recording we need to "begin" the command buffer
 	//During the recording we bind the vertex and index buffers that specify the data to be drawn,
 	//as well as descriptor sets, which we use for things like uniform buffers and samplers.
 
@@ -162,6 +162,8 @@ void Command::recordCommandBuffer(
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipelineLayout, 0, 1, &description.descriptorSets[currentFrame], 0, nullptr);
+
+	uniformity.recordPushConstants(commandBuffer, pipeline.pipelineLayout);
 
 	//vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0); //For using just the vertex buffer
 	vkCmdDrawIndexed(commandBuffer, indicesSize, 1, 0, 0, 0);

@@ -6,7 +6,8 @@ Application::Application() :
 	myLoader(),
 	myWindow(WIDTH, HEIGHT, "Vulkan"),
 	myEngineUtility(),
-	myCommand() {
+	myCommand(),
+	myCamera() {
 }
 
 void Application::run() {
@@ -33,8 +34,22 @@ void Application::initVulkan() {
 	mySwapChain = std::make_unique<SwapChain>(*myDevice, myWindow.window);
 	mySwapChain->createImageViews();
 
-	myCanvas = std::make_unique<Canvas>(*mySwapChain, pixels, texWidth, texHeight, texChannels);
-	myPipeline = std::make_unique<Pipeline>(*myDevice, mySwapChain->swapChainImageFormat, myCanvas->FBO.DIO.depthFormat, myCanvas->description);
+	myCamera.setViewportExtent(mySwapChain->swapChainExtent.width, mySwapChain->swapChainExtent.height);
+
+	myCanvas = std::make_unique<Canvas>(
+		*mySwapChain,
+		pixels, texWidth, texHeight, texChannels,
+		std::make_unique<SimpleModelUD>(),
+		std::make_unique<InPlaceYRotationUO>(90.0f)
+	);
+
+	myPipeline = std::make_unique<Pipeline>(
+		*myDevice,
+		mySwapChain->swapChainImageFormat,
+		myCanvas->FBO.DIO.depthFormat,
+		myCanvas->description,
+		myCanvas->uniformity.pushConstantRange()
+	);
 
 	myLoader.unloadImage(pixels);
 	myModelLoader.load(vertices, indices);
@@ -49,6 +64,7 @@ void Application::initVulkan() {
 		*myPipeline,
 		*myMesh,
 		myCommand,
+		myCamera,
 		static_cast<uint32_t>(indices.size()),
 		MAX_FRAMES_IN_FLIGHT
 	);
