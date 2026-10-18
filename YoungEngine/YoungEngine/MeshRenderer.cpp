@@ -43,7 +43,6 @@ void MeshRenderer::recordFrame(uint32_t imageIndex, size_t frame) {
 		indexCount,
 		mesh.VBO.buffer,
 		mesh.IBO.buffer,
-		canvas.FBO,
 		pipeline,
 		canvas.description,
 		canvas.uniformity
@@ -87,5 +86,7 @@ void MeshRenderer::recreateSwapChain() {
 	swapChain.recreate(window.window);
 	swapChain.createImageViews();
 
-	canvas.FBO.recreateAttachments();
+	pipeline.renderTarget.recreateAttachments();
+	
+	camera.setViewportExtent(swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);
 }

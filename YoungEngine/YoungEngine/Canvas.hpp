@@ -6,9 +6,9 @@
 
 #include "DeviceData.hpp"
 
-#include "SwapChain.hpp"
+#include "Device.hpp"
 #include "Description.hpp"
-#include "FrameBufferObject.hpp"
+#include "Texture.hpp"
 #include "UniformBufferObject.hpp"
 #include "UniformData.hpp"
 #include "UniformOperator.hpp"
@@ -22,7 +22,7 @@ public:
 
 	//Construction
 	Canvas(
-		SwapChain &inSwapChain,
+		Device &inDevice,
 		unsigned char *pixels,
 		int texWidth, int texHeight, int texChannels,
 		std::unique_ptr<UniformData> inUniformData,
@@ -40,7 +40,7 @@ public:
 	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	Description description;
 
-	FrameBufferObject FBO;
+	Texture texture;
 
 	//The camera's uniform buffers, one for each frame in flight.
 	//They're shared by all objects, so they're temporarily here until the descriptors are reworked.
@@ -53,5 +53,5 @@ private:
 
 	Device &device;
 
-	void createDescriptorPool(SwapChain &swapChain);
+	void createDescriptorPool();
 };

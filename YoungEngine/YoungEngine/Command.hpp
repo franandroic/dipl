@@ -3,10 +3,10 @@
 
 #include "DeviceData.hpp"
 #include "DeviceUtils.hpp"
+#include "ImageUtils.hpp"
 
 #include "Pipeline.hpp"
 #include "Description.hpp"
-#include "FrameBufferObject.hpp"
 #include "Uniformity.hpp"
 
 //Wrapper for Vulkan Command Buffers
@@ -29,9 +29,8 @@ public:
 		uint32_t indicesSize,
 		VkBuffer vertexBuffer,
 		VkBuffer indexBuffer,
-		FrameBufferObject &FBO,
 		Pipeline &pipeline,
 		Description &description,
 		const Uniformity &uniformity
-		);
+	);
 };

@@ -28,7 +28,7 @@ void Renderer::render(bool externalResizeRequested) {
 		sync.imageAvailable(currentFrame),
 		sync.renderFinished(currentFrame),
 		sync.inFlightFence(currentFrame)
-		);
+	);
 
 	bool needsRecreate = swapChain.present(sync.renderFinished(currentFrame), imageIndex);
 	if (needsRecreate || externalResizeRequested) {

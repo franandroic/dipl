@@ -1,23 +1,23 @@
 #include "Canvas.hpp"
 
 Canvas::Canvas(
-	SwapChain &inSwapChain,
+	Device &inDevice,
 	unsigned char *pixels,
 	int texWidth, int texHeight, int texChannels,
 	std::unique_ptr<UniformData> inUniformData,
 	std::unique_ptr<UniformOperator> inUniformOperator
-) : description(inSwapChain.device),
-	FBO(inSwapChain, pixels, texWidth, texHeight, texChannels),
-	uniformity(inSwapChain.device, std::move(inUniformData), std::move(inUniformOperator), MAX_FRAMES_IN_FLIGHT),
-	device(inSwapChain.device)
+) : description(inDevice),
+	texture(inDevice, pixels, texWidth, texHeight, texChannels),
+	uniformity(inDevice, std::move(inUniformData), std::move(inUniformOperator), MAX_FRAMES_IN_FLIGHT),
+	device(inDevice)
 {
-	createDescriptorPool(inSwapChain);
+	createDescriptorPool();
 
 	UBOs.reserve(MAX_FRAMES_IN_FLIGHT);
 	
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		UBOs.push_back(std::make_unique<UniformBufferObject>(
-			FBO.swapChain.device,
+			device,
 			sizeof(Camera::UniformBlock),
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -25,7 +25,7 @@ Canvas::Canvas(
 		UBOs[i]->createBuffer();
 	}
 
-	description.createDescriptorSets(descriptorPool, UBOs, FBO.TIO.imageView, FBO.TIO.sampler);
+	description.createDescriptorSets(descriptorPool, UBOs, texture.getImageView(), texture.getSampler());
 }
 
 Canvas::~Canvas() {
@@ -33,7 +33,7 @@ Canvas::~Canvas() {
 	vkDestroyDescriptorPool(device.logical, descriptorPool, nullptr);
 }
 
-void Canvas::createDescriptorPool(SwapChain &swapChain) {
+void Canvas::createDescriptorPool() {
 	
 	//Creating a descriptor pool, with a pool size for each descriptor set type and amount.
 
@@ -50,7 +50,7 @@ void Canvas::createDescriptorPool(SwapChain &swapChain) {
 	poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 	poolInfo.flags = 0;
 
-	if (vkCreateDescriptorPool(swapChain.device.logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+	if (vkCreateDescriptorPool(device.logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor pool!");
 	}
 }

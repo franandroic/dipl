@@ -27,7 +27,6 @@ void Command::recordCommandBuffer(
 	uint32_t indicesSize,
 	VkBuffer vertexBuffer,
 	VkBuffer indexBuffer,
-	FrameBufferObject &FBO,
 	Pipeline &pipeline,
 	Description &description,
 	const Uniformity &uniformity
@@ -50,12 +49,14 @@ void Command::recordCommandBuffer(
 		throw std::runtime_error("Failed to begin recording command buffer!");
 	}
 
-	VkImage swapChainImage = FBO.swapChain.swapChainImages[imageIndex];
-	VkImageView swapChainImageView = FBO.swapChain.swapChainImageViews[imageIndex];
-	VkExtent2D extent = FBO.swapChain.swapChainExtent;
+	RenderTarget &renderTarget = pipeline.renderTarget;
+
+	VkImage swapChainImage = renderTarget.swapChain.swapChainImages[imageIndex];
+	VkImageView swapChainImageView = renderTarget.swapChain.swapChainImageViews[imageIndex];
+	VkExtent2D extent = renderTarget.swapChain.swapChainExtent;
 
 	VkImageAspectFlags depthAspect = VK_IMAGE_ASPECT_DEPTH_BIT;
-	if (ImageUtils::hasStencilComponent(FBO.DIO.depthFormat)) {
+	if (ImageUtils::hasStencilComponent(renderTarget.DIO.depthFormat)) {
 		depthAspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
 	}
 
@@ -76,7 +77,7 @@ void Command::recordCommandBuffer(
 	//The multisampled color image and the depth image are shared between the frames in flight
 	ImageUtils::recordImageLayoutTransition(
 		commandBuffer,
-		FBO.CIO.image,
+		renderTarget.CIO.image,
 		VK_IMAGE_ASPECT_COLOR_BIT,
 		VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -86,7 +87,7 @@ void Command::recordCommandBuffer(
 
 	ImageUtils::recordImageLayoutTransition(
 		commandBuffer,
-		FBO.DIO.image,
+		renderTarget.DIO.image,
 		depthAspect,
 		VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
@@ -104,7 +105,7 @@ void Command::recordCommandBuffer(
 
 	VkRenderingAttachmentInfo colorAttachment{};
 	colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-	colorAttachment.imageView = FBO.CIO.imageView;
+	colorAttachment.imageView = renderTarget.CIO.imageView;
 	colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	colorAttachment.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
 	colorAttachment.resolveImageView = swapChainImageView;
@@ -118,7 +119,7 @@ void Command::recordCommandBuffer(
 
 	VkRenderingAttachmentInfo depthAttachment{};
 	depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-	depthAttachment.imageView = FBO.DIO.imageView;
+	depthAttachment.imageView = renderTarget.DIO.imageView;
 	depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	depthAttachment.resolveMode = VK_RESOLVE_MODE_NONE;
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -144,15 +145,15 @@ void Command::recordCommandBuffer(
 	VkViewport viewport{};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(FBO.swapChain.swapChainExtent.width);
-	viewport.height = static_cast<float>(FBO.swapChain.swapChainExtent.height);
+	viewport.width = static_cast<float>(renderTarget.swapChain.swapChainExtent.width);
+	viewport.height = static_cast<float>(renderTarget.swapChain.swapChainExtent.height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
-	scissor.extent = FBO.swapChain.swapChainExtent;
+	scissor.extent = renderTarget.swapChain.swapChainExtent;
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 	VkBuffer vertexBuffers[] = { vertexBuffer };

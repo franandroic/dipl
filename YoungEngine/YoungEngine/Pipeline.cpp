@@ -2,11 +2,10 @@
 
 Pipeline::Pipeline(
 	Device &inDevice,
-	VkFormat colorFormat,
-	VkFormat depthFormat,
+	SwapChain &inSwapChain,
 	Description &description,
 	const VkPushConstantRange &pushConstantRange
-) : device(inDevice) {
+) : renderTarget(inSwapChain), device(inDevice) {
 
 	//The graphics pipeline consists of programmable (shaders) and fixed functions. We create shader modules
 	//with the compiled code read from a file and save them into shader stages.
@@ -157,6 +156,9 @@ Pipeline::Pipeline(
 
 	//Dynamic rendering: instead of a render pass, we state which attachment formats the pipeline renders to.
 	//These have to match the formats of the image views passed to vkCmdBeginRendering when the pipeline is used.
+	VkFormat colorFormat = renderTarget.colorFormat();
+	VkFormat depthFormat = renderTarget.depthFormat();
+
 	VkPipelineRenderingCreateInfo renderingInfo{};
 	renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
 	renderingInfo.viewMask = 0;

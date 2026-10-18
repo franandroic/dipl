@@ -5,8 +5,10 @@
 #include <vector>
 
 #include "Device.hpp"
+#include "SwapChain.hpp"
 #include "Vertex.hpp"
 #include "Description.hpp"
+#include "RenderTarget.hpp"
 
 //Contains definition of the graphics pipeline and handles shader code
 class Pipeline {
@@ -16,8 +18,7 @@ public:
 	//Construction
 	Pipeline(
 		Device &inDevice,
-		VkFormat colorFormat,
-		VkFormat depthFormat,
+		SwapChain &inSwapChain,
 		Description &description,
 		const VkPushConstantRange &pushConstantRange
 	);
@@ -32,6 +33,8 @@ public:
 	//Member variables
 	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
+
+	RenderTarget renderTarget;
 
 private:
 

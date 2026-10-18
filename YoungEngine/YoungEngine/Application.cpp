@@ -37,7 +37,7 @@ void Application::initVulkan() {
 	myCamera.setViewportExtent(mySwapChain->swapChainExtent.width, mySwapChain->swapChainExtent.height);
 
 	myCanvas = std::make_unique<Canvas>(
-		*mySwapChain,
+		*myDevice,
 		pixels, texWidth, texHeight, texChannels,
 		std::make_unique<SimpleModelUD>(),
 		std::make_unique<InPlaceYRotationUO>(90.0f)
@@ -45,8 +45,7 @@ void Application::initVulkan() {
 
 	myPipeline = std::make_unique<Pipeline>(
 		*myDevice,
-		mySwapChain->swapChainImageFormat,
-		myCanvas->FBO.DIO.depthFormat,
+		*mySwapChain,
 		myCanvas->description,
 		myCanvas->uniformity.pushConstantRange()
 	);
