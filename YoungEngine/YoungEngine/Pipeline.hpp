@@ -5,12 +5,14 @@
 #include <vector>
 
 #include "Device.hpp"
-#include "SwapChain.hpp"
 #include "Vertex.hpp"
 #include "Description.hpp"
 #include "RenderTarget.hpp"
 
-//Contains definition of the graphics pipeline and handles shader code
+//Contains definition of the graphics pipeline and handles shader code.
+//The attachment formats the pipeline renders to are baked into it, so it's created from the
+//RenderTarget it will be used with. It doesn't own it: all of the pipelines of a frame share
+//the render target of the Renderer, and only the formats are read at construction.
 class Pipeline {
 
 public:
@@ -18,7 +20,7 @@ public:
 	//Construction
 	Pipeline(
 		Device &inDevice,
-		SwapChain &inSwapChain,
+		const RenderTarget &renderTarget,
 		Description &description,
 		const VkPushConstantRange &pushConstantRange
 	);
@@ -34,14 +36,13 @@ public:
 	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
-	RenderTarget renderTarget;
-
 private:
 
 	Device &device;
 
 	//Creating a shader module from SPIR-V code
 	VkShaderModule createShaderModule(const std::vector<char> &code);
+	
 	//Reading shader code compiled to SPIR-V
 	std::vector<char> readFile(const std::string &filename);
 };

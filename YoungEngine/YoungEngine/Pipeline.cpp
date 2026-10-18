@@ -2,10 +2,10 @@
 
 Pipeline::Pipeline(
 	Device &inDevice,
-	SwapChain &inSwapChain,
+	const RenderTarget &renderTarget,
 	Description &description,
 	const VkPushConstantRange &pushConstantRange
-) : renderTarget(inSwapChain), device(inDevice) {
+) : device(inDevice) {
 
 	//The graphics pipeline consists of programmable (shaders) and fixed functions. We create shader modules
 	//with the compiled code read from a file and save them into shader stages.

@@ -163,12 +163,12 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Description.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="EngineUtility.cpp" />
+    <ClCompile Include="MeshDrawer.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="ImageObject.cpp" />
     <ClCompile Include="IndexBufferObject.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -195,7 +195,9 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
+    <ClInclude Include="Drawer.hpp" />
     <ClInclude Include="EngineUtility.hpp" />
+    <ClInclude Include="MeshDrawer.hpp" />
     <ClInclude Include="RenderTarget.hpp" />
     <ClInclude Include="GLFWConfig.hpp" />
     <ClInclude Include="GLMConfig.hpp" />
@@ -205,7 +207,6 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="IndexBufferObject.hpp" />
     <ClInclude Include="InPlaceYRotationUO.hpp" />
     <ClInclude Include="Loader.hpp" />
-    <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="ModelLoader.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="QueueFamilyIndices.hpp" />

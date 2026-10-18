@@ -8,19 +8,17 @@
 #include "Device.hpp"
 #include "SwapChain.hpp"
 #include "Pipeline.hpp"
-#include "Command.hpp"
 #include "ModelLoader.hpp"
 #include "ImageLoader.hpp"
 #include "Loader.hpp"
 #include "Mesh.hpp"
 #include "Canvas.hpp"
 #include "Camera.hpp"
+#include "Renderer.hpp"
 
 #include "SimpleModelUD.hpp"
 #include "InPlaceYRotationUO.hpp"
-
-#include "Renderer.hpp"
-#include "MeshRenderer.hpp"
+#include "MeshDrawer.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -62,7 +60,6 @@ private:
 	std::unique_ptr<SwapChain> mySwapChain;
 	std::unique_ptr<Pipeline> myPipeline;
 	std::unique_ptr<Canvas> myCanvas;
-	Command myCommand;
 	Camera myCamera;
 	std::unique_ptr<Mesh> myMesh;
 	std::unique_ptr<Renderer> myRenderer;

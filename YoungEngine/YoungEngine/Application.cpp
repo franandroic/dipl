@@ -6,7 +6,6 @@ Application::Application() :
 	myLoader(),
 	myWindow(WIDTH, HEIGHT, "Vulkan"),
 	myEngineUtility(),
-	myCommand(),
 	myCamera() {
 }
 
@@ -36,6 +35,14 @@ void Application::initVulkan() {
 
 	myCamera.setViewportExtent(mySwapChain->swapChainExtent.width, mySwapChain->swapChainExtent.height);
 
+	myRenderer = std::make_unique<Renderer>(
+		*myDevice,
+		*mySwapChain,
+		myWindow,
+		myCamera,
+		MAX_FRAMES_IN_FLIGHT
+	);
+
 	myCanvas = std::make_unique<Canvas>(
 		*myDevice,
 		pixels, texWidth, texHeight, texChannels,
@@ -54,19 +61,13 @@ void Application::initVulkan() {
 	myModelLoader.load(vertices, indices);
 
 	myMesh = std::make_unique<Mesh>(*myDevice, vertices, indices);
-	myCommand.createCommandBuffers(*myDevice);
-	myRenderer = std::make_unique<MeshRenderer>(
-		*myDevice,
-		*mySwapChain,
-		myWindow,
+
+	myRenderer->addDrawer(std::make_unique<MeshDrawer>(
 		*myCanvas,
 		*myPipeline,
 		*myMesh,
-		myCommand,
-		myCamera,
-		static_cast<uint32_t>(indices.size()),
-		MAX_FRAMES_IN_FLIGHT
-	);
+		static_cast<uint32_t>(indices.size())
+	));
 }
 
 void Application::mainLoop() {
