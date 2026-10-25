@@ -60,7 +60,7 @@ private:
 	std::unique_ptr<SwapChain> mySwapChain;
 	std::unique_ptr<Pipeline> myPipeline;
 	std::unique_ptr<Canvas> myCanvas;
-	Camera myCamera;
+	std::unique_ptr<Camera> myCamera;
 	std::unique_ptr<Mesh> myMesh;
 	std::unique_ptr<Renderer> myRenderer;
 

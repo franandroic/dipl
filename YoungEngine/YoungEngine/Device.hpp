@@ -3,6 +3,7 @@
 
 #include <set>
 #include <stdexcept>
+#include <array>
 
 #include "QueueFamilyIndices.hpp"
 #include "DeviceUtils.hpp"
@@ -31,6 +32,7 @@ public:
 	VkQueue graphicsQueue = VK_NULL_HANDLE;
 	VkQueue presentQueue = VK_NULL_HANDLE;
 	VkCommandPool commandPool = VK_NULL_HANDLE;
+	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 private:
@@ -38,4 +40,5 @@ private:
 	void pickPhysicalDevice(VkInstance instance);
 	void createSurface(VkInstance instance, GLFWwindow *window);
 	void createCommandPool();
+	void createDescriptorPool();
 };

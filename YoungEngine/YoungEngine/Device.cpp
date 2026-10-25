@@ -56,6 +56,7 @@ Device::Device(VkInstance inInstance, GLFWwindow *window) : instance(inInstance)
 	vkGetDeviceQueue(logical, indices.presentFamily.value(), 0, &presentQueue);
 
 	createCommandPool();
+	createDescriptorPool();
 }
 
 Device::~Device() {
@@ -123,5 +124,30 @@ void Device::createCommandPool() {
 
 	if (vkCreateCommandPool(logical, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create command pool!");
+	}
+}
+
+void Device::createDescriptorPool() {
+
+	//Creating the descriptor pool all descriptor sets are allocated from, with a pool size for each
+	//descriptor type. The sizes are the total number of descriptors of that type across all the sets
+	//of the pool. The free flag lets each DescriptorSet return its own set to the pool when destroyed
+	//(without it, a pool can only be reset as a whole).
+
+	std::array<VkDescriptorPoolSize, 2> poolSizes{};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = MAX_UNIFORM_BUFFER_DESCRIPTORS;
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = MAX_COMBINED_IMAGE_SAMPLER_DESCRIPTORS;
+
+	VkDescriptorPoolCreateInfo poolInfo{};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolInfo.pPoolSizes = poolSizes.data();
+	poolInfo.maxSets = MAX_DESCRIPTOR_SETS;
+
+	if (vkCreateDescriptorPool(logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create descriptor pool!");
 	}
 }

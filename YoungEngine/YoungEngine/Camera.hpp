@@ -3,6 +3,13 @@
 #include "GLMConfig.hpp"
 
 #include <cstdint>
+#include <memory>
+#include <vector>
+
+#include "Device.hpp"
+#include "Description.hpp"
+#include "DescriptorSet.hpp"
+#include "UniformBufferObject.hpp"
 
 //Describes the point of view the scene is rendered from.
 class Camera {
@@ -18,7 +25,14 @@ public:
 	};
 
 	//Construction
-	Camera() = default;
+	Camera(Device &inDevice, size_t framesInFlight);
+	~Camera() = default;
+
+	//Copy and Move constructors
+	Camera(const Camera &) = delete;
+	Camera &operator=(const Camera &) = delete;
+	Camera(Camera &&) = delete;
+	Camera &operator=(Camera &&) = delete;
 
 	//Member variables
 	glm::vec3 position{ 0.0f, -2.0f, 1.0f };
@@ -32,7 +46,28 @@ public:
 
 	UniformBlock getUniformBlock() const;
 
+	//The shape of the descriptor set of the camera (DescriptorTier::Frame), to create a pipeline with.
+	//Binding 0 is the uniform block, read in the vertex shader.
+	static std::vector<VkDescriptorSetLayoutBinding> bindings();
+
+	//Allocates a descriptor set for each frame in flight, pointing at the uniform buffer of the frame.
+	//The description has to be made from bindings(), which is the case for the one the pipeline
+	//creates from them. Can be called once the pipeline exists.
+	void createDescriptorSets(const Description &description);
+
+	//Uploads the current state of the camera into the uniform buffer of the frame.
+	//Called once per frame, after the GPU has finished with the resources of this frame in flight.
+	void update(size_t frame);
+
+	//Throws std::out_of_range if the descriptor sets haven't been created
+	const DescriptorSet &getSet(size_t frame) const { return *descriptorSets.at(frame); }
+
 private:
 
 	float aspectRatio = 1.0f;
+
+	Device &device;
+
+	std::vector<std::unique_ptr<UniformBufferObject>> UBOs;
+	std::vector<std::unique_ptr<DescriptorSet>> descriptorSets;
 };

@@ -161,6 +161,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="DepthImageObject.cpp" />
     <ClCompile Include="Description.cpp" />
+    <ClCompile Include="DescriptorSet.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="EngineUtility.cpp" />
     <ClCompile Include="MeshDrawer.cpp" />
@@ -192,6 +193,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="CommandUtils.hpp" />
     <ClInclude Include="DepthImageObject.hpp" />
     <ClInclude Include="Description.hpp" />
+    <ClInclude Include="DescriptorSet.hpp" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />

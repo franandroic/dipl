@@ -54,8 +54,10 @@ void Renderer::render(bool externalResizeRequested) {
 
 void Renderer::updateFrame(size_t frame) {
 
+	camera.update(frame);
+
 	for (auto &drawer : drawers) {
-		drawer->update(frame, camera);
+		drawer->update(frame);
 	}
 }
 

@@ -3,7 +3,7 @@
 Pipeline::Pipeline(
 	Device &inDevice,
 	const RenderTarget &renderTarget,
-	Description &description,
+	const std::vector<std::vector<VkDescriptorSetLayoutBinding>> &setBindings,
 	const VkPushConstantRange &pushConstantRange
 ) : device(inDevice) {
 
@@ -141,10 +141,19 @@ Pipeline::Pipeline(
 	dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 	dynamicState.pDynamicStates = dynamicStates.data();
 
+	//Creating the description (descriptor set layout) of each set from the bindings we were given.
+	//The position in the list is the set number (set = N in the shaders).
+	std::vector<VkDescriptorSetLayout> setLayouts;
+	descriptions.reserve(setBindings.size());
+	for (const auto &bindings : setBindings) {
+		descriptions.push_back(std::make_unique<Description>(device, bindings));
+		setLayouts.push_back(descriptions.back()->descriptorSetLayout);
+	}
+
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &(description.descriptorSetLayout);
+	pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+	pipelineLayoutInfo.pSetLayouts = setLayouts.data();
 	//A range of size zero means the pipeline uses no push constants.
 	bool usesPushConstants = pushConstantRange.size > 0;
 	pipelineLayoutInfo.pushConstantRangeCount = usesPushConstants ? 1 : 0;

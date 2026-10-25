@@ -21,7 +21,8 @@
 //so objects of different kinds can be rendered into the same frame.
 //
 //It owns the RenderTarget (the attachments all of the pipelines of the frame render to),
-//which is why pipelines are created from it.
+//which is why pipelines are created from it. It knows nothing about descriptors:
+//the objects whose data goes to the shaders own their descriptor sets, and pipelines own the layouts.
 class Renderer {
 
 public:

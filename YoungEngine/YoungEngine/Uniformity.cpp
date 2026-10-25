@@ -8,7 +8,8 @@ Uniformity::Uniformity(
 	std::unique_ptr<UniformData> inData,
 	std::unique_ptr<UniformOperator> inOp,
 	size_t framesInFlight
-) : data(std::move(inData)),
+) : device(inDevice),
+	data(std::move(inData)),
 	op(std::move(inOp)) {
 
 	if (!data) {
@@ -57,6 +58,28 @@ void Uniformity::recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLa
 VkPushConstantRange Uniformity::pushConstantRange() const {
 
 	return data->pushConstantRange();
+}
+
+std::vector<VkDescriptorSetLayoutBinding> Uniformity::bindings() const {
+
+	if (UBOs.empty()) return {};
+
+	return {
+		Description::makeBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, data->bufferStages())
+	};
+}
+
+void Uniformity::createDescriptorSets(const Description &description) {
+
+	//The buffers stay the same for the whole lifetime of the object, so the sets are written only once.
+
+	descriptorSets.clear();
+	descriptorSets.reserve(UBOs.size());
+
+	for (size_t i = 0; i < UBOs.size(); i++) {
+		descriptorSets.push_back(std::make_unique<DescriptorSet>(device, description));
+		descriptorSets[i]->writeUniformBuffer(0, *UBOs[i]);
+	}
 }
 
 UniformBufferObject *Uniformity::getUBO(size_t frame) const {

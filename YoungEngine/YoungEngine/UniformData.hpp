@@ -30,6 +30,9 @@ public:
 	virtual Block bufferBlock() const { return {}; }
 	virtual Block pushConstantBlock() const { return {}; }
 
+	//Shader stages that read the buffer block. Used for the descriptor binding of the uniform buffer.
+	virtual VkShaderStageFlags bufferStages() const { return 0; }
+
 	//Shader stages that read the push constants. Used both when creating the pipeline layout
 	//and when recording the push constants, which have to agree.
 	virtual VkShaderStageFlags pushConstantStages() const { return 0; }

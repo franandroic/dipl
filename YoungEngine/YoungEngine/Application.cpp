@@ -33,13 +33,14 @@ void Application::initVulkan() {
 	mySwapChain = std::make_unique<SwapChain>(*myDevice, myWindow.window);
 	mySwapChain->createImageViews();
 
-	myCamera.setViewportExtent(mySwapChain->swapChainExtent.width, mySwapChain->swapChainExtent.height);
+	myCamera = std::make_unique<Camera>(*myDevice, MAX_FRAMES_IN_FLIGHT);
+	myCamera->setViewportExtent(mySwapChain->swapChainExtent.width, mySwapChain->swapChainExtent.height);
 
 	myRenderer = std::make_unique<Renderer>(
 		*myDevice,
 		*mySwapChain,
 		myWindow,
-		myCamera,
+		*myCamera,
 		MAX_FRAMES_IN_FLIGHT
 	);
 
@@ -50,12 +51,21 @@ void Application::initVulkan() {
 		std::make_unique<InPlaceYRotationUO>(90.0f)
 	);
 
+	std::vector<std::vector<VkDescriptorSetLayoutBinding>> setBindings(DescriptorTier::Count);
+	setBindings[DescriptorTier::Frame] = Camera::bindings();
+	setBindings[DescriptorTier::Material] = Texture::bindings();
+	setBindings[DescriptorTier::Object] = myCanvas->uniformity.bindings();
+
 	myPipeline = std::make_unique<Pipeline>(
 		*myDevice,
 		*mySwapChain,
-		myCanvas->description,
+		setBindings,
 		myCanvas->uniformity.pushConstantRange()
 	);
+
+	myCamera->createDescriptorSets(myPipeline->getDescription(DescriptorTier::Frame));
+	myCanvas->texture.createDescriptorSet(myPipeline->getDescription(DescriptorTier::Material));
+	myCanvas->uniformity.createDescriptorSets(myPipeline->getDescription(DescriptorTier::Object));
 
 	myLoader.unloadImage(pixels);
 	myModelLoader.load(vertices, indices);
@@ -66,7 +76,8 @@ void Application::initVulkan() {
 		*myCanvas,
 		*myPipeline,
 		*myMesh,
-		static_cast<uint32_t>(indices.size())
+		static_cast<uint32_t>(indices.size()),
+		*myCamera
 	));
 }
 

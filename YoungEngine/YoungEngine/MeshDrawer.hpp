@@ -16,10 +16,11 @@ public:
 		Canvas &canvas,
 		Pipeline &pipeline,
 		Mesh &mesh,
-		uint32_t indexCount
+		uint32_t indexCount,
+		const Camera &camera
 	);
 
-	void update(size_t frame, const Camera &camera) override;
+	void update(size_t frame) override;
 	void record(VkCommandBuffer commandBuffer, size_t frame) override;
 
 private:
@@ -28,4 +29,5 @@ private:
 	Pipeline &pipeline;
 	Mesh &mesh;
 	uint32_t indexCount;
+	const Camera &camera;
 };
