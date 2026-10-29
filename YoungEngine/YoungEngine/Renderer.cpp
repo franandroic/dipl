@@ -1,18 +1,36 @@
 #include "Renderer.hpp"
 
-Renderer::Renderer(Device &inDevice, SwapChain &inSwapChain, Window &inWindow, Camera &inCamera, size_t framesInFlight)
-	: device(inDevice),
+Renderer::Renderer(
+	Device &inDevice,
+	SwapChain &inSwapChain,
+	Window &inWindow,
+	PipelineCache &inPipelineCache,
+	Scene &inScene,
+	size_t framesInFlight
+) : device(inDevice),
 	swapChain(inSwapChain),
 	window(inWindow),
-	camera(inCamera),
+	pipelineCache(inPipelineCache),
+	scene(&inScene),
 	renderTarget(inSwapChain),
 	sync(inDevice, framesInFlight),
 	command(inDevice, framesInFlight) {
-}
 
-void Renderer::addDrawer(std::unique_ptr<Drawer> drawer) {
+	frameUBOs.reserve(framesInFlight);
+	frameSets.reserve(framesInFlight);
 
-	drawers.push_back(std::move(drawer));
+	for (size_t i = 0; i < framesInFlight; i++) {
+		frameUBOs.push_back(std::make_unique<UniformBufferObject>(
+			device,
+			sizeof(Camera::UniformBlock),
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		));
+		frameUBOs[i]->createBuffer();
+
+		frameSets.push_back(std::make_unique<DescriptorSet>(device, PipelineDescription::frameBindings()));
+		frameSets[i]->writeUniformBuffer(PipelineDescription::FRAME_CAMERA_BINDING, *frameUBOs[i]);
+	}
 }
 
 void Renderer::render(bool externalResizeRequested) {
@@ -54,11 +72,29 @@ void Renderer::render(bool externalResizeRequested) {
 
 void Renderer::updateFrame(size_t frame) {
 
-	camera.update(frame);
+	Camera &camera = scene->getCamera();
+	camera.setViewportExtent(swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);
 
-	for (auto &drawer : drawers) {
-		drawer->update(frame);
+	Camera::UniformBlock cameraBlock = camera.getUniformBlock();
+	frameUBOs[frame]->updateBuffer(&cameraBlock, sizeof(cameraBlock));
+
+	PipelineDescription::RenderingFormats formats = renderTarget.renderingFormats();
+
+	drawItems.clear();
+	for (const auto &renderable : scene->getRenderables()) {
+		renderable->prepare(pipelineCache, formats);
+		renderable->upload(frame);
+		renderable->collect(frame, drawItems);
 	}
+
+	std::sort(
+		drawItems.begin(),
+		drawItems.end(),
+		[](const DrawItem &a, const DrawItem &b) {
+			if (a.pipeline != b.pipeline) return std::less<const Pipeline *>()(a.pipeline, b.pipeline);
+			return std::less<VkDescriptorSet>()(a.materialSet, b.materialSet);
+		}
+	);
 }
 
 void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame) {
@@ -174,9 +210,7 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	scissor.extent = extent;
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	for (auto &drawer : drawers) {
-		drawer->record(commandBuffer, frame);
-	}
+	recordDrawItems(commandBuffer, frame);
 
 	vkCmdEndRendering(commandBuffer);
 
@@ -192,6 +226,47 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0
 	);
+}
+
+void Renderer::recordDrawItems(VkCommandBuffer commandBuffer, size_t frame) {
+
+	VkDescriptorSet frameSet = frameSets[frame]->getHandle();
+
+	const Pipeline *boundPipeline = nullptr;
+	VkDescriptorSet boundMaterialSet = VK_NULL_HANDLE;
+
+	for (const DrawItem &item : drawItems) {
+
+		VkPipelineLayout layout = item.pipeline->pipelineLayout;
+
+		if (item.pipeline != boundPipeline) {
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, item.pipeline->graphicsPipeline);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, PipelineDescription::DescriptorTier::Frame, 1, &frameSet, 0, nullptr);
+		}
+
+		if (item.materialSet != VK_NULL_HANDLE && item.materialSet != boundMaterialSet) {
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, PipelineDescription::DescriptorTier::Material, 1, &item.materialSet, 0, nullptr);
+			boundMaterialSet = item.materialSet;
+		}
+
+		if (item.objectSet != VK_NULL_HANDLE) {
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, PipelineDescription::DescriptorTier::Object, 1, &item.objectSet, 0, nullptr);
+		}
+
+		if (!item.pushConstants.empty()) {
+			vkCmdPushConstants(commandBuffer, layout, item.pushConstantStages, 0, static_cast<uint32_t>(item.pushConstants.size), item.pushConstants.data);
+		}
+
+		VkDeviceSize offset = 0;
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &item.vertexBuffer, &offset);
+
+		if (item.indexBuffer != VK_NULL_HANDLE) {
+			vkCmdBindIndexBuffer(commandBuffer, item.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdDrawIndexed(commandBuffer, item.count, 1, 0, 0, 0);
+		} else {
+			vkCmdDraw(commandBuffer, item.count, 1, 0, 0);
+		}
+	}
 }
 
 void Renderer::submitFrame(size_t frame, VkSemaphore imageAvailable, VkSemaphore renderFinished, VkFence inFlight) {
@@ -223,6 +298,7 @@ void Renderer::recreateSwapChain() {
 
 	int width = 0;
 	int height = 0;
+	glfwGetFramebufferSize(window.window, &width, &height);
 	while (width == 0 || height == 0) {
 		glfwGetFramebufferSize(window.window, &width, &height);
 		glfwWaitEvents();
@@ -234,6 +310,4 @@ void Renderer::recreateSwapChain() {
 	swapChain.createImageViews();
 
 	renderTarget.recreateAttachments();
-
-	camera.setViewportExtent(swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);
 }

@@ -38,9 +38,12 @@ void Uniformity::setOperator(std::unique_ptr<UniformOperator> inOp) {
 	op = std::move(inOp);
 }
 
-void Uniformity::update(size_t frame) {
+void Uniformity::update(float dt) {
 
-	if (op) op->operate(*data);
+	if (op) op->operate(*data, dt);
+}
+
+void Uniformity::upload(size_t frame) {
 
 	if (UBOs.empty()) return;
 

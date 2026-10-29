@@ -3,11 +3,17 @@
 
 #include "EngineUtility.hpp"
 
+#include <chrono>
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "Window.hpp"
 #include "Vertex.hpp"
 #include "Device.hpp"
 #include "SwapChain.hpp"
 #include "PipelineCache.hpp"
+#include "PipelineDescription.hpp"
 #include "ModelLoader.hpp"
 #include "ImageLoader.hpp"
 #include "Loader.hpp"
@@ -15,7 +21,9 @@
 #include "Texture.hpp"
 #include "Material.hpp"
 #include "Camera.hpp"
+#include "Scene.hpp"
 #include "GameObject.hpp"
+#include "Axes.hpp"
 #include "Renderer.hpp"
 
 #include "SimpleModelUD.hpp"
@@ -40,16 +48,12 @@ public:
 	const uint32_t HEIGHT = 600;
 
 	const std::string MODEL_PATH = "models/suzanne.obj";
-	const std::string TEXTURE_PATH = "textures/Discr2DTex5.png";
+	const std::string FIRST_TEXTURE_PATH = "textures/Discr2DTex5.png";
+	const std::string SECOND_TEXTURE_PATH = "textures/Discr2DTex3.png";
 
-	const std::string VERT_SHADER_PATH = "shaders/vert.spv";
-	const std::string FRAG_SHADER_PATH = "shaders/frag.spv";
-
-	//VERTICES
-	std::vector<Vertex> vertices;
-
-	//INDICES
-	std::vector<uint32_t> indices;
+	const PipelineDescription::ShaderPair TEXTURED_SHADERS{ "shaders/toon.vert.spv", "shaders/toon.frag.spv" };
+	const PipelineDescription::ShaderPair UNTEXTURED_SHADERS{ "shaders/normals.vert.spv", "shaders/normals.frag.spv" };
+	const PipelineDescription::ShaderPair AXES_SHADERS{ "shaders/axes.vert.spv", "shaders/axes.frag.spv" };
 
 private:
 
@@ -63,8 +67,12 @@ private:
 	std::unique_ptr<Device> myDevice;
 	std::unique_ptr<SwapChain> mySwapChain;
 	std::unique_ptr<PipelineCache> myPipelineCache;
-	std::unique_ptr<Texture> myTexture;
-	std::unique_ptr<Camera> myCamera;
+
+	std::vector<std::unique_ptr<Mesh>> myMeshes;
+	std::vector<std::unique_ptr<Texture>> myTextures;
+	std::vector<std::unique_ptr<Material>> myMaterials;
+
+	std::unique_ptr<Scene> myScene;
 	std::unique_ptr<Renderer> myRenderer;
 
 public:
@@ -75,4 +83,8 @@ private:
 	
 	void initVulkan();
 	void mainLoop();
+
+	Mesh &loadMesh(const std::string &path);
+	Texture &loadTexture(const std::string &path);
+	Material &createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture = nullptr);
 };

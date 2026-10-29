@@ -154,6 +154,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Axes.cpp" />
     <ClCompile Include="BufferObject.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ColorImageObject.cpp" />
@@ -166,6 +167,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="PipelineCache.cpp" />
     <ClCompile Include="PipelineDescription.cpp" />
+    <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="ImageObject.cpp" />
@@ -175,6 +177,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Synchronizer.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -186,6 +189,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Axes.hpp" />
     <ClInclude Include="BufferObject.hpp" />
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="ColorImageObject.hpp" />
@@ -196,12 +200,13 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
     <ClInclude Include="DeviceUtils.hpp" />
-    <ClInclude Include="Drawer.hpp" />
+    <ClInclude Include="DrawItem.hpp" />
     <ClInclude Include="EngineUtility.hpp" />
     <ClInclude Include="GameObject.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="PipelineCache.hpp" />
     <ClInclude Include="PipelineDescription.hpp" />
+    <ClInclude Include="Renderable.hpp" />
     <ClInclude Include="RenderTarget.hpp" />
     <ClInclude Include="GLFWConfig.hpp" />
     <ClInclude Include="GLMConfig.hpp" />
@@ -216,6 +221,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="QueueFamilyIndices.hpp" />
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="Scene.hpp" />
     <ClInclude Include="SimpleModelUD.hpp" />
     <ClInclude Include="SwapChain.hpp" />
     <ClInclude Include="SwapChainSupportDetails.hpp" />

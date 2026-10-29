@@ -42,9 +42,18 @@ public:
 		Count = 3
 	};
 
+	//The Frame tier set is the same for every pipeline, and it's filled by the renderer rather than by
+	//whatever is drawn, so it isn't part of a description. Both the pipelines (for their layouts) and
+	//the renderer (for its sets) take it from here, so the two can't disagree.
+	//Binding 0 is the camera's uniform block (Camera::UniformBlock).
+	static constexpr uint32_t FRAME_CAMERA_BINDING = 0;
+	static std::vector<VkDescriptorSetLayoutBinding> frameBindings();
+
 	//Member variables
 	ShaderPair shaders;
 	RenderingFormats formats;
+
+	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 	std::vector<VkDescriptorSetLayoutBinding> materialBindings;
 	std::vector<VkDescriptorSetLayoutBinding> objectBindings;

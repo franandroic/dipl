@@ -1,60 +1,55 @@
 #include "GameObject.hpp"
 
 GameObject::GameObject(
-	PipelineCache &pipelineCache,
-	const Camera &inCamera,
-	const PipelineDescription::RenderingFormats &formats,
-	std::unique_ptr<Mesh> inMesh,
-	std::unique_ptr<Material> inMaterial
-) : camera(inCamera),
-	mesh(std::move(inMesh)),
-	material(std::move(inMaterial)) {
+	Device &inDevice,
+	const Mesh &inMesh,
+	const Material &inMaterial,
+	std::unique_ptr<UniformData> inUniformData,
+	std::unique_ptr<UniformOperator> inUniformOperator
+) : mesh(&inMesh),
+	material(&inMaterial),
+	uniformity(inDevice, std::move(inUniformData), std::move(inUniformOperator), MAX_FRAMES_IN_FLIGHT) {
+}
 
-	if (!mesh || !material) {
-		throw std::invalid_argument("A game object requires a mesh and a material!");
-	}
+void GameObject::update(float dt) {
 
-	//Describing the pipeline that draws this mesh with this material and getting it from the cache,
-	//which creates it if no other object has asked for an equal one before.
+	uniformity.update(dt);
+}
+
+void GameObject::upload(size_t frame) {
+
+	uniformity.upload(frame);
+}
+
+void GameObject::resolvePipelines(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats) {
+
+	//The pipeline depends on the material (shaders, texture set) and on the kind of uniform data of the object
+	//(object set, push constants). Objects that are alike in both get the same pipeline from the cache.
 
 	PipelineDescription description;
 	description.shaders = material->getShaders();
 	description.formats = formats;
+	description.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	description.materialBindings = material->bindings();
-	description.objectBindings = material->getUniformity().bindings();
-	description.pushConstantRange = material->getUniformity().pushConstantRange();
+	description.objectBindings = uniformity.bindings();
+	description.pushConstantRange = uniformity.pushConstantRange();
 
 	pipeline = &pipelineCache.get(description);
 }
 
-void GameObject::update(size_t frame) {
+void GameObject::collect(size_t frame, std::vector<DrawItem> &out) const {
 
-	//The material's uniforms are updated by its own operator, while the camera's data
-	//goes into the camera uniform buffer of this frame (the Renderer does that before this is called).
+	const UniformData &data = uniformity.getData();
 
-	material->update(frame);
-}
+	DrawItem item;
+	item.pipeline = pipeline;
+	item.materialSet = material->getSet();
+	item.objectSet = uniformity.hasDescriptorSets() ? uniformity.getSet(frame).getHandle() : VK_NULL_HANDLE;
+	item.pushConstants = data.pushConstantBlock();
+	item.pushConstantStages = data.pushConstantStages();
+	item.vertexBuffer = mesh->VBO.buffer;
+	item.indexBuffer = mesh->IBO.buffer;
+	item.count = mesh->IBO.indexCount;
 
-void GameObject::record(VkCommandBuffer commandBuffer, size_t frame) {
-
-	//During the recording we bind the pipeline, the vertex and index buffers that specify the data to be drawn,
-	//as well as descriptor sets, which we use for things like uniform buffers and samplers.
-
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
-
-	VkBuffer vertexBuffers[] = { mesh->VBO.buffer };
-	VkDeviceSize offsets[] = { 0 };
-	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-	vkCmdBindIndexBuffer(commandBuffer, mesh->IBO.buffer, 0, VK_INDEX_TYPE_UINT32);
-
-	//The camera's set is one per frame in flight
-	VkDescriptorSet cameraSet = camera.getSet(frame).getHandle();
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout, PipelineDescription::DescriptorTier::Frame, 1, &cameraSet, 0, nullptr);
-
-	//The material binds the rest of its sets and its push constants
-	material->apply(commandBuffer, pipeline->pipelineLayout, frame);
-
-	//vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0); //For using just the vertex buffer
-	vkCmdDrawIndexed(commandBuffer, mesh->IBO.indexCount, 1, 0, 0, 0);
+	out.push_back(item);
 }

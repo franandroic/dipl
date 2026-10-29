@@ -8,8 +8,8 @@ Pipeline::Pipeline(
 
 	try {
 
-		auto vertShaderCode = readFile("shaders/vert.spv");
-		auto fragShaderCode = readFile("shaders/frag.spv");
+		auto vertShaderCode = readFile(description.shaders.vertex);
+		auto fragShaderCode = readFile(description.shaders.fragment);
 
 		//Printing the size of the read code to compare with its file size of disk.
 		//std::cout << "SHADER SIZES: " << vertShaderCode.size() << " " << fragShaderCode.size() << std::endl;
@@ -45,7 +45,7 @@ Pipeline::Pipeline(
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.topology = description.topology;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 		//TODO: Look into using primitiveRestartEnable and different topologies
 
@@ -140,17 +140,9 @@ Pipeline::Pipeline(
 		dynamicState.pDynamicStates = dynamicStates.data();
 
 		//Creating the layout of each set, in the order of the tiers (the position in the list is the set number).
-		//The first one is the camera's, which is assumed instead of given: a single uniform buffer in binding 0,
-		//read in the vertex shader. Camera::makeBinding has to describe the same.
-		VkDescriptorSetLayoutBinding frameBinding{};
-		frameBinding.binding = 0;
-		frameBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		frameBinding.descriptorCount = 1;
-		frameBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		frameBinding.pImmutableSamplers = nullptr;
-
+		//The first one is the Frame set, which is the same for every pipeline and filled by the renderer.
 		setLayouts.reserve(PipelineDescription::DescriptorTier::Count);
-		setLayouts.push_back(createSetLayout({ frameBinding }));
+		setLayouts.push_back(createSetLayout({ PipelineDescription::frameBindings() }));
 		setLayouts.push_back(createSetLayout(description.materialBindings));
 		setLayouts.push_back(createSetLayout(description.objectBindings));
 
@@ -278,7 +270,7 @@ std::vector<char> Pipeline::readFile(const std::string &filename) {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open()) {
-		throw std::runtime_error("Failed to open file!");
+		throw std::runtime_error("Failed to open file: " + filename);
 	}
 
 	size_t fileSize = (size_t)file.tellg();

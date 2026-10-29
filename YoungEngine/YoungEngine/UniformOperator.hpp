@@ -11,6 +11,6 @@ public:
 
 	virtual ~UniformOperator() = default;
 
-	//Called once per frame.
-	virtual void operate(UniformData &data) = 0;
+	//Called once per scene update, with the time in seconds since the previous one.
+	virtual void operate(UniformData &data, float dt) = 0;
 };

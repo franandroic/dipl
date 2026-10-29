@@ -14,6 +14,13 @@ public:
 		glm::mat4 model{ 1.0f };
 	};
 
+	//Construction
+	explicit SimpleModelUD(const glm::vec3 &inPosition = glm::vec3(0.0f)) : position(inPosition) {
+		pushConstants.model = glm::translate(glm::mat4(1.0f), position);
+	}
+
+	//Member variables
+	glm::vec3 position;
 	PushConstants pushConstants;
 
 	Block pushConstantBlock() const override { return { &pushConstants, sizeof(PushConstants) }; }

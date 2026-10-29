@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
+#include <functional>
 
 #include "ImageUtils.hpp"
 
@@ -13,8 +15,13 @@
 #include "Synchronizer.hpp"
 #include "Command.hpp"
 #include "RenderTarget.hpp"
+#include "PipelineCache.hpp"
+#include "PipelineDescription.hpp"
+#include "DescriptorSet.hpp"
+#include "UniformBufferObject.hpp"
 #include "Camera.hpp"
-#include "Drawer.hpp"
+#include "Scene.hpp"
+#include "DrawItem.hpp"
 
 //Orchestrates a frame: synchronization, acquiring and presenting swap chain images, the command buffer,
 //the attachments and the rendering scope.
@@ -27,7 +34,8 @@ public:
 		Device &inDevice,
 		SwapChain &inSwapChain,
 		Window &inWindow,
-		Camera &inCamera,
+		PipelineCache &inPipelineCache,
+		Scene &inScene,
 		size_t framesInFlight
 	);
 	~Renderer() = default;
@@ -38,8 +46,8 @@ public:
 	Renderer(Renderer &&) = delete;
 	Renderer &operator=(Renderer &&) = delete;
 
-	//Drawers are called in the order they were added. The renderer takes ownership.
-	void addDrawer(std::unique_ptr<Drawer> drawer);
+	void setScene(Scene &inScene) { scene = &inScene; }
+	Scene &getScene() const { return *scene; }
 
 	const RenderTarget &getRenderTarget() const { return renderTarget; }
 
@@ -50,17 +58,22 @@ protected:
 	Device &device;
 	SwapChain &swapChain;
 	Window &window;
-	Camera &camera;
+	PipelineCache &pipelineCache;
+	Scene *scene;
 
 	RenderTarget renderTarget;
 	Synchronizer sync;
 	Command command;
 
-	std::vector<std::unique_ptr<Drawer>> drawers;
+	std::vector<std::unique_ptr<UniformBufferObject>> frameUBOs;
+	std::vector<std::unique_ptr<DescriptorSet>> frameSets;
 	size_t currentFrame = 0;
+
+	std::vector<DrawItem> drawItems;
 
 	void updateFrame(size_t frame);
 	void recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame);
+	void recordDrawItems(VkCommandBuffer commandBuffer, size_t frame);
 	void submitFrame(size_t frame, VkSemaphore imageAvailable, VkSemaphore renderFinished, VkFence inFlight);
 	void recreateSwapChain();
 };
