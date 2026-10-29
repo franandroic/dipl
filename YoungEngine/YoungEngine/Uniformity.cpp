@@ -1,8 +1,5 @@
 #include "Uniformity.hpp"
 
-#include <stdexcept>
-#include <utility>
-
 Uniformity::Uniformity(
 	Device &inDevice,
 	std::unique_ptr<UniformData> inData,
@@ -20,6 +17,7 @@ Uniformity::Uniformity(
 	if (block.empty()) return;
 
 	UBOs.reserve(framesInFlight);
+	descriptorSets.reserve(framesInFlight);
 
 	for (size_t i = 0; i < framesInFlight; i++) {
 		UBOs.push_back(std::make_unique<UniformBufferObject>(
@@ -29,6 +27,9 @@ Uniformity::Uniformity(
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		));
 		UBOs[i]->createBuffer();
+
+		descriptorSets.push_back(std::make_unique<DescriptorSet>(device, bindings()));
+		descriptorSets[i]->writeUniformBuffer(BUFFER_BINDING, *UBOs[i]);
 	}
 }
 
@@ -62,27 +63,24 @@ VkPushConstantRange Uniformity::pushConstantRange() const {
 
 std::vector<VkDescriptorSetLayoutBinding> Uniformity::bindings() const {
 
-	if (UBOs.empty()) return {};
+	if (data->bufferBlock().empty()) return {};
 
-	return {
-		Description::makeBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, data->bufferStages())
-	};
-}
-
-void Uniformity::createDescriptorSets(const Description &description) {
-
-	//The buffers stay the same for the whole lifetime of the object, so the sets are written only once.
-
-	descriptorSets.clear();
-	descriptorSets.reserve(UBOs.size());
-
-	for (size_t i = 0; i < UBOs.size(); i++) {
-		descriptorSets.push_back(std::make_unique<DescriptorSet>(device, description));
-		descriptorSets[i]->writeUniformBuffer(0, *UBOs[i]);
-	}
+	return { makeBinding() };
 }
 
 UniformBufferObject *Uniformity::getUBO(size_t frame) const {
 
 	return UBOs.empty() ? nullptr : UBOs[frame].get();
+}
+
+VkDescriptorSetLayoutBinding Uniformity::makeBinding() const {
+
+	VkDescriptorSetLayoutBinding binding{};
+	binding.binding = BUFFER_BINDING;
+	binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	binding.descriptorCount = 1;
+	binding.stageFlags = data->bufferStages();
+	binding.pImmutableSamplers = nullptr;
+
+	return binding;
 }

@@ -7,18 +7,19 @@
 #include "Vertex.hpp"
 #include "Device.hpp"
 #include "SwapChain.hpp"
-#include "Pipeline.hpp"
+#include "PipelineCache.hpp"
 #include "ModelLoader.hpp"
 #include "ImageLoader.hpp"
 #include "Loader.hpp"
 #include "Mesh.hpp"
-#include "Canvas.hpp"
+#include "Texture.hpp"
+#include "Material.hpp"
 #include "Camera.hpp"
+#include "GameObject.hpp"
 #include "Renderer.hpp"
 
 #include "SimpleModelUD.hpp"
 #include "InPlaceYRotationUO.hpp"
-#include "MeshDrawer.hpp"
 
 //THE MAIN APPLICATION CLASS
 class Application {
@@ -41,6 +42,9 @@ public:
 	const std::string MODEL_PATH = "models/suzanne.obj";
 	const std::string TEXTURE_PATH = "textures/Discr2DTex5.png";
 
+	const std::string VERT_SHADER_PATH = "shaders/vert.spv";
+	const std::string FRAG_SHADER_PATH = "shaders/frag.spv";
+
 	//VERTICES
 	std::vector<Vertex> vertices;
 
@@ -58,10 +62,9 @@ private:
 
 	std::unique_ptr<Device> myDevice;
 	std::unique_ptr<SwapChain> mySwapChain;
-	std::unique_ptr<Pipeline> myPipeline;
-	std::unique_ptr<Canvas> myCanvas;
+	std::unique_ptr<PipelineCache> myPipelineCache;
+	std::unique_ptr<Texture> myTexture;
 	std::unique_ptr<Camera> myCamera;
-	std::unique_ptr<Mesh> myMesh;
 	std::unique_ptr<Renderer> myRenderer;
 
 public:

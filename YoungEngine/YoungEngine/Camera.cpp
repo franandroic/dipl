@@ -6,6 +6,7 @@ Camera::Camera(Device &inDevice, size_t framesInFlight) : device(inDevice) {
 	//(the GPU might still be reading the one of the previous frame).
 
 	UBOs.reserve(framesInFlight);
+	descriptorSets.reserve(framesInFlight);
 
 	for (size_t i = 0; i < framesInFlight; i++) {
 		UBOs.push_back(std::make_unique<UniformBufferObject>(
@@ -15,6 +16,9 @@ Camera::Camera(Device &inDevice, size_t framesInFlight) : device(inDevice) {
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		));
 		UBOs[i]->createBuffer();
+
+		descriptorSets.push_back(std::make_unique<DescriptorSet>(device, std::vector<VkDescriptorSetLayoutBinding>{ makeBinding() }));
+		descriptorSets[i]->writeUniformBuffer(BUFFER_BINDING, *UBOs[i]);
 	}
 }
 
@@ -41,28 +45,20 @@ Camera::UniformBlock Camera::getUniformBlock() const {
 	return block;
 }
 
-std::vector<VkDescriptorSetLayoutBinding> Camera::bindings() {
-
-	return {
-		Description::makeBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
-	};
-}
-
-void Camera::createDescriptorSets(const Description &description) {
-
-	//The buffers stay the same for the whole lifetime of the camera, so the sets are written only once.
-
-	descriptorSets.clear();
-	descriptorSets.reserve(UBOs.size());
-
-	for (size_t i = 0; i < UBOs.size(); i++) {
-		descriptorSets.push_back(std::make_unique<DescriptorSet>(device, description));
-		descriptorSets[i]->writeUniformBuffer(0, *UBOs[i]);
-	}
-}
-
 void Camera::update(size_t frame) {
 
 	UniformBlock block = getUniformBlock();
 	UBOs[frame]->updateBuffer(&block, sizeof(block));
+}
+
+VkDescriptorSetLayoutBinding Camera::makeBinding() {
+
+	VkDescriptorSetLayoutBinding binding{};
+	binding.binding = BUFFER_BINDING;
+	binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	binding.descriptorCount = 1;
+	binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	binding.pImmutableSamplers = nullptr;
+
+	return binding;
 }

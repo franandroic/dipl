@@ -2,28 +2,18 @@
 #include "GLFWConfig.hpp"
 
 #include <stdexcept>
+#include <vector>
 
 #include "Device.hpp"
-#include "Description.hpp"
 #include "BufferObject.hpp"
 
 //Wrapper for a single VkDescriptorSet.
-//It's allocated from the descriptor pool of the Device and returned to it on destruction,
-//so it has to be destroyed before the Device is. The set is allocated with the layout of a Description,
-//and the descriptors in it are filled out with the write functions. The Description is only needed
-//during construction: the set stays valid after it's destroyed.
-//
-//A DescriptorSet belongs to the object whose data it points at (the camera, a texture...), not to the pipeline
-//it's bound with.
-//
-//Updating a set that the GPU is still using is not allowed, so sets that change
-//are kept one per frame in flight and written once, when they're set up.
 class DescriptorSet {
 
 public:
 
 	//Construction
-	DescriptorSet(Device &inDevice, const Description &description);
+	DescriptorSet(Device &inDevice, const std::vector<VkDescriptorSetLayoutBinding> &bindings);
 	~DescriptorSet();
 
 	//Copy and move constructors
@@ -45,5 +35,6 @@ private:
 
 	Device &device;
 
+	VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 	VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 };

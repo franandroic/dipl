@@ -17,12 +17,7 @@
 #include "Drawer.hpp"
 
 //Orchestrates a frame: synchronization, acquiring and presenting swap chain images, the command buffer,
-//the attachments and the rendering scope. What actually gets drawn is delegated to Drawers,
-//so objects of different kinds can be rendered into the same frame.
-//
-//It owns the RenderTarget (the attachments all of the pipelines of the frame render to),
-//which is why pipelines are created from it. It knows nothing about descriptors:
-//the objects whose data goes to the shaders own their descriptor sets, and pipelines own the layouts.
+//the attachments and the rendering scope.
 class Renderer {
 
 public:

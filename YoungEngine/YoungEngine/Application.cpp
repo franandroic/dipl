@@ -33,6 +33,8 @@ void Application::initVulkan() {
 	mySwapChain = std::make_unique<SwapChain>(*myDevice, myWindow.window);
 	mySwapChain->createImageViews();
 
+	myPipelineCache = std::make_unique<PipelineCache>(*myDevice);
+
 	myCamera = std::make_unique<Camera>(*myDevice, MAX_FRAMES_IN_FLIGHT);
 	myCamera->setViewportExtent(mySwapChain->swapChainExtent.width, mySwapChain->swapChainExtent.height);
 
@@ -44,40 +46,26 @@ void Application::initVulkan() {
 		MAX_FRAMES_IN_FLIGHT
 	);
 
-	myCanvas = std::make_unique<Canvas>(
-		*myDevice,
-		pixels, texWidth, texHeight, texChannels,
-		std::make_unique<SimpleModelUD>(),
-		std::make_unique<InPlaceYRotationUO>(90.0f)
-	);
-
-	std::vector<std::vector<VkDescriptorSetLayoutBinding>> setBindings(DescriptorTier::Count);
-	setBindings[DescriptorTier::Frame] = Camera::bindings();
-	setBindings[DescriptorTier::Material] = Texture::bindings();
-	setBindings[DescriptorTier::Object] = myCanvas->uniformity.bindings();
-
-	myPipeline = std::make_unique<Pipeline>(
-		*myDevice,
-		*mySwapChain,
-		setBindings,
-		myCanvas->uniformity.pushConstantRange()
-	);
-
-	myCamera->createDescriptorSets(myPipeline->getDescription(DescriptorTier::Frame));
-	myCanvas->texture.createDescriptorSet(myPipeline->getDescription(DescriptorTier::Material));
-	myCanvas->uniformity.createDescriptorSets(myPipeline->getDescription(DescriptorTier::Object));
-
+	myTexture = std::make_unique<Texture>(*myDevice, pixels, texWidth, texHeight, texChannels);
 	myLoader.unloadImage(pixels);
+
 	myModelLoader.load(vertices, indices);
+	auto myMesh = std::make_unique<Mesh>(*myDevice, vertices, indices);
 
-	myMesh = std::make_unique<Mesh>(*myDevice, vertices, indices);
+	auto myMaterial = std::make_unique<Material>(
+		*myDevice,
+		PipelineDescription::ShaderPair{ VERT_SHADER_PATH, FRAG_SHADER_PATH },
+		std::make_unique<SimpleModelUD>(),
+		std::make_unique<InPlaceYRotationUO>(90.0f),
+		myTexture.get()
+	);
 
-	myRenderer->addDrawer(std::make_unique<MeshDrawer>(
-		*myCanvas,
-		*myPipeline,
-		*myMesh,
-		static_cast<uint32_t>(indices.size()),
-		*myCamera
+	myRenderer->addDrawer(std::make_unique<GameObject>(
+		*myPipelineCache,
+		*myCamera,
+		myRenderer->getRenderTarget().renderingFormats(),
+		std::move(myMesh),
+		std::move(myMaterial)
 	));
 }
 

@@ -63,6 +63,7 @@ Device::~Device() {
 
 	if (logical != VK_NULL_HANDLE) {
 		vkDeviceWaitIdle(logical);
+		vkDestroyDescriptorPool(logical, descriptorPool, nullptr);
 		vkDestroyCommandPool(logical, commandPool, nullptr);
 		vkDestroyDevice(logical, nullptr);
 	}

@@ -1,16 +1,27 @@
 #include "DescriptorSet.hpp"
 
-DescriptorSet::DescriptorSet(Device &inDevice, const Description &description) : device(inDevice) {
+DescriptorSet::DescriptorSet(Device &inDevice, const std::vector<VkDescriptorSetLayoutBinding> &bindings) : device(inDevice) {
 
-	//Allocating a single set with the layout of the description from the pool of the device.
+	//Specifying what kind of set we're going to create, which bindings it has, of what type and for which
+	//shader stages (the descriptor set layout), and allocating a single set of it from the pool of the device.
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo{};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+	layoutInfo.pBindings = bindings.data();
+
+	if (vkCreateDescriptorSetLayout(device.logical, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create descriptor set layout!");
+	}
 
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = device.descriptorPool;
 	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &description.descriptorSetLayout;
+	allocInfo.pSetLayouts = &descriptorSetLayout;
 
 	if (vkAllocateDescriptorSets(device.logical, &allocInfo, &descriptorSet) != VK_SUCCESS) {
+		vkDestroyDescriptorSetLayout(device.logical, descriptorSetLayout, nullptr);
 		throw std::runtime_error("Failed to allocate descriptor set! (Is the descriptor pool exhausted? See DeviceData.hpp)");
 	}
 }
@@ -20,6 +31,7 @@ DescriptorSet::~DescriptorSet() {
 	//Returns the set to the pool (the pool is created with the free flag to allow this).
 
 	vkFreeDescriptorSets(device.logical, device.descriptorPool, 1, &descriptorSet);
+	vkDestroyDescriptorSetLayout(device.logical, descriptorSetLayout, nullptr);
 }
 
 void DescriptorSet::writeUniformBuffer(uint32_t binding, const BufferObject &buffer) {

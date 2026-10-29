@@ -3,9 +3,10 @@
 
 #include <memory>
 #include <vector>
+#include <stdexcept>
+#include <utility>
 
 #include "Device.hpp"
-#include "Description.hpp"
 #include "DescriptorSet.hpp"
 #include "UniformData.hpp"
 #include "UniformOperator.hpp"
@@ -48,10 +49,7 @@ public:
 	//Empty if the data has no buffer block.
 	std::vector<VkDescriptorSetLayoutBinding> bindings() const;
 
-	//Allocates a descriptor set for each frame in flight, pointing at the uniform buffer of the frame.
-	//Does nothing if the data has no buffer block. The description has to be made from bindings().
-	void createDescriptorSets(const Description &description);
-
+	//The sets only exist if the data has a buffer block (a model matrix in push constants doesn't need one)
 	bool hasDescriptorSets() const { return !descriptorSets.empty(); }
 
 	//Throws std::out_of_range if there's no descriptor set (see hasDescriptorSets)
@@ -64,6 +62,9 @@ public:
 	void setOperator(std::unique_ptr<UniformOperator> inOp);
 
 private:
+
+	static constexpr uint32_t BUFFER_BINDING = 0;
+	VkDescriptorSetLayoutBinding makeBinding() const;
 
 	Device &device;
 

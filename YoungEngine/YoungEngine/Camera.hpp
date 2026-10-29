@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "Device.hpp"
-#include "Description.hpp"
 #include "DescriptorSet.hpp"
 #include "UniformBufferObject.hpp"
 
@@ -46,15 +45,6 @@ public:
 
 	UniformBlock getUniformBlock() const;
 
-	//The shape of the descriptor set of the camera (DescriptorTier::Frame), to create a pipeline with.
-	//Binding 0 is the uniform block, read in the vertex shader.
-	static std::vector<VkDescriptorSetLayoutBinding> bindings();
-
-	//Allocates a descriptor set for each frame in flight, pointing at the uniform buffer of the frame.
-	//The description has to be made from bindings(), which is the case for the one the pipeline
-	//creates from them. Can be called once the pipeline exists.
-	void createDescriptorSets(const Description &description);
-
 	//Uploads the current state of the camera into the uniform buffer of the frame.
 	//Called once per frame, after the GPU has finished with the resources of this frame in flight.
 	void update(size_t frame);
@@ -63,6 +53,11 @@ public:
 	const DescriptorSet &getSet(size_t frame) const { return *descriptorSets.at(frame); }
 
 private:
+
+	//Binding 0 is the uniform block, read in the vertex shader. Pipelines assume exactly this
+	//for their first set (see Pipeline), so it can't be changed without changing them.
+	static constexpr uint32_t BUFFER_BINDING = 0;
+	static VkDescriptorSetLayoutBinding makeBinding();
 
 	float aspectRatio = 1.0f;
 
