@@ -10,7 +10,7 @@
 #include "QueueFamilyIndices.hpp"
 #include "SwapChainSupportDetails.hpp"
 
-class DeviceUtils {
+class DeviceUtility {
 
 public:
 	static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
@@ -137,13 +137,13 @@ public:
 			std::cout << '\t' << deviceProperties.deviceType << std::endl;
 		}
 
-		QueueFamilyIndices indices = DeviceUtils::findQueueFamilies(device, surface);
+		QueueFamilyIndices indices = DeviceUtility::findQueueFamilies(device, surface);
 
-		bool extensionsSupported = DeviceUtils::checkDeviceExtensionSupport(device, true);
+		bool extensionsSupported = DeviceUtility::checkDeviceExtensionSupport(device, true);
 
 		bool swapChainAdequate = false;
 		if (extensionsSupported) {
-			SwapChainSupportDetails swapChainSupport = DeviceUtils::querySwapChainSupport(device, surface);
+			SwapChainSupportDetails swapChainSupport = DeviceUtility::querySwapChainSupport(device, surface);
 			swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 		}
 
@@ -154,7 +154,7 @@ public:
 			&& extensionsSupported
 			&& swapChainAdequate
 			&& supportedFeatures.samplerAnisotropy
-			&& DeviceUtils::checkDynamicRenderingSupport(device);
+			&& DeviceUtility::checkDynamicRenderingSupport(device);
 	}
 
 	static bool checkDynamicRenderingSupport(VkPhysicalDevice device) {
@@ -234,7 +234,7 @@ public:
 	}
 
 	static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice) {
-		return DeviceUtils::findSupportedFormat(
+		return DeviceUtility::findSupportedFormat(
 			physicalDevice,
 			{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
 			VK_IMAGE_TILING_OPTIMAL,

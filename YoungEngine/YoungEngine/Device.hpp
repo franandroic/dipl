@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #include "QueueFamilyIndices.hpp"
-#include "DeviceUtils.hpp"
+#include "DeviceUtility.hpp"
 #include "DeviceData.hpp"
 
 /*

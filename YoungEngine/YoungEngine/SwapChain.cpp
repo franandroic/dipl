@@ -1,8 +1,10 @@
 #include "SwapChain.hpp"
 
+#include <cassert>
+
 SwapChain::SwapChain(GLFWwindow *window) {
 
-	assert(!active && "Device already exists!");
+	assert(!active && "SwapChain already exists!");
 
 	create(window);
 	active = this;
@@ -97,7 +99,7 @@ void SwapChain::create(GLFWwindow *window) {
 	//To create a swap chain its create info needs to be filled with surface features, which we query
 	//with support functions. After creating the swap chain we get the handles for its images.
 
-	SwapChainSupportDetails swapChainSupport = DeviceUtils::querySwapChainSupport(Device::active->physical, Device::active->surface);
+	SwapChainSupportDetails swapChainSupport = DeviceUtility::querySwapChainSupport(Device::active->physical, Device::active->surface);
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 	VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -118,7 +120,7 @@ void SwapChain::create(GLFWwindow *window) {
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	QueueFamilyIndices indices = DeviceUtils::findQueueFamilies(Device::active->physical, Device::active->surface);
+	QueueFamilyIndices indices = DeviceUtility::findQueueFamilies(Device::active->physical, Device::active->surface);
 	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
 	if (indices.graphicsFamily != indices.presentFamily) {

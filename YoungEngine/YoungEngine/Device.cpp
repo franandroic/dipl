@@ -1,5 +1,7 @@
 #include "Device.hpp"
 
+#include <cassert>
+
 Device::Device(VkInstance inInstance, GLFWwindow *window) : instance(inInstance) {
 
 	assert(!active && "Device already exists!");
@@ -11,7 +13,7 @@ Device::Device(VkInstance inInstance, GLFWwindow *window) : instance(inInstance)
 	//(with known indices) and an optional validation layer. We fill the create info with the
 	//needed data before creating the logical device and getting the handles for its queues.
 
-	QueueFamilyIndices indices = DeviceUtils::findQueueFamilies(physical, surface);
+	QueueFamilyIndices indices = DeviceUtility::findQueueFamilies(physical, surface);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -95,9 +97,9 @@ void Device::pickPhysicalDevice(VkInstance instance) {
 	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
 	for (const auto &d : devices) {
-		if (DeviceUtils::isDeviceSuitable(d, surface, true)) {
+		if (DeviceUtility::isDeviceSuitable(d, surface, true)) {
 			physical = d;
-			msaaSamples = DeviceUtils::getMaxUsableSampleCount(physical);
+			msaaSamples = DeviceUtility::getMaxUsableSampleCount(physical);
 			break;
 		}
 	}
@@ -122,7 +124,7 @@ void Device::createCommandPool() {
 	//Creating a command pool as a place to store command buffers.
 	//It is submitted to a queue, so we need to pass which queue it is to be submitted to.
 
-	QueueFamilyIndices queueFamilyIndices = DeviceUtils::findQueueFamilies(physical, surface);
+	QueueFamilyIndices queueFamilyIndices = DeviceUtility::findQueueFamilies(physical, surface);
 
 	VkCommandPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;

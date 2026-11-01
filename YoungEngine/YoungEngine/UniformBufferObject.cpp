@@ -10,7 +10,7 @@ void UniformBufferObject::createBuffer() {
 
 	BufferObject::createBuffer();
 
-	vkMapMemory(device.logical, bufferMemory, 0, size, 0, &bufferMapped);
+	vkMapMemory(Device::active->logical, bufferMemory, 0, size, 0, &bufferMapped);
 }
 
 void UniformBufferObject::updateBuffer(const void *data, size_t dataSize) {

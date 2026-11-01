@@ -7,33 +7,27 @@
 #include "Device.hpp"
 #include "BufferObject.hpp"
 
-//Wrapper for a single VkDescriptorSet.
+//Wrapper for a single VkDescriptorSet. Stores a set and its layout.
 class DescriptorSet {
 
 public:
 
 	//Construction
-	DescriptorSet(Device &inDevice, const std::vector<VkDescriptorSetLayoutBinding> &bindings);
+	explicit DescriptorSet(const std::vector<VkDescriptorSetLayoutBinding> &bindings);
 	~DescriptorSet();
 
 	//Copy and move constructors
-	DescriptorSet(const DescriptorSet &) = delete;
+	explicit DescriptorSet(const DescriptorSet &) = delete;
 	DescriptorSet &operator=(const DescriptorSet &) = delete;
 	DescriptorSet(DescriptorSet &&) = delete;
 	DescriptorSet &operator=(DescriptorSet &&) = delete;
 
 	VkDescriptorSet getHandle() const { return descriptorSet; }
 
-	//Points a uniform buffer binding at the whole buffer. The buffer has to be created already.
-	void writeUniformBuffer(uint32_t binding, const BufferObject &buffer);
-
-	//Points a combined image sampler binding at an image view and a sampler.
-	//The image is expected to be in the shader read only layout when it's sampled.
-	void writeCombinedImageSampler(uint32_t binding, VkImageView imageView, VkSampler sampler);
+	void writeUniformBuffer(uint32_t binding, const BufferObject &buffer) const;
+	void writeCombinedImageSampler(uint32_t binding, VkImageView imageView, VkSampler sampler) const;
 
 private:
-
-	Device &device;
 
 	VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 	VkDescriptorSet descriptorSet = VK_NULL_HANDLE;

@@ -1,7 +1,7 @@
 #pragma once
 #include "GLFWConfig.hpp"
 
-class CommandUtils {
+class CommandUtility {
 
 public:
 

@@ -19,7 +19,6 @@ public:
 
 	//Construction
 	Axes(
-		Device &inDevice,
 		const PipelineDescription::ShaderPair &inShaders,
 		float length = 1.0f,
 		const glm::vec3 &position = glm::vec3(0.0f)
@@ -30,7 +29,7 @@ public:
 
 protected:
 
-	void resolvePipelines(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats) override;
+	void resolvePipelines(const PipelineDescription::RenderingFormats &formats) override;
 
 private:
 

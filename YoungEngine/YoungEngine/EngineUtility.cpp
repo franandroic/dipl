@@ -35,12 +35,12 @@ void EngineUtility::createInstance() {
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
 
-	auto extensions = DeviceUtils::getRequiredExtensions(true);
+	auto extensions = DeviceUtility::getRequiredExtensions(true);
 
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
 
-	if (enableValidationLayers && !DeviceUtils::checkValidationLayerSupport(true)) {
+	if (enableValidationLayers && !DeviceUtility::checkValidationLayerSupport(true)) {
 		throw std::runtime_error("Validation layers requested, but not available!");
 	}
 

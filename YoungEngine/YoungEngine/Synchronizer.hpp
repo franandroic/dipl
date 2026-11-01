@@ -12,7 +12,7 @@ class Synchronizer {
 public:
 
 	//Construction
-	Synchronizer(Device &inDevice, size_t framesInFlight);
+	explicit Synchronizer(size_t framesInFlight);
 	~Synchronizer();
 
 	//Copy and Move constructors
@@ -31,8 +31,6 @@ public:
 	size_t count() const;
 
 private:
-
-	Device &device;
 
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;

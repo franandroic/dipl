@@ -15,7 +15,6 @@ public:
 
 	//Construction
 	Material(
-		Device &inDevice,
 		const PipelineDescription::ShaderPair &inShaders,
 		const Texture *inTexture = nullptr
 	);
@@ -41,8 +40,6 @@ private:
 	//Binding 0 is the texture, read in the fragment shader
 	static constexpr uint32_t TEXTURE_BINDING = 0;
 	static VkDescriptorSetLayoutBinding makeBinding();
-
-	Device &device;
 
 	PipelineDescription::ShaderPair shaders;
 	const Texture *texture;

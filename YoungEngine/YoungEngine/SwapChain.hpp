@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <assert.h>
 
-#include "DeviceUtils.hpp"
+#include "DeviceUtility.hpp"
 #include "SwapChainSupportDetails.hpp"
 #include "Device.hpp"
 

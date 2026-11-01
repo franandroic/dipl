@@ -1,12 +1,10 @@
 #include "BufferObject.hpp"
 
 BufferObject::BufferObject(
-	Device &inDevice,
 	VkDeviceSize inSize,
 	VkBufferUsageFlags inUsage,
 	VkMemoryPropertyFlags inProperties
-) : device(inDevice),
-	size(inSize),
+) : size(inSize),
 	usage(inUsage),
 	properties(inProperties) {}
 
@@ -37,25 +35,25 @@ void BufferObject::createBuffer() {
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	bufferInfo.flags = 0;
 
-	if (vkCreateBuffer(device.logical, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+	if (vkCreateBuffer(Device::active->logical, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create vertex buffer!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(device.logical, buffer, &memRequirements);
+	vkGetBufferMemoryRequirements(Device::active->logical, buffer, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = DeviceUtils::findMemoryType(device.physical, memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = DeviceUtility::findMemoryType(Device::active->physical, memRequirements.memoryTypeBits, properties);
 
 	//TODO: Right now we're calling vkAllocateMemory for every buffer creation, but look into
 	//creating a custom allocator that calls it once for multiple buffers
-	if (vkAllocateMemory(device.logical, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+	if (vkAllocateMemory(Device::active->logical, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate vertex buffer memory!");
 	}
 
-	vkBindBufferMemory(device.logical, buffer, bufferMemory, 0);
+	vkBindBufferMemory(Device::active->logical, buffer, bufferMemory, 0);
 }
 
 void BufferObject::destroyBuffer() {
@@ -64,19 +62,19 @@ void BufferObject::destroyBuffer() {
 
 	if (buffer == VK_NULL_HANDLE) return;
 
-	vkDestroyBuffer(device.logical, buffer, nullptr);
-	vkFreeMemory(device.logical, bufferMemory, nullptr);
+	vkDestroyBuffer(Device::active->logical, buffer, nullptr);
+	vkFreeMemory(Device::active->logical, bufferMemory, nullptr);
 
 	buffer = VK_NULL_HANDLE;
 	bufferMemory = VK_NULL_HANDLE;
 }
 
-void BufferObject::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool) {
+void BufferObject::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 
 	//To copy one buffer to another we need to record a single-use command buffer
 	//that calls the copy command.
 
-	VkCommandBuffer commandBuffer = CommandUtils::beginSingleTimeCommands(device.logical, commandPool);
+	VkCommandBuffer commandBuffer = CommandUtility::beginSingleTimeCommands(Device::active->logical, Device::active->commandPool);
 
 	VkBufferCopy copyRegion{};
 	copyRegion.srcOffset = 0;
@@ -85,5 +83,5 @@ void BufferObject::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSi
 
 	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-	CommandUtils::endSingleTimeCommands(commandBuffer, device.logical, commandPool, device.graphicsQueue);
+	CommandUtility::endSingleTimeCommands(commandBuffer, Device::active->logical, Device::active->commandPool, Device::active->graphicsQueue);
 }

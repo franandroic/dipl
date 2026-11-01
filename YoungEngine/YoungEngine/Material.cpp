@@ -1,15 +1,13 @@
 #include "Material.hpp"
 
 Material::Material(
-	Device &inDevice,
 	const PipelineDescription::ShaderPair &inShaders,
 	const Texture *inTexture
-) : device(inDevice),
-	shaders(inShaders),
+) : shaders(inShaders),
 	texture(inTexture) {
 
 	if (texture) {
-		textureSet = std::make_unique<DescriptorSet>(device, bindings());
+		textureSet = std::make_unique<DescriptorSet>(bindings());
 		textureSet->writeCombinedImageSampler(TEXTURE_BINDING, texture->getImageView(), texture->getSampler());
 	}
 }

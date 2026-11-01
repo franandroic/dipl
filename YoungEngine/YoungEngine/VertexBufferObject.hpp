@@ -13,11 +13,10 @@ public:
 	
 	//Construction
 	VertexBufferObject(
-		Device &inDevice,
 		const std::vector<Vertex> &inVertices,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
-	) : BufferObject(inDevice, sizeof((inVertices)[0]) * (inVertices).size(), inUsage, inProperties) {}
+	) : BufferObject(sizeof((inVertices)[0]) * (inVertices).size(), inUsage, inProperties) {}
 
-	void createBuffer(VkCommandPool commandPool, const std::vector<Vertex> &vertices);
+	void createBuffer(const std::vector<Vertex> &vertices);
 };

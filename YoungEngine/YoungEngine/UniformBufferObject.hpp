@@ -13,11 +13,10 @@ public:
 
 	//Construction
 	UniformBufferObject(
-		Device &inDevice,
 		VkDeviceSize inSize,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
-	) : BufferObject(inDevice, inSize, inUsage, inProperties) {}
+	) : BufferObject(inSize, inUsage, inProperties) {}
 
 	//Member variables
 	void *bufferMapped = nullptr;

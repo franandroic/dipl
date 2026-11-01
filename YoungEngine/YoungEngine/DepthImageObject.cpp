@@ -6,7 +6,7 @@ void DepthImageObject::createImage(uint32_t width, uint32_t height) {
 		width,
 		height,
 		1,
-		device.msaaSamples,
+		Device::active->msaaSamples,
 		depthFormat,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,

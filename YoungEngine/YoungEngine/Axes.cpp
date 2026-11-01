@@ -1,16 +1,15 @@
 #include "Axes.hpp"
 
 Axes::Axes(
-	Device &inDevice,
 	const PipelineDescription::ShaderPair &inShaders,
 	float length,
 	const glm::vec3 &position
 ) : shaders(inShaders),
 	modelData(position),
 	vertices(makeVertices(length)),
-	VBO(inDevice, vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+	VBO(vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
 
-	VBO.createBuffer(inDevice.commandPool, vertices);
+	VBO.createBuffer(vertices);
 }
 
 std::vector<Vertex> Axes::makeVertices(float length) {
@@ -45,7 +44,7 @@ std::vector<Vertex> Axes::makeVertices(float length) {
 	return result;
 }
 
-void Axes::resolvePipelines(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats) {
+void Axes::resolvePipelines(const PipelineDescription::RenderingFormats &formats) {
 
 	//No material set and no object set, only the model matrix in push constants
 
@@ -55,7 +54,7 @@ void Axes::resolvePipelines(PipelineCache &pipelineCache, const PipelineDescript
 	description.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 	description.pushConstantRange = modelData.pushConstantRange();
 
-	pipeline = &pipelineCache.get(description);
+	pipeline = &PipelineCache::active->get(description);
 }
 
 void Axes::collect(size_t /*frame*/, std::vector<DrawItem> &out) const {

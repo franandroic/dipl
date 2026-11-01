@@ -3,9 +3,9 @@
 
 #include <stdexcept>
 
-#include "CommandUtils.hpp"
+#include "CommandUtility.hpp"
 
-class ImageUtils {
+class ImageUtility {
 
 public:
 
@@ -26,7 +26,7 @@ public:
 		//and pass it to a pipeline barrier after specifying which pipeline operations have to happen before
 		//and after the layout transition.
 
-		VkCommandBuffer commandBuffer = CommandUtils::beginSingleTimeCommands(device, commandPool);
+		VkCommandBuffer commandBuffer = CommandUtility::beginSingleTimeCommands(device, commandPool);
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -81,7 +81,7 @@ public:
 			&barrier
 		);
 
-		CommandUtils::endSingleTimeCommands(commandBuffer, device, commandPool, queue);
+		CommandUtility::endSingleTimeCommands(commandBuffer, device, commandPool, queue);
 	}
 
 	static void recordImageLayoutTransition(
@@ -143,7 +143,7 @@ public:
 
 		//Similar to with the buffer, copying from a buffer to image is done with a single-use command buffer.
 
-		VkCommandBuffer commandBuffer = CommandUtils::beginSingleTimeCommands(device, commandPool);
+		VkCommandBuffer commandBuffer = CommandUtility::beginSingleTimeCommands(device, commandPool);
 
 		VkBufferImageCopy region{};
 		region.bufferOffset = 0;
@@ -163,7 +163,7 @@ public:
 			1,
 			&region);
 
-		CommandUtils::endSingleTimeCommands(commandBuffer, device, commandPool, queue);
+		CommandUtility::endSingleTimeCommands(commandBuffer, device, commandPool, queue);
 	}
 
 	static bool hasStencilComponent(VkFormat format) {

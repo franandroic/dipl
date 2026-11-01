@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "DeviceUtils.hpp"
+#include "DeviceUtility.hpp"
 
 //Contains Vulkan instance and basic engine utility,
 //such as validation layers and debug messenger

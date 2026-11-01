@@ -1,7 +1,7 @@
 #pragma once
 #include "GLFWConfig.hpp"
 
-#include "DeviceUtils.hpp"
+#include "DeviceUtility.hpp"
 
 #include "SwapChain.hpp"
 #include "ColorImageObject.hpp"
@@ -15,7 +15,7 @@ class RenderTarget {
 public:
 
 	//Construction
-	explicit RenderTarget(SwapChain &inSwapChain);
+	RenderTarget();
 	~RenderTarget() = default;
 
 	//Copy and Move constructor
@@ -25,8 +25,6 @@ public:
 	RenderTarget &operator=(RenderTarget &&) = delete;
 
 	//Member variables
-	SwapChain &swapChain;
-
 	ColorImageObject CIO;
 	DepthImageObject DIO;
 

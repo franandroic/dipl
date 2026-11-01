@@ -13,7 +13,7 @@
 #include "PipelineDescription.hpp"
 #include "UniformData.hpp"
 #include "UniformOperator.hpp"
-#include "Uniformity.hpp"
+#include "UniformDescription.hpp"
 
 //An object in the scene: a mesh (what it's shaped like) drawn with a material (what it looks like).
 class Prop : public Renderable {
@@ -22,7 +22,6 @@ public:
 
 	//Construction
 	Prop(
-		Device &inDevice,
 		const Mesh &inMesh,
 		const Material &inMaterial,
 		std::unique_ptr<UniformData> inUniformData,
@@ -32,7 +31,7 @@ public:
 
 	const Mesh &getMesh() const { return *mesh; }
 	const Material &getMaterial() const { return *material; }
-	Uniformity &getUniformity() { return uniformity; }
+	UniformDescription &getUniformDescription() { return UniformDescription; }
 
 	void update(float dt) override;
 	void upload(size_t frame) override;
@@ -40,13 +39,13 @@ public:
 
 protected:
 
-	void resolvePipelines(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats) override;
+	void resolvePipelines(const PipelineDescription::RenderingFormats &formats) override;
 
 private:
 
 	const Mesh *mesh;
 	const Material *material;
-	Uniformity uniformity;
+	UniformDescription UniformDescription;
 
 	//Owned by the pipeline cache
 	const Pipeline *pipeline = nullptr;

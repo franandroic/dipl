@@ -34,10 +34,7 @@ void Engine::initialize() {
 	camera.farPlane = 50.0f;
 
 	myRenderer = std::make_unique<Renderer>(
-		*myDevice,
-		*mySwapChain,
 		myWindow,
-		*myPipelineCache,
 		*myScene,
 		MAX_FRAMES_IN_FLIGHT
 	);
@@ -48,7 +45,6 @@ void Engine::initialize() {
 	Material &firstMaterial = createMaterial(TEXTURED_SHADERS, &firstTexture);
 
 	myScene->add(std::make_unique<Prop>(
-		*myDevice,
 		firstMesh,
 		firstMaterial,
 		std::make_unique<SimpleModelUD>(glm::vec3(-3.0f, 3.0f, 0.0f)),
@@ -60,7 +56,6 @@ void Engine::initialize() {
 	Material &secondMaterial = createMaterial(TEXTURED_SHADERS, &secondTexture);
 
 	myScene->add(std::make_unique<Prop>(
-		*myDevice,
 		firstMesh,
 		secondMaterial,
 		std::make_unique<SimpleModelUD>(glm::vec3(0.0f, 3.0f, 0.0f)),
@@ -71,7 +66,6 @@ void Engine::initialize() {
 	Material &thirdMaterial = createMaterial(UNTEXTURED_SHADERS);
 
 	myScene->add(std::make_unique<Prop>(
-		*myDevice,
 		firstMesh,
 		thirdMaterial,
 		std::make_unique<SimpleModelUD>(glm::vec3(3.0f, 3.0f, 0.0f)),
@@ -79,7 +73,7 @@ void Engine::initialize() {
 	));
 
 	//THE AXES OF THE WORLD, at the origin
-	myScene->add(std::make_unique<Axes>(*myDevice, AXES_SHADERS, 1.5f));
+	myScene->add(std::make_unique<Axes>(AXES_SHADERS, 1.5f));
 }
 
 void Engine::renderLoop() {
@@ -100,7 +94,7 @@ void Engine::renderLoop() {
 		myWindow.framebufferResized = false;
 	}
 
-	vkDeviceWaitIdle(myDevice->logical);
+	vkDeviceWaitIdle(Device::active->logical);
 }
 
 Mesh &Engine::loadMesh(const std::string &path) {
@@ -111,7 +105,7 @@ Mesh &Engine::loadMesh(const std::string &path) {
 	myModelLoader.setPath(path);
 	myLoader.loadModel(vertices, indices);
 
-	myMeshes.push_back(std::make_unique<Mesh>(*myDevice, std::move(vertices), std::move(indices)));
+	myMeshes.push_back(std::make_unique<Mesh>(std::move(vertices), std::move(indices)));
 
 	return *myMeshes.back();
 }
@@ -128,7 +122,7 @@ Texture &Engine::loadTexture(const std::string &path) {
 
 	//The pixels are only needed until they're uploaded, and have to be freed even if that throws
 	try {
-		myTextures.push_back(std::make_unique<Texture>(*myDevice, pixels, texWidth, texHeight, texChannels));
+		myTextures.push_back(std::make_unique<Texture>(pixels, texWidth, texHeight, texChannels));
 	} catch (...) {
 		myLoader.unloadImage(pixels);
 		throw;
@@ -141,7 +135,7 @@ Texture &Engine::loadTexture(const std::string &path) {
 
 Material &Engine::createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
 
-	myMaterials.push_back(std::make_unique<Material>(*myDevice, shaders, texture));
+	myMaterials.push_back(std::make_unique<Material>(shaders, texture));
 
 	return *myMaterials.back();
 }

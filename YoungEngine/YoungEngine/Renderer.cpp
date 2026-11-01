@@ -1,34 +1,26 @@
 #include "Renderer.hpp"
 
 Renderer::Renderer(
-	Device &inDevice,
-	SwapChain &inSwapChain,
 	Window &inWindow,
-	PipelineCache &inPipelineCache,
 	Scene &inScene,
 	size_t framesInFlight
-) : device(inDevice),
-	swapChain(inSwapChain),
-	window(inWindow),
-	pipelineCache(inPipelineCache),
+) : window(inWindow),
 	scene(&inScene),
-	renderTarget(inSwapChain),
-	sync(inDevice, framesInFlight),
-	command(inDevice, framesInFlight) {
+	sync(framesInFlight),
+	command(framesInFlight) {
 
 	frameUBOs.reserve(framesInFlight);
 	frameSets.reserve(framesInFlight);
 
 	for (size_t i = 0; i < framesInFlight; i++) {
 		frameUBOs.push_back(std::make_unique<UniformBufferObject>(
-			device,
 			sizeof(Camera::UniformBlock),
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		));
 		frameUBOs[i]->createBuffer();
 
-		frameSets.push_back(std::make_unique<DescriptorSet>(device, PipelineDescription::frameBindings()));
+		frameSets.push_back(std::make_unique<DescriptorSet>(PipelineDescription::frameBindings()));
 		frameSets[i]->writeUniformBuffer(PipelineDescription::FRAME_CAMERA_BINDING, *frameUBOs[i]);
 	}
 }
@@ -40,7 +32,7 @@ void Renderer::render(bool externalResizeRequested) {
 	updateFrame(currentFrame);
 
 	uint32_t imageIndex;
-	SwapChain::AcquireResult acquireResult = swapChain.acquireNextImage(
+	SwapChain::AcquireResult acquireResult = SwapChain::active->acquireNextImage(
 		sync.imageAvailable(currentFrame),
 		imageIndex
 	);
@@ -62,7 +54,7 @@ void Renderer::render(bool externalResizeRequested) {
 		sync.inFlightFence(currentFrame)
 	);
 
-	bool needsRecreate = swapChain.present(sync.renderFinished(currentFrame), imageIndex);
+	bool needsRecreate = SwapChain::active->present(sync.renderFinished(currentFrame), imageIndex);
 	if (needsRecreate || externalResizeRequested) {
 		recreateSwapChain();
 	}
@@ -73,7 +65,7 @@ void Renderer::render(bool externalResizeRequested) {
 void Renderer::updateFrame(size_t frame) {
 
 	Camera &camera = scene->getCamera();
-	camera.setViewportExtent(swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);
+	camera.setViewportExtent(SwapChain::active->swapChainExtent.width, SwapChain::active->swapChainExtent.height);
 
 	Camera::UniformBlock cameraBlock = camera.getUniformBlock();
 	frameUBOs[frame]->updateBuffer(&cameraBlock, sizeof(cameraBlock));
@@ -82,7 +74,7 @@ void Renderer::updateFrame(size_t frame) {
 
 	drawItems.clear();
 	for (const auto &renderable : scene->getRenderables()) {
-		renderable->prepare(pipelineCache, formats);
+		renderable->prepare(formats);
 		renderable->upload(frame);
 		renderable->collect(frame, drawItems);
 	}
@@ -106,12 +98,12 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	//Without a render pass, nothing transitions the layouts of the attachments or synchronizes
 	//access to them for us. That's why the rendering is bracketed by explicit image barriers.
 
-	VkImage swapChainImage = swapChain.swapChainImages[imageIndex];
-	VkImageView swapChainImageView = swapChain.swapChainImageViews[imageIndex];
-	VkExtent2D extent = swapChain.swapChainExtent;
+	VkImage swapChainImage = SwapChain::active->swapChainImages[imageIndex];
+	VkImageView swapChainImageView = SwapChain::active->swapChainImageViews[imageIndex];
+	VkExtent2D extent = SwapChain::active->swapChainExtent;
 
 	VkImageAspectFlags depthAspect = VK_IMAGE_ASPECT_DEPTH_BIT;
-	if (ImageUtils::hasStencilComponent(renderTarget.depthFormat())) {
+	if (ImageUtility::hasStencilComponent(renderTarget.depthFormat())) {
 		depthAspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
 	}
 
@@ -119,7 +111,7 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	//All three images are written from scratch (cleared, or fully resolved into)
 
 	//The swap chain image receives the resolved result
-	ImageUtils::recordImageLayoutTransition(
+	ImageUtility::recordImageLayoutTransition(
 		commandBuffer,
 		swapChainImage,
 		VK_IMAGE_ASPECT_COLOR_BIT,
@@ -130,7 +122,7 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	);
 
 	//The multisampled color image and the depth image are shared between the frames in flight
-	ImageUtils::recordImageLayoutTransition(
+	ImageUtility::recordImageLayoutTransition(
 		commandBuffer,
 		renderTarget.CIO.image,
 		VK_IMAGE_ASPECT_COLOR_BIT,
@@ -140,7 +132,7 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
 	);
 
-	ImageUtils::recordImageLayoutTransition(
+	ImageUtility::recordImageLayoutTransition(
 		commandBuffer,
 		renderTarget.DIO.image,
 		depthAspect,
@@ -217,7 +209,7 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	//BARRIER AFTER RENDERING
 	//The resolved swap chain image goes to the layout required for presentation.
 	//The render pass used to do this through the finalLayout of the resolve attachment.
-	ImageUtils::recordImageLayoutTransition(
+	ImageUtility::recordImageLayoutTransition(
 		commandBuffer,
 		swapChainImage,
 		VK_IMAGE_ASPECT_COLOR_BIT,
@@ -289,7 +281,7 @@ void Renderer::submitFrame(size_t frame, VkSemaphore imageAvailable, VkSemaphore
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	if (vkQueueSubmit(device.graphicsQueue, 1, &submitInfo, inFlight) != VK_SUCCESS) {
+	if (vkQueueSubmit(Device::active->graphicsQueue, 1, &submitInfo, inFlight) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to submit draw command buffer!");
 	}
 }
@@ -304,10 +296,10 @@ void Renderer::recreateSwapChain() {
 		glfwWaitEvents();
 	}
 
-	vkDeviceWaitIdle(device.logical);
+	vkDeviceWaitIdle(Device::active->logical);
 
-	swapChain.recreate(window.window);
-	swapChain.createImageViews();
+	SwapChain::active->recreate(window.window);
+	SwapChain::active->createImageViews();
 
 	renderTarget.recreateAttachments();
 }

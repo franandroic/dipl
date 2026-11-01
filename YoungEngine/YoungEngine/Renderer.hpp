@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <functional>
 
-#include "ImageUtils.hpp"
+#include "ImageUtility.hpp"
 
 #include "Device.hpp"
 #include "SwapChain.hpp"
@@ -31,10 +31,7 @@ public:
 
 	//Constructors
 	Renderer(
-		Device &inDevice,
-		SwapChain &inSwapChain,
 		Window &inWindow,
-		PipelineCache &inPipelineCache,
 		Scene &inScene,
 		size_t framesInFlight
 	);
@@ -55,10 +52,7 @@ public:
 
 protected:
 
-	Device &device;
-	SwapChain &swapChain;
 	Window &window;
-	PipelineCache &pipelineCache;
 	Scene *scene;
 
 	RenderTarget renderTarget;

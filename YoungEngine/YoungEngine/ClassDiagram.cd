@@ -138,11 +138,11 @@
       <Field Name="swapChain" />
     </ShowAsAssociation>
   </Class>
-  <Class Name="CommandUtils">
+  <Class Name="CommandUtility">
     <Position X="19.5" Y="10.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAIAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>CommandUtils.hpp</FileName>
+      <FileName>CommandUtility.hpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DepthImageObject" Collapsed="true">
@@ -171,11 +171,11 @@
       <FileName>Device.hpp</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="DeviceUtils">
+  <Class Name="DeviceUtility">
     <Position X="17.75" Y="10.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAQAgAAAAAAAAAAAAAQAAAAAAAAIAIBgBABAAAAAAAA=</HashCode>
-      <FileName>DeviceUtils.hpp</FileName>
+      <FileName>DeviceUtility.hpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ImageLoader" Collapsed="true">
@@ -192,11 +192,11 @@
       <FileName>ImageObject.hpp</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ImageUtils">
+  <Class Name="ImageUtility">
     <Position X="19.5" Y="12.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIQ=</HashCode>
-      <FileName>ImageUtils.hpp</FileName>
+      <FileName>ImageUtility.hpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="IndexBufferObject" Collapsed="true">

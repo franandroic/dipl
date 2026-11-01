@@ -81,7 +81,7 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Uniformity.cpp">
+    <ClCompile Include="UniformDescription.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -131,7 +131,7 @@
     <ClInclude Include="Device.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DeviceUtils.hpp">
+    <ClInclude Include="DeviceUtility.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DeviceData.hpp">
@@ -152,7 +152,7 @@
     <ClInclude Include="VertexBufferObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandUtils.hpp">
+    <ClInclude Include="CommandUtility.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IndexBufferObject.hpp">
@@ -170,7 +170,7 @@
     <ClInclude Include="ImageLoader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImageUtils.hpp">
+    <ClInclude Include="ImageUtility.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageObject.hpp">
@@ -215,7 +215,7 @@
     <ClInclude Include="UniformOperator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Uniformity.hpp">
+    <ClInclude Include="UniformDescription.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SimpleModelUD.hpp">

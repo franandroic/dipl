@@ -1,6 +1,6 @@
 #include "Command.hpp"
 
-Command::Command(Device &device, size_t count) {
+Command::Command(size_t count) {
 
 	//Creating command buffers to which we will record commands, before submitting them to a queue
 	//to be executed. One for each frame we want to be able to fill out before having to wait for the GPU.
@@ -9,16 +9,18 @@ Command::Command(Device &device, size_t count) {
 
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = device.commandPool;
+	allocInfo.commandPool = Device::active->commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-	if (vkAllocateCommandBuffers(device.logical, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(Device::active->logical, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create command buffers!");
 	}
 }
 
 VkCommandBuffer Command::begin(size_t frame) {
+
+	//Resets the command buffer of the frame and begins recording into it
 
 	VkCommandBuffer commandBuffer = commandBuffers[frame];
 
@@ -38,6 +40,8 @@ VkCommandBuffer Command::begin(size_t frame) {
 }
 
 void Command::end(size_t frame) {
+
+	//Ends recording into the command buffer of the frame
 
 	if (vkEndCommandBuffer(commandBuffers[frame]) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to record command buffer!");

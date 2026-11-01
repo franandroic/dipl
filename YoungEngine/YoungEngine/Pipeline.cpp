@@ -1,7 +1,6 @@
 #include "Pipeline.hpp"
 
-Pipeline::Pipeline(
-	Device &inDevice, const PipelineDescription &inDescription) : device(inDevice), description(inDescription) {
+Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDescription) {
 
 	VkShaderModule vertShaderModule = VK_NULL_HANDLE;
 	VkShaderModule fragShaderModule = VK_NULL_HANDLE;
@@ -88,7 +87,7 @@ Pipeline::Pipeline(
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = device.msaaSamples;
+		multisampling.rasterizationSamples = Device::active->msaaSamples;
 		multisampling.minSampleShading = 1.0f;
 		multisampling.pSampleMask = nullptr;
 		multisampling.alphaToCoverageEnable = VK_FALSE;
@@ -155,7 +154,7 @@ Pipeline::Pipeline(
 		pipelineLayoutInfo.pushConstantRangeCount = usesPushConstants ? 1 : 0;
 		pipelineLayoutInfo.pPushConstantRanges = usesPushConstants ? &description.pushConstantRange : nullptr;
 
-		if (vkCreatePipelineLayout(device.logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		if (vkCreatePipelineLayout(Device::active->logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create pipeline layout!");
 		}
 
@@ -190,18 +189,18 @@ Pipeline::Pipeline(
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineInfo.basePipelineIndex = -1;
 
-		if (vkCreateGraphicsPipelines(device.logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+		if (vkCreateGraphicsPipelines(Device::active->logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create graphics pipeline!");
 		}
 
-		vkDestroyShaderModule(device.logical, fragShaderModule, nullptr);
-		vkDestroyShaderModule(device.logical, vertShaderModule, nullptr);
+		vkDestroyShaderModule(Device::active->logical, fragShaderModule, nullptr);
+		vkDestroyShaderModule(Device::active->logical, vertShaderModule, nullptr);
 	} catch (...) {
 
 		//The destructor doesn't run for an object whose constructor threw,
 		//so whatever was created up to the failure is destroyed here.
-		vkDestroyShaderModule(device.logical, fragShaderModule, nullptr);
-		vkDestroyShaderModule(device.logical, vertShaderModule, nullptr);
+		vkDestroyShaderModule(Device::active->logical, fragShaderModule, nullptr);
+		vkDestroyShaderModule(Device::active->logical, vertShaderModule, nullptr);
 		destroy();
 
 		throw;
@@ -215,11 +214,11 @@ Pipeline::~Pipeline() {
 
 void Pipeline::destroy() {
 
-	vkDestroyPipeline(device.logical, graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(device.logical, pipelineLayout, nullptr);
+	vkDestroyPipeline(Device::active->logical, graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(Device::active->logical, pipelineLayout, nullptr);
 
 	for (VkDescriptorSetLayout setLayout : setLayouts) {
-		vkDestroyDescriptorSetLayout(device.logical, setLayout, nullptr);
+		vkDestroyDescriptorSetLayout(Device::active->logical, setLayout, nullptr);
 	}
 
 	graphicsPipeline = VK_NULL_HANDLE;
@@ -239,7 +238,7 @@ VkDescriptorSetLayout Pipeline::createSetLayout(const std::vector<VkDescriptorSe
 
 	VkDescriptorSetLayout setLayout;
 
-	if (vkCreateDescriptorSetLayout(device.logical, &layoutInfo, nullptr, &setLayout) != VK_SUCCESS) {
+	if (vkCreateDescriptorSetLayout(Device::active->logical, &layoutInfo, nullptr, &setLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor set layout!");
 	}
 
@@ -258,7 +257,7 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char> &code) {
 
 	VkShaderModule shaderModule;
 
-	if (vkCreateShaderModule(device.logical, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+	if (vkCreateShaderModule(Device::active->logical, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create shader module!");
 	}
 

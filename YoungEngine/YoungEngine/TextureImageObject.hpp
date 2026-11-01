@@ -3,8 +3,8 @@
 
 #include <cmath>
 
-#include "ImageUtils.hpp"
-#include "CommandUtils.hpp"
+#include "ImageUtility.hpp"
+#include "CommandUtility.hpp"
 #include "ImageObject.hpp"
 #include "Device.hpp"
 #include "BufferObject.hpp"
@@ -15,20 +15,19 @@ class TextureImageObject : public ImageObject {
 public:
 
 	//Construction
-	TextureImageObject(Device &inDevice) : ImageObject(inDevice) {}
-	~TextureImageObject() override { vkDestroySampler(device.logical, sampler, nullptr); }
+	TextureImageObject() = default;
+	~TextureImageObject() override { vkDestroySampler(Device::active->logical, sampler, nullptr); }
 
 	//Member variables
 	uint32_t mipLevels = 0;
 	VkSampler sampler = VK_NULL_HANDLE;
 
-	void createImage(VkCommandPool commandPool, unsigned char *pixels, int width, int height, int channels);
+	void createImage(unsigned char *pixels, int width, int height, int channels);
 	void createTextureSampler();
 
 private:
 
 	void generateMipmaps(
-		VkCommandPool commandPool,
 		VkFormat imageFormat,
 		int32_t texWidth,
 		int32_t texHeight,

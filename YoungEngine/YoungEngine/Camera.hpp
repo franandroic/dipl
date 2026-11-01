@@ -33,7 +33,6 @@ public:
 
 	void setViewportExtent(uint32_t width, uint32_t height);
 	float getAspectRatio() const { return aspectRatio; }
-
 	UniformBlock getUniformBlock() const;
 
 private:

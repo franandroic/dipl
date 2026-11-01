@@ -10,7 +10,7 @@ class DepthImageObject : public ImageObject {
 public:
 
 	//Construction
-	DepthImageObject(Device &inDevice, VkFormat inFormat) : ImageObject(inDevice), depthFormat(inFormat) {}
+	explicit DepthImageObject(VkFormat inFormat) : depthFormat(inFormat) {}
 
 	//Member variables
 	const VkFormat depthFormat;

@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "DrawItem.hpp"
-#include "PipelineCache.hpp"
 #include "PipelineDescription.hpp"
 
 //Abstract class for anything a scene contains that can be drawn.
@@ -29,7 +28,7 @@ public:
 	virtual void update(float /*dt*/) {}
 
 	//Gets the pipelines the renderable is drawn with, for the attachments it's drawn into.
-	void prepare(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats);
+	void prepare(const PipelineDescription::RenderingFormats &formats);
 
 	//Copies the current state into the GPU resources of the frame in flight (its uniform buffers).
 	virtual void upload(size_t /*frame*/) {}
@@ -40,7 +39,7 @@ public:
 protected:
 
 	//Gets the pipelines from the cache
-	virtual void resolvePipelines(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats) = 0;
+	virtual void resolvePipelines(const PipelineDescription::RenderingFormats &formats) = 0;
 
 private:
 

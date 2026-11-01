@@ -10,7 +10,7 @@ class ColorImageObject : public ImageObject {
 public:
 
 	//Construction
-	ColorImageObject(Device &inDevice, VkFormat inFormat) : ImageObject(inDevice), colorFormat(inFormat) {}
+	explicit ColorImageObject(VkFormat inFormat) : colorFormat(inFormat) {}
 
 	//Member variables
 	const VkFormat colorFormat;

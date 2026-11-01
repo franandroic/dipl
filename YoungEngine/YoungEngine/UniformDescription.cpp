@@ -1,16 +1,14 @@
-#include "Uniformity.hpp"
+#include "UniformDescription.hpp"
 
-Uniformity::Uniformity(
-	Device &inDevice,
+UniformDescription::UniformDescription(
 	std::unique_ptr<UniformData> inData,
 	std::unique_ptr<UniformOperator> inOp,
 	size_t framesInFlight
-) : device(inDevice),
-	data(std::move(inData)),
+) : data(std::move(inData)),
 	op(std::move(inOp)) {
 
 	if (!data) {
-		throw std::invalid_argument("Uniformity requires uniform data!");
+		throw std::invalid_argument("UniformDescription requires uniform data!");
 	}
 
 	UniformData::Block block = data->bufferBlock();
@@ -21,29 +19,28 @@ Uniformity::Uniformity(
 
 	for (size_t i = 0; i < framesInFlight; i++) {
 		UBOs.push_back(std::make_unique<UniformBufferObject>(
-			inDevice,
 			block.size,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		));
 		UBOs[i]->createBuffer();
 
-		descriptorSets.push_back(std::make_unique<DescriptorSet>(device, bindings()));
+		descriptorSets.push_back(std::make_unique<DescriptorSet>(bindings()));
 		descriptorSets[i]->writeUniformBuffer(BUFFER_BINDING, *UBOs[i]);
 	}
 }
 
-void Uniformity::setOperator(std::unique_ptr<UniformOperator> inOp) {
+void UniformDescription::setOperator(std::unique_ptr<UniformOperator> inOp) {
 
 	op = std::move(inOp);
 }
 
-void Uniformity::update(float dt) {
+void UniformDescription::update(float dt) {
 
 	if (op) op->operate(*data, dt);
 }
 
-void Uniformity::upload(size_t frame) {
+void UniformDescription::upload(size_t frame) {
 
 	if (UBOs.empty()) return;
 
@@ -51,7 +48,7 @@ void Uniformity::upload(size_t frame) {
 	UBOs[frame]->updateBuffer(block.data, block.size);
 }
 
-void Uniformity::recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const {
+void UniformDescription::recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const {
 
 	UniformData::Block block = data->pushConstantBlock();
 	if (block.empty()) return;
@@ -59,24 +56,24 @@ void Uniformity::recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLa
 	vkCmdPushConstants(commandBuffer, pipelineLayout, data->pushConstantStages(), 0, static_cast<uint32_t>(block.size), block.data);
 }
 
-VkPushConstantRange Uniformity::pushConstantRange() const {
+VkPushConstantRange UniformDescription::pushConstantRange() const {
 
 	return data->pushConstantRange();
 }
 
-std::vector<VkDescriptorSetLayoutBinding> Uniformity::bindings() const {
+std::vector<VkDescriptorSetLayoutBinding> UniformDescription::bindings() const {
 
 	if (data->bufferBlock().empty()) return {};
 
 	return { makeBinding() };
 }
 
-UniformBufferObject *Uniformity::getUBO(size_t frame) const {
+UniformBufferObject *UniformDescription::getUBO(size_t frame) const {
 
 	return UBOs.empty() ? nullptr : UBOs[frame].get();
 }
 
-VkDescriptorSetLayoutBinding Uniformity::makeBinding() const {
+VkDescriptorSetLayoutBinding UniformDescription::makeBinding() const {
 
 	VkDescriptorSetLayoutBinding binding{};
 	binding.binding = BUFFER_BINDING;

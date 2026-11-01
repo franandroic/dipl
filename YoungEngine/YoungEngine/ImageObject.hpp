@@ -9,7 +9,7 @@ class ImageObject {
 public:
 
 	//Construction
-	ImageObject(Device &inDevice) : device(inDevice) {}
+	ImageObject() = default;
 	virtual ~ImageObject() { destroyImage(); }
 
 	//Copy and Move constructors
@@ -36,8 +36,6 @@ public:
 	void destroyImage();
 
 protected:
-
-	Device &device;
 
 	void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 };

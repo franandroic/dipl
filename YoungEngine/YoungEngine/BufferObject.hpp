@@ -1,8 +1,8 @@
 #pragma once
 #include "GLFWConfig.hpp"
 
-#include "DeviceUtils.hpp"
-#include "CommandUtils.hpp"
+#include "DeviceUtility.hpp"
+#include "CommandUtility.hpp"
 
 #include "Device.hpp"
 
@@ -13,7 +13,6 @@ public:
 
 	//Construction
 	BufferObject(
-		Device &inDevice,
 		VkDeviceSize inSize,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
@@ -27,8 +26,6 @@ public:
 	BufferObject &operator=(BufferObject &&) = delete;
 
 	//Member variables
-	Device &device;
-
 	const VkDeviceSize size;
 	const VkBufferUsageFlags usage;
 	const VkMemoryPropertyFlags properties;
@@ -40,6 +37,6 @@ public:
 
 	void createBuffer();
 	void destroyBuffer();
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool);
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 };

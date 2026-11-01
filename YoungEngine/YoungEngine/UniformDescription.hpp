@@ -16,24 +16,23 @@
 //the data (what is passed to the shaders), the operator (how it changes over time),
 //the uniform buffers that the often-updated part of the data goes through
 //and the descriptor sets pointing at those buffers.
-class Uniformity {
+class UniformDescription {
 
 public:
 
 	//Construction
-	Uniformity(
-		Device &inDevice,
+	UniformDescription(
 		std::unique_ptr<UniformData> inData,
 		std::unique_ptr<UniformOperator> inOp,
 		size_t framesInFlight
 	);
-	~Uniformity() = default;
+	~UniformDescription() = default;
 
 	//Copy and Move constructors
-	Uniformity(const Uniformity &) = delete;
-	Uniformity &operator=(const Uniformity &) = delete;
-	Uniformity(Uniformity &&) = delete;
-	Uniformity &operator=(Uniformity &&) = delete;
+	UniformDescription(const UniformDescription &) = delete;
+	UniformDescription &operator=(const UniformDescription &) = delete;
+	UniformDescription(UniformDescription &&) = delete;
+	UniformDescription &operator=(UniformDescription &&) = delete;
 
 	//Runs the operator (if there is one) on the data.
 	void update(float dt);
@@ -65,8 +64,6 @@ private:
 
 	static constexpr uint32_t BUFFER_BINDING = 0;
 	VkDescriptorSetLayoutBinding makeBinding() const;
-
-	Device &device;
 
 	std::unique_ptr<UniformData> data;
 	std::unique_ptr<UniformOperator> op;

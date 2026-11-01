@@ -1,6 +1,6 @@
 #include "Synchronizer.hpp"
 
-Synchronizer::Synchronizer(Device &inDevice, size_t framesInFlight) : device(inDevice) {
+Synchronizer::Synchronizer(size_t framesInFlight) {
 
 	imageAvailableSemaphores.resize(framesInFlight);
 	renderFinishedSemaphores.resize(framesInFlight);
@@ -14,9 +14,9 @@ Synchronizer::Synchronizer(Device &inDevice, size_t framesInFlight) : device(inD
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 	for (size_t i = 0; i < framesInFlight; i++) {
-		if (vkCreateSemaphore(device.logical, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(device.logical, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(device.logical, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+		if (vkCreateSemaphore(Device::active->logical, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(Device::active->logical, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(Device::active->logical, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create sync objects!");
 		}
 	}
@@ -25,18 +25,18 @@ Synchronizer::Synchronizer(Device &inDevice, size_t framesInFlight) : device(inD
 Synchronizer::~Synchronizer() {
 
 	for (size_t i = 0; i < inFlightFences.size(); i++) {
-		vkDestroySemaphore(device.logical, imageAvailableSemaphores[i], nullptr);
-		vkDestroySemaphore(device.logical, renderFinishedSemaphores[i], nullptr);
-		vkDestroyFence(device.logical, inFlightFences[i], nullptr);
+		vkDestroySemaphore(Device::active->logical, imageAvailableSemaphores[i], nullptr);
+		vkDestroySemaphore(Device::active->logical, renderFinishedSemaphores[i], nullptr);
+		vkDestroyFence(Device::active->logical, inFlightFences[i], nullptr);
 	}
 }
 
 void Synchronizer::stop(size_t frame) const {
-	vkWaitForFences(device.logical, 1, &inFlightFences[frame], VK_TRUE, UINT64_MAX);
+	vkWaitForFences(Device::active->logical, 1, &inFlightFences[frame], VK_TRUE, UINT64_MAX);
 }
 
 void Synchronizer::go(size_t frame) const {
-	vkResetFences(device.logical, 1, &inFlightFences[frame]);
+	vkResetFences(Device::active->logical, 1, &inFlightFences[frame]);
 }
 
 VkSemaphore Synchronizer::imageAvailable(size_t frame) const {

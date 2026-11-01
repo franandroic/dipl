@@ -14,7 +14,7 @@ class Command {
 public:
 
 	//Construction
-	Command(Device &device, size_t count);
+	explicit Command(size_t count);
 	~Command() = default;
 
 	//Copy and Move constructors
@@ -24,12 +24,9 @@ public:
 	Command &operator=(Command &&) = delete;
 
 	VkCommandBuffer getBuffer(size_t frame) const { return commandBuffers[frame]; }
-	size_t count() const { return commandBuffers.size(); }
+	size_t bufferCount() const { return commandBuffers.size(); }
 
-	//Resets the command buffer of the frame and begins recording into it
 	VkCommandBuffer begin(size_t frame);
-
-	//Ends recording into the command buffer of the frame
 	void end(size_t frame);
 
 private:

@@ -1,8 +1,10 @@
 #include "PipelineCache.hpp"
 
+#include <cassert>
+
 PipelineCache::PipelineCache() {
 
-	assert(!active && "Device already exists!");
+	assert(!active && "PipelineCache already exists!");
 	active = this;
 }
 
@@ -20,7 +22,7 @@ const Pipeline &PipelineCache::get(const PipelineDescription &description) {
 	}
 
 	//Nothing is added if the creation throws
-	pipelines.push_back(std::make_unique<Pipeline>(*Device::active, description));
+	pipelines.push_back(std::make_unique<Pipeline>(description));
 
 	return *pipelines.back();
 }

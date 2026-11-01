@@ -16,11 +16,11 @@ class Pipeline {
 public:
 
 	//Construction
-	Pipeline(Device &inDevice, const PipelineDescription &inDescription);
+	explicit Pipeline(const PipelineDescription &inDescription);
 	~Pipeline();
 
 	//Copy and Move constructors
-	Pipeline(const Pipeline &) = delete;
+	explicit Pipeline(const Pipeline &) = delete;
 	Pipeline &operator=(const Pipeline &) = delete;
 	Pipeline(Pipeline &&) = delete;
 	Pipeline &operator=(Pipeline &&) = delete;
@@ -34,7 +34,6 @@ public:
 
 private:
 
-	Device &device;
 	PipelineDescription description;
 	std::vector<VkDescriptorSetLayout> setLayouts;
 

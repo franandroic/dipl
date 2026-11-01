@@ -12,15 +12,14 @@ public:
 
 	//Construction
 	IndexBufferObject(
-		Device &inDevice,
 		const std::vector<uint32_t> &inIndices,
 		VkBufferUsageFlags inUsage,
 		VkMemoryPropertyFlags inProperties
-	) : BufferObject(inDevice, sizeof(inIndices[0]) * inIndices.size(), inUsage, inProperties),
+	) : BufferObject(sizeof(inIndices[0]) * inIndices.size(), inUsage, inProperties),
 		indexCount(static_cast<uint32_t>(inIndices.size())) {}
 
 	//Member variables
 	const uint32_t indexCount;
 
-	void createBuffer(VkCommandPool commandPool, const std::vector<uint32_t> &indices);
+	void createBuffer(const std::vector<uint32_t> &indices);
 };

@@ -13,7 +13,6 @@ public:
 
 	//Construction
 	Texture(
-		Device &inDevice,
 		unsigned char *pixels,
 		int inWidth, int inHeight, int inChannels
 	);

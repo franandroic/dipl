@@ -14,7 +14,7 @@ class Mesh {
 public:
 
 	//Construction
-	Mesh(Device &inDevice, std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices);
+	Mesh(std::vector<Vertex> inVertices, std::vector<uint32_t> inIndices);
 
 	//Copy and Move constructors
 	Mesh(const Mesh &) = delete;
@@ -32,8 +32,4 @@ public:
 	bool isResidentOnGPU();
 	void createBuffers();
 	void destroyBuffers();
-
-private:
-
-	Device &device;
 };

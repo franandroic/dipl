@@ -183,7 +183,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureImageObject.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
-    <ClCompile Include="Uniformity.cpp" />
+    <ClCompile Include="UniformDescription.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -194,12 +194,12 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="ColorImageObject.hpp" />
     <ClInclude Include="Command.hpp" />
-    <ClInclude Include="CommandUtils.hpp" />
+    <ClInclude Include="CommandUtility.hpp" />
     <ClInclude Include="DepthImageObject.hpp" />
     <ClInclude Include="DescriptorSet.hpp" />
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DeviceData.hpp" />
-    <ClInclude Include="DeviceUtils.hpp" />
+    <ClInclude Include="DeviceUtility.hpp" />
     <ClInclude Include="DrawItem.hpp" />
     <ClInclude Include="EngineUtility.hpp" />
     <ClInclude Include="Prop.hpp" />
@@ -212,7 +212,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="GLMConfig.hpp" />
     <ClInclude Include="ImageLoader.hpp" />
     <ClInclude Include="ImageObject.hpp" />
-    <ClInclude Include="ImageUtils.hpp" />
+    <ClInclude Include="ImageUtility.hpp" />
     <ClInclude Include="IndexBufferObject.hpp" />
     <ClInclude Include="InPlaceYRotationUO.hpp" />
     <ClInclude Include="Loader.hpp" />
@@ -230,7 +230,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="TextureImageObject.hpp" />
     <ClInclude Include="UniformBufferObject.hpp" />
     <ClInclude Include="UniformData.hpp" />
-    <ClInclude Include="Uniformity.hpp" />
+    <ClInclude Include="UniformDescription.hpp" />
     <ClInclude Include="UniformOperator.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexBufferObject.hpp" />
