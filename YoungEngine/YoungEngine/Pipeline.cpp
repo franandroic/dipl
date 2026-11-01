@@ -140,10 +140,13 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 
 		//Creating the layout of each set, in the order of the tiers (the position in the list is the set number).
 		//The first one is the Frame set, which is the same for every pipeline and filled by the renderer.
-		setLayouts.reserve(PipelineDescription::DescriptorTier::Count);
-		setLayouts.push_back(createSetLayout({ PipelineDescription::frameBindings() }));
-		setLayouts.push_back(createSetLayout(description.materialBindings));
-		setLayouts.push_back(createSetLayout(description.objectBindings));
+		setLayouts.resize(PipelineDescription::DescriptorTier::Count);
+		//set = 0
+		setLayouts[PipelineDescription::DescriptorTier::Frame] = createSetLayout(PipelineDescription::frameBindings());
+		//set = 1
+		setLayouts[PipelineDescription::DescriptorTier::Material] = createSetLayout(description.materialBindings);
+		//set = 2
+		setLayouts[PipelineDescription::DescriptorTier::Object] = createSetLayout(description.objectBindings);
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -195,6 +198,7 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 
 		vkDestroyShaderModule(Device::active->logical, fragShaderModule, nullptr);
 		vkDestroyShaderModule(Device::active->logical, vertShaderModule, nullptr);
+
 	} catch (...) {
 
 		//The destructor doesn't run for an object whose constructor threw,

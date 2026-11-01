@@ -8,11 +8,21 @@ EngineUtility::EngineUtility() {
 
 EngineUtility::~EngineUtility() {
 
+	destroy();
+}
+
+void EngineUtility::destroy() {
+
+	if (instance == VK_NULL_HANDLE) return;
+
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
 	vkDestroyInstance(instance, nullptr);
+
+	debugMessenger = VK_NULL_HANDLE;
+	instance = VK_NULL_HANDLE;
 }
 
 void EngineUtility::createInstance() {
@@ -70,6 +80,7 @@ void EngineUtility::setupDebugMessenger() {
 	populateDebugMessengerCreateInfo(createInfo);
 
 	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+		destroy();
 		throw std::runtime_error("Failed to set up debug messenger!");
 	}
 }

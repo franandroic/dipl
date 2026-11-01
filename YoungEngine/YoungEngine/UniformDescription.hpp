@@ -34,28 +34,17 @@ public:
 	UniformDescription(UniformDescription &&) = delete;
 	UniformDescription &operator=(UniformDescription &&) = delete;
 
-	//Runs the operator (if there is one) on the data.
 	void update(float dt);
-
-	//Copies the buffer block (if there is one) into the uniform buffer of the frame.
 	void upload(size_t frame);
-
-	//Records the push constants (if there are any) into a command buffer that's being recorded.
 	void recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const;
 
-	//The range to declare in the pipeline layout. A range of size 0 means there are no push constants.
 	VkPushConstantRange pushConstantRange() const;
 
-	//The shape of the descriptor set of the object to create a pipeline with.
 	std::vector<VkDescriptorSetLayoutBinding> bindings() const;
 
-	//The sets only exist if the data has a buffer block (a model matrix in push constants doesn't need one)
 	bool hasDescriptorSets() const { return !descriptorSets.empty(); }
-
 	const DescriptorSet &getSet(size_t frame) const { return *descriptorSets.at(frame); }
-	UniformBufferObject *getUBO(size_t frame) const;
-
-	UniformData &getData() { return *data; }
+	UniformBufferObject *getUBO(size_t frame) const { return UBOs.empty() ? nullptr : UBOs[frame].get(); }
 	const UniformData &getData() const { return *data; }
 
 	void setOperator(std::unique_ptr<UniformOperator> inOp);

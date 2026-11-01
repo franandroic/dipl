@@ -28,23 +28,17 @@ public:
 
 	const PipelineDescription::ShaderPair &getShaders() const { return shaders; }
 	const Texture *getTexture() const { return texture; }
-
-	//The bindings of the descriptor set of the material, to describe a pipeline with
-	std::vector<VkDescriptorSetLayoutBinding> bindings() const;
-
-	//The set to bind at DescriptorTier::Material, or VK_NULL_HANDLE if the material has no texture
 	VkDescriptorSet getSet() const { return textureSet ? textureSet->getHandle() : VK_NULL_HANDLE; }
+
+	std::vector<VkDescriptorSetLayoutBinding> bindings() const;
 
 private:
 
-	//Binding 0 is the texture, read in the fragment shader
 	static constexpr uint32_t TEXTURE_BINDING = 0;
 	static VkDescriptorSetLayoutBinding makeBinding();
 
 	PipelineDescription::ShaderPair shaders;
-	const Texture *texture;
 
-	//Only a material with a texture has a set. The texture doesn't change between frames,
-	//so a single set is shared by all the frames in flight.
+	const Texture *texture;
 	std::unique_ptr<DescriptorSet> textureSet;
 };

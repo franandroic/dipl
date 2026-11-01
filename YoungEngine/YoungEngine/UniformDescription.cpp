@@ -37,10 +37,14 @@ void UniformDescription::setOperator(std::unique_ptr<UniformOperator> inOp) {
 
 void UniformDescription::update(float dt) {
 
+	//Runs the operator (if there is one) on the data.
+
 	if (op) op->operate(*data, dt);
 }
 
 void UniformDescription::upload(size_t frame) {
+
+	//Copies the buffer block (if there is one) into the uniform buffer of the frame.
 
 	if (UBOs.empty()) return;
 
@@ -50,6 +54,8 @@ void UniformDescription::upload(size_t frame) {
 
 void UniformDescription::recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const {
 
+	//Records the push constants (if there are any) into a command buffer that's being recorded.
+
 	UniformData::Block block = data->pushConstantBlock();
 	if (block.empty()) return;
 
@@ -58,19 +64,17 @@ void UniformDescription::recordPushConstants(VkCommandBuffer commandBuffer, VkPi
 
 VkPushConstantRange UniformDescription::pushConstantRange() const {
 
+	//The range to declare in the pipeline layout. A range of size 0 means there are no push constants.
+
 	return data->pushConstantRange();
 }
 
 std::vector<VkDescriptorSetLayoutBinding> UniformDescription::bindings() const {
 
+	//The shape of the descriptor set of the object to create a pipeline with.
+
 	if (data->bufferBlock().empty()) return {};
-
 	return { makeBinding() };
-}
-
-UniformBufferObject *UniformDescription::getUBO(size_t frame) const {
-
-	return UBOs.empty() ? nullptr : UBOs[frame].get();
 }
 
 VkDescriptorSetLayoutBinding UniformDescription::makeBinding() const {

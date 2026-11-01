@@ -32,6 +32,6 @@ void main() {
     fragNormal = worldNormal;
 
     float normalLightAngle = max(0.0, dot(normalize(lightPos - vec3(vPos)), worldNormal));
-    float normalCameraAngle = max(0.0, dot(normalize(camera.position - vec3(vPos)), inNormal));
+    float normalCameraAngle = max(0.0, dot(normalize(camera.position - vec3(vPos)), worldNormal));
     fragTexCoord = vec2(normalLightAngle, normalCameraAngle);
 }

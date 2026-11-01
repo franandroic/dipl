@@ -6,6 +6,9 @@ Material::Material(
 ) : shaders(inShaders),
 	texture(inTexture) {
 
+	//Only a material with a texture has a set. The texture doesn't change between frames,
+	//so a single set is shared by all the frames in flight.
+
 	if (texture) {
 		textureSet = std::make_unique<DescriptorSet>(bindings());
 		textureSet->writeCombinedImageSampler(TEXTURE_BINDING, texture->getImageView(), texture->getSampler());
@@ -13,6 +16,8 @@ Material::Material(
 }
 
 std::vector<VkDescriptorSetLayoutBinding> Material::bindings() const {
+
+	//The bindings of the descriptor set of the material, to describe a pipeline with
 
 	if (!texture) return {};
 

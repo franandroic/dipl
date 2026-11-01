@@ -53,4 +53,6 @@ private:
 	void createSurface(VkInstance instance, GLFWwindow *window);
 	void createCommandPool();
 	void createDescriptorPool();
+
+	void destroy();
 };

@@ -7,17 +7,17 @@ Prop::Prop(
 	std::unique_ptr<UniformOperator> inUniformOperator
 ) : mesh(&inMesh),
 	material(&inMaterial),
-	UniformDescription(std::move(inUniformData), std::move(inUniformOperator), MAX_FRAMES_IN_FLIGHT) {
+	uniforms(std::move(inUniformData), std::move(inUniformOperator), MAX_FRAMES_IN_FLIGHT) {
 }
 
 void Prop::update(float dt) {
 
-	UniformDescription.update(dt);
+	uniforms.update(dt);
 }
 
 void Prop::upload(size_t frame) {
 
-	UniformDescription.upload(frame);
+	uniforms.upload(frame);
 }
 
 void Prop::resolvePipelines(const PipelineDescription::RenderingFormats &formats) {
@@ -30,20 +30,20 @@ void Prop::resolvePipelines(const PipelineDescription::RenderingFormats &formats
 	description.formats = formats;
 	description.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	description.materialBindings = material->bindings();
-	description.objectBindings = UniformDescription.bindings();
-	description.pushConstantRange = UniformDescription.pushConstantRange();
+	description.objectBindings = uniforms.bindings();
+	description.pushConstantRange = uniforms.pushConstantRange();
 
 	pipeline = &PipelineCache::active->get(description);
 }
 
 void Prop::collect(size_t frame, std::vector<DrawItem> &out) const {
 
-	const UniformData &data = UniformDescription.getData();
+	const UniformData &data = uniforms.getData();
 
 	DrawItem item;
 	item.pipeline = pipeline;
 	item.materialSet = material->getSet();
-	item.objectSet = UniformDescription.hasDescriptorSets() ? UniformDescription.getSet(frame).getHandle() : VK_NULL_HANDLE;
+	item.objectSet = uniforms.hasDescriptorSets() ? uniforms.getSet(frame).getHandle() : VK_NULL_HANDLE;
 	item.pushConstants = data.pushConstantBlock();
 	item.pushConstantStages = data.pushConstantStages();
 	item.vertexBuffer = mesh->VBO.buffer;

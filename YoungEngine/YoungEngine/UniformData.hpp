@@ -4,15 +4,17 @@
 #include <cstddef>
 #include <cstdint>
 
-//Abstract strategy that defines what data an object passes to its shaders.
-//By default it has no data at all: a concrete implementation overrides only the parts it needs.
-//
-//The data is split in two by the way it reaches the shaders:
-//- the buffer block holds data that is updated often (typically every frame) and goes into a uniform buffer
-//- the push constant block holds small data that is recorded straight into the command buffer
-//
-//The base class can't know the types of the data, so concrete implementations keep it
-//in ordinary typed members and expose it through the accessors below.
+/*
+Abstract strategy that defines what data an object passes to its shaders.
+By default it has no data at all: a concrete implementation overrides only the parts it needs.
+
+The data is split in two by the way it reaches the shaders:
+	the buffer block holds data that is updated often (typically every frame) and goes into a uniform buffer
+	the push constant block holds small data that is recorded straight into the command buffer
+
+The base class can't know the types of the data, so concrete implementations keep it
+in ordinary typed members and expose it through the accessors below.
+*/
 class UniformData {
 
 public:

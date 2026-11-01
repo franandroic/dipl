@@ -31,7 +31,7 @@ public:
 
 	const Mesh &getMesh() const { return *mesh; }
 	const Material &getMaterial() const { return *material; }
-	UniformDescription &getUniformDescription() { return UniformDescription; }
+	const UniformDescription &getUniformDescription() const { return uniforms; }
 
 	void update(float dt) override;
 	void upload(size_t frame) override;
@@ -45,7 +45,7 @@ private:
 
 	const Mesh *mesh;
 	const Material *material;
-	UniformDescription UniformDescription;
+	UniformDescription uniforms;
 
 	//Owned by the pipeline cache
 	const Pipeline *pipeline = nullptr;

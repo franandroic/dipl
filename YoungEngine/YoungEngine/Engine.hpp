@@ -73,15 +73,17 @@ private:
 	Window myWindow;
 	EngineUtility myEngineUtility;
 
-	//
+	//Globally accessible singletons
 	std::unique_ptr<Device> myDevice;
 	std::unique_ptr<SwapChain> mySwapChain;
 	std::unique_ptr<PipelineCache> myPipelineCache;
 
+	//Vectors of things that props can be constructed with
 	std::vector<std::unique_ptr<Mesh>> myMeshes;
 	std::vector<std::unique_ptr<Texture>> myTextures;
 	std::vector<std::unique_ptr<Material>> myMaterials;
 
+	//Where things happen and what makes them happen
 	std::unique_ptr<Scene> myScene;
 	std::unique_ptr<Renderer> myRenderer;
 

@@ -40,5 +40,6 @@ private:
 	VkDescriptorSetLayout createSetLayout(const std::vector<VkDescriptorSetLayoutBinding> &bindings);
 	VkShaderModule createShaderModule(const std::vector<char> &code);
 	std::vector<char> readFile(const std::string &filename);
+
 	void destroy();
 };

@@ -45,7 +45,6 @@ public:
 
 	void setScene(Scene &inScene) { scene = &inScene; }
 	Scene &getScene() const { return *scene; }
-
 	const RenderTarget &getRenderTarget() const { return renderTarget; }
 
 	void render(bool externalResizeRequested);
