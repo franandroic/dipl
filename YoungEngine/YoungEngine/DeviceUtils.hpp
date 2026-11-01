@@ -182,7 +182,7 @@ public:
 	static bool checkDeviceExtensionSupport(VkPhysicalDevice device, bool verbose) {
 
 		//Checking if all the device extensions defined (in the global vector in the .hpp file)
-		//as required for the application are present in the list of available device extensions.
+		//as required for the Engine are present in the list of available device extensions.
 
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);

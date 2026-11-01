@@ -153,7 +153,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Axes.cpp" />
     <ClCompile Include="BufferObject.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -163,7 +163,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="DescriptorSet.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="EngineUtility.cpp" />
-    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Prop.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="PipelineCache.cpp" />
     <ClCompile Include="PipelineDescription.cpp" />
@@ -188,7 +188,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Engine.hpp" />
     <ClInclude Include="Axes.hpp" />
     <ClInclude Include="BufferObject.hpp" />
     <ClInclude Include="Camera.hpp" />
@@ -202,7 +202,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="DeviceUtils.hpp" />
     <ClInclude Include="DrawItem.hpp" />
     <ClInclude Include="EngineUtility.hpp" />
-    <ClInclude Include="GameObject.hpp" />
+    <ClInclude Include="Prop.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="PipelineCache.hpp" />
     <ClInclude Include="PipelineDescription.hpp" />

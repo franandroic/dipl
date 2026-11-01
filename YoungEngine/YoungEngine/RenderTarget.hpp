@@ -35,7 +35,7 @@ public:
 	VkFormat depthFormat() const { return DIO.depthFormat; }
 
 	PipelineDescription::RenderingFormats renderingFormats() const {
-		return { CIO.colorFormat, DIO.depthFormat, swapChain.device.msaaSamples };
+		return { CIO.colorFormat, DIO.depthFormat, Device::active->msaaSamples };
 	}
 
 	//Recreates the images to match the current swap chain extent

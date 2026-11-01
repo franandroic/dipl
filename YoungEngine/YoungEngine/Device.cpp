@@ -2,6 +2,8 @@
 
 Device::Device(VkInstance inInstance, GLFWwindow *window) : instance(inInstance) {
 
+	assert(!active && "Device already exists!");
+
 	createSurface(instance, window);
 	pickPhysicalDevice(instance);
 
@@ -57,9 +59,13 @@ Device::Device(VkInstance inInstance, GLFWwindow *window) : instance(inInstance)
 
 	createCommandPool();
 	createDescriptorPool();
+
+	active = this;
 }
 
 Device::~Device() {
+
+	if (active == this) active = nullptr;
 
 	if (logical != VK_NULL_HANDLE) {
 		vkDeviceWaitIdle(logical);

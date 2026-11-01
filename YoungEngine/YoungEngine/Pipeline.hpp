@@ -16,8 +16,6 @@ class Pipeline {
 public:
 
 	//Construction
-	//setBindings[N] is the list of bindings of set N in the shaders (see DescriptorTier). A set the shaders
-	//don't use is an empty list.
 	Pipeline(Device &inDevice, const PipelineDescription &inDescription);
 	~Pipeline();
 

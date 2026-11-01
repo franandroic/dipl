@@ -2,14 +2,14 @@
 #include <stdexcept>
 #include <cstdlib>
 
-#include "Application.hpp"
+#include "Engine.hpp"
 
 int main() {
 
-	Application app;
+	Engine engine;
 
 	try { 
-		app.run();
+		engine.run();
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;

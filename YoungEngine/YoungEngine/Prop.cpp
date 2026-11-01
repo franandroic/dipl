@@ -1,6 +1,6 @@
-#include "GameObject.hpp"
+#include "Prop.hpp"
 
-GameObject::GameObject(
+Prop::Prop(
 	Device &inDevice,
 	const Mesh &inMesh,
 	const Material &inMaterial,
@@ -11,17 +11,17 @@ GameObject::GameObject(
 	uniformity(inDevice, std::move(inUniformData), std::move(inUniformOperator), MAX_FRAMES_IN_FLIGHT) {
 }
 
-void GameObject::update(float dt) {
+void Prop::update(float dt) {
 
 	uniformity.update(dt);
 }
 
-void GameObject::upload(size_t frame) {
+void Prop::upload(size_t frame) {
 
 	uniformity.upload(frame);
 }
 
-void GameObject::resolvePipelines(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats) {
+void Prop::resolvePipelines(PipelineCache &pipelineCache, const PipelineDescription::RenderingFormats &formats) {
 
 	//The pipeline depends on the material (shaders, texture set) and on the kind of uniform data of the object
 	//(object set, push constants). Objects that are alike in both get the same pipeline from the cache.
@@ -37,7 +37,7 @@ void GameObject::resolvePipelines(PipelineCache &pipelineCache, const PipelineDe
 	pipeline = &pipelineCache.get(description);
 }
 
-void GameObject::collect(size_t frame, std::vector<DrawItem> &out) const {
+void Prop::collect(size_t frame, std::vector<DrawItem> &out) const {
 
 	const UniformData &data = uniformity.getData();
 

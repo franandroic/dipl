@@ -4,19 +4,22 @@
 #include <cstddef>
 #include <memory>
 #include <vector>
+#include <assert.h>
 
 #include "Device.hpp"
 #include "Pipeline.hpp"
 #include "PipelineDescription.hpp"
 
-//Hands out pipelines for descriptions.
+//Holds a vector of pipelines with unique layouts.
+//Creates a new pipeline for a new unique layout description and adds it to the vector.
+//Hands out pipeline references on request.
 class PipelineCache {
 
 public:
 
 	//Construction
-	explicit PipelineCache(Device &inDevice) : device(inDevice) {}
-	~PipelineCache() = default;
+	PipelineCache();
+	~PipelineCache();
 
 	//Copy and Move constructors
 	PipelineCache(const PipelineCache &) = delete;
@@ -24,15 +27,13 @@ public:
 	PipelineCache(PipelineCache &&) = delete;
 	PipelineCache &operator=(PipelineCache &&) = delete;
 
-	//Returns the pipeline of the description, creating it if it's the first request for it.
-	const Pipeline &get(const PipelineDescription &description);
+	//Global access
+	static inline PipelineCache *active = nullptr;
 
-	//Number of pipelines created so far
+	const Pipeline &get(const PipelineDescription &description);
 	size_t size() const { return pipelines.size(); }
 
 private:
-
-	Device &device;
 
 	std::vector<std::unique_ptr<Pipeline>> pipelines;
 };

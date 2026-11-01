@@ -22,28 +22,35 @@
 #include "Material.hpp"
 #include "Camera.hpp"
 #include "Scene.hpp"
-#include "GameObject.hpp"
+#include "Prop.hpp"
 #include "Axes.hpp"
 #include "Renderer.hpp"
 
 #include "SimpleModelUD.hpp"
 #include "InPlaceYRotationUO.hpp"
 
-//THE MAIN APPLICATION CLASS
-class Application {
+
+/*
+Represents the engine's global context.
+Initializes and holds all the objects manipulated at runtime.
+Created and called in main.
+*/
+
+class Engine {
 
 public:
 
 	//Construction
-	Application();
-	~Application() = default;
+	Engine();
+	~Engine() = default;
 
 	//Copy and Move constructors
-	Application(const Application &) = delete;
-	Application &operator=(const Application &) = delete;
-	Application(Application &&) = delete;
-	Application &operator=(Application &&) = delete;
+	Engine(const Engine &) = delete;
+	Engine &operator=(const Engine &) = delete;
+	Engine(Engine &&) = delete;
+	Engine &operator=(Engine &&) = delete;
 
+	//Currently hard-coded values for initial window size and asset paths
 	const uint32_t WIDTH = 800;
 	const uint32_t HEIGHT = 600;
 
@@ -57,13 +64,16 @@ public:
 
 private:
 
+	//Specific loaders and a generic loader
 	ModelLoader myModelLoader;
 	ImageLoader myImageLoader;
 	Loader myLoader;
 
+	//Essential objects that are part of the context
 	Window myWindow;
 	EngineUtility myEngineUtility;
 
+	//
 	std::unique_ptr<Device> myDevice;
 	std::unique_ptr<SwapChain> mySwapChain;
 	std::unique_ptr<PipelineCache> myPipelineCache;
@@ -81,8 +91,8 @@ public:
 
 private:
 	
-	void initVulkan();
-	void mainLoop();
+	void initialize();
+	void renderLoop();
 
 	Mesh &loadMesh(const std::string &path);
 	Texture &loadTexture(const std::string &path);

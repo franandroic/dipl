@@ -16,19 +16,19 @@
 #include "Uniformity.hpp"
 
 //An object in the scene: a mesh (what it's shaped like) drawn with a material (what it looks like).
-class GameObject : public Renderable {
+class Prop : public Renderable {
 
 public:
 
 	//Construction
-	GameObject(
+	Prop(
 		Device &inDevice,
 		const Mesh &inMesh,
 		const Material &inMaterial,
 		std::unique_ptr<UniformData> inUniformData,
 		std::unique_ptr<UniformOperator> inUniformOperator = nullptr
 	);
-	~GameObject() override = default;
+	~Prop() override = default;
 
 	const Mesh &getMesh() const { return *mesh; }
 	const Material &getMaterial() const { return *material; }

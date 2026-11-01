@@ -1,6 +1,6 @@
-#include "Application.hpp"
+#include "Engine.hpp"
 
-Application::Application() :
+Engine::Engine() :
 	myModelLoader(),
 	myImageLoader(),
 	myLoader(),
@@ -8,23 +8,23 @@ Application::Application() :
 	myEngineUtility() {
 }
 
-void Application::run() {
+void Engine::run() {
 
-	initVulkan();
-	mainLoop();
+	initialize();
+	renderLoop();
 }
 
-void Application::initVulkan() {
+void Engine::initialize() {
 
 	myLoader.setModelLoader(&myModelLoader);
 	myLoader.setImageLoader(&myImageLoader);
 
 	myDevice = std::make_unique<Device>(myEngineUtility.instance, myWindow.window);
 
-	mySwapChain = std::make_unique<SwapChain>(*myDevice, myWindow.window);
+	mySwapChain = std::make_unique<SwapChain>(myWindow.window);
 	mySwapChain->createImageViews();
 
-	myPipelineCache = std::make_unique<PipelineCache>(*myDevice);
+	myPipelineCache = std::make_unique<PipelineCache>();
 
 	myScene = std::make_unique<Scene>();
 
@@ -47,7 +47,7 @@ void Application::initVulkan() {
 	Texture &firstTexture = loadTexture(FIRST_TEXTURE_PATH);
 	Material &firstMaterial = createMaterial(TEXTURED_SHADERS, &firstTexture);
 
-	myScene->add(std::make_unique<GameObject>(
+	myScene->add(std::make_unique<Prop>(
 		*myDevice,
 		firstMesh,
 		firstMaterial,
@@ -59,7 +59,7 @@ void Application::initVulkan() {
 	Texture &secondTexture = loadTexture(SECOND_TEXTURE_PATH);
 	Material &secondMaterial = createMaterial(TEXTURED_SHADERS, &secondTexture);
 
-	myScene->add(std::make_unique<GameObject>(
+	myScene->add(std::make_unique<Prop>(
 		*myDevice,
 		firstMesh,
 		secondMaterial,
@@ -70,7 +70,7 @@ void Application::initVulkan() {
 	//THIRD OBJECT: first mesh, material without a texture and with the second shader pair
 	Material &thirdMaterial = createMaterial(UNTEXTURED_SHADERS);
 
-	myScene->add(std::make_unique<GameObject>(
+	myScene->add(std::make_unique<Prop>(
 		*myDevice,
 		firstMesh,
 		thirdMaterial,
@@ -82,7 +82,7 @@ void Application::initVulkan() {
 	myScene->add(std::make_unique<Axes>(*myDevice, AXES_SHADERS, 1.5f));
 }
 
-void Application::mainLoop() {
+void Engine::renderLoop() {
 
 	auto previousTime = std::chrono::steady_clock::now();
 
@@ -103,7 +103,7 @@ void Application::mainLoop() {
 	vkDeviceWaitIdle(myDevice->logical);
 }
 
-Mesh &Application::loadMesh(const std::string &path) {
+Mesh &Engine::loadMesh(const std::string &path) {
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -116,7 +116,7 @@ Mesh &Application::loadMesh(const std::string &path) {
 	return *myMeshes.back();
 }
 
-Texture &Application::loadTexture(const std::string &path) {
+Texture &Engine::loadTexture(const std::string &path) {
 
 	myImageLoader.setPath(path);
 
@@ -139,7 +139,7 @@ Texture &Application::loadTexture(const std::string &path) {
 	return *myTextures.back();
 }
 
-Material &Application::createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
+Material &Engine::createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
 
 	myMaterials.push_back(std::make_unique<Material>(*myDevice, shaders, texture));
 

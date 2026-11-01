@@ -2,8 +2,8 @@
 
 RenderTarget::RenderTarget(SwapChain &inSwapChain)
 	: swapChain(inSwapChain),
-	CIO(inSwapChain.device, inSwapChain.swapChainImageFormat),
-	DIO(inSwapChain.device, DeviceUtils::findDepthFormat(inSwapChain.device.physical))
+	CIO(*Device::active, inSwapChain.swapChainImageFormat),
+	DIO(*Device::active, DeviceUtils::findDepthFormat(Device::active->physical))
 {
 	CIO.createImage(swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);
 	DIO.createImage(swapChain.swapChainExtent.width, swapChain.swapChainExtent.height);

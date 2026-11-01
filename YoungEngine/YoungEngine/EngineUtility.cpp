@@ -17,14 +17,14 @@ EngineUtility::~EngineUtility() {
 
 void EngineUtility::createInstance() {
 
-	//To create a Vulkan instance it's necessary to fill out info about the application and
+	//To create a Vulkan instance it's necessary to fill out info about the Engine and
 	//info about the instance, which requires checking for and enabling the required extensions.
 	//Before creating the instance we create a special debug messenger for this object/code.
 
 	VkApplicationInfo appInfo{};
 
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "Application";
+	appInfo.pApplicationName = "Young Engine";
 	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.pEngineName = "Young Engine";
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);

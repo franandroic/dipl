@@ -3,18 +3,21 @@
 
 #include <vector>
 #include <algorithm>
+#include <assert.h>
 
 #include "DeviceUtils.hpp"
 #include "SwapChainSupportDetails.hpp"
 #include "Device.hpp"
 
-//Wrapper for Vulkan SwapChain
+//Holds swapChainImages, which are final render targets a Renderer renders into.
+//Handles their creation and presentation into present queue.
+//Also handles reconstruction in the case of window resize.
 class SwapChain {
 
 public:
 
 	//Construction
-	SwapChain(Device &inDevice, GLFWwindow *window);
+	SwapChain(GLFWwindow *window);
 	~SwapChain();
 
 	//Copy and Move constructors
@@ -23,15 +26,17 @@ public:
 	SwapChain(SwapChain &&) = delete;
 	SwapChain &operator=(SwapChain &&) = delete;
 
-	//Local enums
+	//Local enum
 	enum class AcquireResult {
 		Success,
 		Suboptimal,
 		OutOfDate
 	};
 
+	//Global access
+	static inline SwapChain *active = nullptr;
+
 	//Member variables
-	Device &device;
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 	std::vector<VkImageView> swapChainImageViews;
 	std::vector<VkImage> swapChainImages;
