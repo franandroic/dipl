@@ -74,26 +74,55 @@ void Renderer::updateFrame(size_t frame) {
 
 	drawItems.clear();
 	for (const auto &renderable : scene->getRenderables()) {
-		renderable->prepare(formats);
+		renderable->prepare(formats, SwapChain::active->swapChainExtent);
 		renderable->upload(frame);
 		renderable->collect(frame, drawItems);
 	}
 
+	//The items of a material are put together, in the order of its passes. Within one pass of one material
+	//they're sorted by pipeline and set, so that they're bound as few times as possible.
 	std::sort(
 		drawItems.begin(),
 		drawItems.end(),
 		[](const DrawItem &a, const DrawItem &b) {
+			if (a.material != b.material) return std::less<const Material *>()(a.material, b.material);
+			if (a.pass != b.pass) return a.pass < b.pass;
 			if (a.pipeline != b.pipeline) return std::less<const Pipeline *>()(a.pipeline, b.pipeline);
 			return std::less<VkDescriptorSet>()(a.materialSet, b.materialSet);
 		}
 	);
+
+	//Every prop collects the fullscreen passes of its material, but each one is drawn only once per material.
+	//After the sort the copies are next to each other, so all but the first are dropped.
+	drawItems.erase(
+		std::unique(
+			drawItems.begin(),
+			drawItems.end(),
+			[](const DrawItem &a, const DrawItem &b) {
+				return a.material && a.material == b.material && a.pass == b.pass
+					&& a.material->getPass(a.pass).geometry == MaterialPass::Geometry::Fullscreen;
+			}
+		),
+		drawItems.end()
+	);
+
+	//The items that render into textures go before the ones drawn into the screen, keeping the order above
+	auto firstScreen = std::stable_partition(
+		drawItems.begin(),
+		drawItems.end(),
+		[](const DrawItem &item) { return targetOf(item) != nullptr; }
+	);
+	firstScreenItem = static_cast<size_t>(firstScreen - drawItems.begin());
 }
 
 void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame) {
 
-	//The command buffer has already been begun. The parts that happen once per frame are here:
-	//the transitions of the images and the rendering scope (the attachments are cleared when it begins).
-	//Everything in between is recorded by the drawers into the same scope.
+	//The command buffer has already been begun. First the passes that render into textures, each in its own
+	//rendering scope, so that the screen's passes after them can sample what they rendered. Then the parts
+	//that happen once per frame for the screen: the transitions of its images and its rendering scope
+	//(the attachments are cleared when it begins). Everything in between is recorded from the draw items.
+
+	recordTexturePasses(commandBuffer, frame);
 
 	//Without a render pass, nothing transitions the layouts of the attachments or synchronizes
 	//access to them for us. That's why the rendering is bracketed by explicit image barriers.
@@ -187,22 +216,9 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	//Thus begins the recording of commands of the rendering
 	vkCmdBeginRendering(commandBuffer, &renderingInfo);
 
-	//Viewport and scissor are dynamic state of every pipeline, so they're set once for all the drawers
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(extent.width);
-	viewport.height = static_cast<float>(extent.height);
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+	setViewportAndScissor(commandBuffer, extent);
 
-	VkRect2D scissor{};
-	scissor.offset = { 0, 0 };
-	scissor.extent = extent;
-	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-	recordDrawItems(commandBuffer, frame);
+	recordDrawItems(commandBuffer, frame, firstScreenItem, drawItems.size());
 
 	vkCmdEndRendering(commandBuffer);
 
@@ -220,20 +236,57 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	);
 }
 
-void Renderer::recordDrawItems(VkCommandBuffer commandBuffer, size_t frame) {
+void Renderer::recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame) {
+
+	//The items before firstScreenItem render into textures. The items of one pass of one material are next to
+	//each other and all render into the same texture, so each such run is one rendering scope. Since the passes
+	//of a material are in order, a pass that samples the texture of an earlier pass is recorded after it.
+
+	size_t first = 0;
+
+	while (first < firstScreenItem) {
+
+		const DrawItem &firstItem = drawItems[first];
+
+		size_t last = first + 1;
+		while (last < firstScreenItem
+			&& drawItems[last].material == firstItem.material
+			&& drawItems[last].pass == firstItem.pass) {
+			last++;
+		}
+
+		const Texture &target = *firstItem.material->getTarget(firstItem.pass);
+
+		target.recordBeginRendering(commandBuffer, firstItem.material->getTargetDepth(firstItem.pass));
+		setViewportAndScissor(commandBuffer, target.getExtent());
+		recordDrawItems(commandBuffer, frame, first, last);
+		target.recordEndRendering(commandBuffer);
+
+		first = last;
+	}
+}
+
+void Renderer::recordDrawItems(VkCommandBuffer commandBuffer, size_t frame, size_t first, size_t last) {
 
 	VkDescriptorSet frameSet = frameSets[frame]->getHandle();
 
 	const Pipeline *boundPipeline = nullptr;
 	VkDescriptorSet boundMaterialSet = VK_NULL_HANDLE;
 
-	for (const DrawItem &item : drawItems) {
+	for (size_t i = first; i < last; i++) {
+
+		const DrawItem &item = drawItems[i];
 
 		VkPipelineLayout layout = item.pipeline->pipelineLayout;
 
 		if (item.pipeline != boundPipeline) {
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, item.pipeline->graphicsPipeline);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, PipelineDescription::DescriptorTier::Frame, 1, &frameSet, 0, nullptr);
+			boundPipeline = item.pipeline;
+
+			//A pipeline with a differently shaped layout (other bindings, other push constants) disturbs the sets
+			//bound before it, so the material set is bound again even if it's the same one.
+			boundMaterialSet = VK_NULL_HANDLE;
 		}
 
 		if (item.materialSet != VK_NULL_HANDLE && item.materialSet != boundMaterialSet) {
@@ -249,8 +302,11 @@ void Renderer::recordDrawItems(VkCommandBuffer commandBuffer, size_t frame) {
 			vkCmdPushConstants(commandBuffer, layout, item.pushConstantStages, 0, static_cast<uint32_t>(item.pushConstants.size), item.pushConstants.data);
 		}
 
-		VkDeviceSize offset = 0;
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &item.vertexBuffer, &offset);
+		//A fullscreen pass has no vertex buffer, its vertex shader makes the vertices
+		if (item.vertexBuffer != VK_NULL_HANDLE) {
+			VkDeviceSize offset = 0;
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &item.vertexBuffer, &offset);
+		}
 
 		if (item.indexBuffer != VK_NULL_HANDLE) {
 			vkCmdBindIndexBuffer(commandBuffer, item.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
@@ -302,4 +358,28 @@ void Renderer::recreateSwapChain() {
 	SwapChain::active->createImageViews();
 
 	renderTarget.recreateAttachments();
+}
+
+const Texture *Renderer::targetOf(const DrawItem &item) {
+
+	return item.material ? item.material->getTarget(item.pass) : nullptr;
+}
+
+void Renderer::setViewportAndScissor(VkCommandBuffer commandBuffer, VkExtent2D extent) {
+
+	//Viewport and scissor are dynamic state of every pipeline, so they're set once per rendering scope
+
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = static_cast<float>(extent.width);
+	viewport.height = static_cast<float>(extent.height);
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+	VkRect2D scissor{};
+	scissor.offset = { 0, 0 };
+	scissor.extent = extent;
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }

@@ -34,6 +34,28 @@ public:
 		bool operator==(const RenderingFormats &other) const;
 	};
 
+	enum class BlendMode {
+		Opaque,
+		Alpha
+	};
+
+	struct RasterState {
+
+		VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT;
+
+		bool depthTest = true;
+		bool depthWrite = true;
+
+		BlendMode blend = BlendMode::Opaque;
+
+		bool operator==(const RasterState &other) const;
+	};
+
+	enum class VertexInput {
+		Mesh,
+		None
+	};
+
 	//The tiers the descriptors are split into, from the least to the most frequently changing.
 	enum DescriptorTier : uint32_t {
 		Frame = 0,		//shared by everything drawn in a frame (the camera)
@@ -52,6 +74,8 @@ public:
 	//Member variables
 	ShaderPair shaders;
 	RenderingFormats formats;
+	RasterState raster;
+	VertexInput vertexInput = VertexInput::Mesh;
 
 	VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 

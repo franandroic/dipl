@@ -22,6 +22,7 @@
 #include "Camera.hpp"
 #include "Scene.hpp"
 #include "DrawItem.hpp"
+#include "Material.hpp"
 
 //Orchestrates a frame: synchronization, acquiring and presenting swap chain images, the command buffer,
 //the attachments and the rendering scope.
@@ -62,11 +63,19 @@ protected:
 	std::vector<std::unique_ptr<DescriptorSet>> frameSets;
 	size_t currentFrame = 0;
 
+	//Sorted so that the items that render into textures come first, and the items drawn into the screen
+	//start at firstScreenItem. Within both, the items of a material are together, in the order of its passes.
 	std::vector<DrawItem> drawItems;
+	size_t firstScreenItem = 0;
 
 	void updateFrame(size_t frame);
 	void recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame);
-	void recordDrawItems(VkCommandBuffer commandBuffer, size_t frame);
+	void recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame);
+	void recordDrawItems(VkCommandBuffer commandBuffer, size_t frame, size_t first, size_t last);
 	void submitFrame(size_t frame, VkSemaphore imageAvailable, VkSemaphore renderFinished, VkFence inFlight);
 	void recreateSwapChain();
+
+	//The texture an item renders into, null for the screen
+	static const Texture *targetOf(const DrawItem &item);
+	static void setViewportAndScissor(VkCommandBuffer commandBuffer, VkExtent2D extent);
 };

@@ -1,5 +1,37 @@
 #include "Pipeline.hpp"
 
+namespace {
+
+	VkPipelineColorBlendAttachmentState makeBlendState(PipelineDescription::BlendMode mode) {
+
+		VkPipelineColorBlendAttachmentState state{};
+		state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		state.colorBlendOp = VK_BLEND_OP_ADD;
+		state.alphaBlendOp = VK_BLEND_OP_ADD;
+
+		switch (mode) {
+
+		case PipelineDescription::BlendMode::Opaque:
+			state.blendEnable = VK_FALSE;
+			state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			break;
+
+		case PipelineDescription::BlendMode::Alpha:
+			state.blendEnable = VK_TRUE;
+			state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			break;
+		}
+
+		return state;
+	}
+}
+
 Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDescription) {
 
 	VkShaderModule vertShaderModule = VK_NULL_HANDLE;
@@ -32,15 +64,18 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 
 		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
+		//A fullscreen pass has no vertex buffer: its vertex shader makes the vertices out of gl_VertexIndex
+		bool meshInput = description.vertexInput == PipelineDescription::VertexInput::Mesh;
+
 		VkVertexInputBindingDescription bindingDescription = Vertex::getBindingDescription();
 		std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions = Vertex::getAttributeDescriptions();
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+		vertexInputInfo.vertexBindingDescriptionCount = meshInput ? 1 : 0;
+		vertexInputInfo.pVertexBindingDescriptions = meshInput ? &bindingDescription : nullptr;
+		vertexInputInfo.vertexAttributeDescriptionCount = meshInput ? static_cast<uint32_t>(attributeDescriptions.size()) : 0;
+		vertexInputInfo.pVertexAttributeDescriptions = meshInput ? attributeDescriptions.data() : nullptr;
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -70,13 +105,15 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 		viewportState.scissorCount = 1;
 		//viewportState.pScissors = &scissor;
 
+		const PipelineDescription::RasterState &raster = description.raster;
+
 		VkPipelineRasterizationStateCreateInfo rasterizer{};
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizer.depthClampEnable = VK_FALSE;
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterizer.cullMode = raster.cullMode;
 		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f;
@@ -84,10 +121,12 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 		rasterizer.depthBiasSlopeFactor = 0.0f;
 		//TODO: Play with these settings. NOTE: check which require enabling a GPU feature.
 
+		//The sample count has to match the attachments of the target, which is why it comes from the
+		//description: the screen is multisampled, the textures that passes render into aren't.
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = Device::active->msaaSamples;
+		multisampling.rasterizationSamples = description.formats.samples;
 		multisampling.minSampleShading = 1.0f;
 		multisampling.pSampleMask = nullptr;
 		multisampling.alphaToCoverageEnable = VK_FALSE;
@@ -99,8 +138,8 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil{};
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencil.depthTestEnable = hasDepth ? VK_TRUE : VK_FALSE;
-		depthStencil.depthWriteEnable = hasDepth ? VK_TRUE : VK_FALSE;
+		depthStencil.depthTestEnable = (hasDepth && raster.depthTest) ? VK_TRUE : VK_FALSE;
+		depthStencil.depthWriteEnable = (hasDepth && raster.depthWrite) ? VK_TRUE : VK_FALSE;
 		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.minDepthBounds = 0.0f;
@@ -110,15 +149,7 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 		depthStencil.back = {};
 		//TODO: Add stencil buffers
 
-		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		colorBlendAttachment.blendEnable = VK_FALSE;
-		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+		VkPipelineColorBlendAttachmentState colorBlendAttachment = makeBlendState(raster.blend);
 
 		VkPipelineColorBlendStateCreateInfo colorBlending{};
 		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

@@ -15,5 +15,5 @@ public:
 	//Member variables
 	const VkFormat depthFormat;
 
-	void createImage(uint32_t width, uint32_t height);
+	void createImage(uint32_t width, uint32_t height, VkSampleCountFlagBits samples = Device::active->msaaSamples);
 };

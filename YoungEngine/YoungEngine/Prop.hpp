@@ -23,7 +23,7 @@ public:
 	//Construction
 	Prop(
 		const Mesh &inMesh,
-		const Material &inMaterial,
+		Material &inMaterial,
 		std::unique_ptr<UniformData> inUniformData,
 		std::unique_ptr<UniformOperator> inUniformOperator = nullptr
 	);
@@ -39,14 +39,15 @@ public:
 
 protected:
 
+	void prepareTargets(VkExtent2D extent) override;
 	void resolvePipelines(const PipelineDescription::RenderingFormats &formats) override;
 
 private:
 
 	const Mesh *mesh;
-	const Material *material;
+	Material *material;
 	UniformDescription uniforms;
 
-	//Owned by the pipeline cache
-	const Pipeline *pipeline = nullptr;
+	//One for each pass of the material, owned by the pipeline cache
+	std::vector<const Pipeline *> pipelines;
 };

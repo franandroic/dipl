@@ -28,7 +28,7 @@ public:
 	virtual void update(float /*dt*/) {}
 
 	//Gets the pipelines the renderable is drawn with, for the attachments it's drawn into.
-	void prepare(const PipelineDescription::RenderingFormats &formats);
+	void prepare(const PipelineDescription::RenderingFormats &formats, VkExtent2D extent);
 
 	//Copies the current state into the GPU resources of the frame in flight (its uniform buffers).
 	virtual void upload(size_t /*frame*/) {}
@@ -37,6 +37,8 @@ public:
 	virtual void collect(size_t frame, std::vector<DrawItem> &out) const = 0;
 
 protected:
+
+	virtual void prepareTargets(VkExtent2D /*extent*/) {}
 
 	//Gets the pipelines from the cache
 	virtual void resolvePipelines(const PipelineDescription::RenderingFormats &formats) = 0;

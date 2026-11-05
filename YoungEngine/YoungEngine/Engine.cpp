@@ -72,6 +72,52 @@ void Engine::initialize() {
 		std::make_unique<InPlaceYRotationUO>(30.0f)
 	));
 
+	//FOURTH OBJECT: outlined by an inverted hull, two passes into the screen.
+	MaterialPass hullPass;
+	hullPass.shaders = HULL_SHADERS;
+	hullPass.raster.cullMode = VK_CULL_MODE_FRONT_BIT;
+
+	MaterialPass hullBodyPass;
+	hullBodyPass.shaders = TEXTURED_SHADERS;
+	hullBodyPass.textures = { &secondTexture };
+
+	Material &hullMaterial = createMaterial({ hullPass, hullBodyPass });
+
+	myScene->add(std::make_unique<Prop>(
+		firstMesh,
+		hullMaterial,
+		std::make_unique<SimpleModelUD>(glm::vec3(-2.5f, -1.0f, 0.0f)),
+		std::make_unique<InPlaceYRotationUO>(20.0f)
+	));
+
+	//FIFTH OBJECT: outlined by a kernel, three passes.
+	MaterialPass maskPass;
+	maskPass.shaders = MASK_SHADERS;
+	maskPass.rendersToTexture = true;
+	maskPass.format = VK_FORMAT_R8_UNORM;
+
+	MaterialPass kernelBodyPass;
+	kernelBodyPass.shaders = TEXTURED_SHADERS;
+	kernelBodyPass.textures = { &firstTexture };
+
+	MaterialPass edgePass;
+	edgePass.shaders = ROBERTS_CROSS_SHADERS;
+	edgePass.geometry = MaterialPass::Geometry::Fullscreen;
+	edgePass.passInputs = { 0 };
+	edgePass.raster.cullMode = VK_CULL_MODE_NONE;
+	edgePass.raster.depthTest = false;
+	edgePass.raster.depthWrite = false;
+	edgePass.raster.blend = PipelineDescription::BlendMode::Alpha;
+
+	Material &kernelMaterial = createMaterial({ maskPass, kernelBodyPass, edgePass });
+
+	myScene->add(std::make_unique<Prop>(
+		firstMesh,
+		kernelMaterial,
+		std::make_unique<SimpleModelUD>(glm::vec3(2.5f, -1.0f, 0.0f)),
+		std::make_unique<InPlaceYRotationUO>(-20.0f)
+	));
+
 	//THE AXES OF THE WORLD, at the origin
 	myScene->add(std::make_unique<Axes>(AXES_SHADERS, 1.5f));
 }
@@ -136,6 +182,13 @@ Texture &Engine::loadTexture(const std::string &path) {
 Material &Engine::createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
 
 	myMaterials.push_back(std::make_unique<Material>(shaders, texture));
+
+	return *myMaterials.back();
+}
+
+Material &Engine::createMaterial(std::vector<MaterialPass> passes) {
+
+	myMaterials.push_back(std::make_unique<Material>(std::move(passes)));
 
 	return *myMaterials.back();
 }

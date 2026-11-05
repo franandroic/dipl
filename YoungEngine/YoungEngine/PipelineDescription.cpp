@@ -50,10 +50,21 @@ bool PipelineDescription::RenderingFormats::operator==(const RenderingFormats &o
 	return colorFormat == other.colorFormat && depthFormat == other.depthFormat && samples == other.samples;
 }
 
+bool PipelineDescription::RasterState::operator==(const RasterState &other) const {
+
+	return cullMode == other.cullMode
+		&& depthTest == other.depthTest
+		&& depthWrite == other.depthWrite
+		&& blend == other.blend;
+}
+
 bool PipelineDescription::operator==(const PipelineDescription &other) const {
 
 	return shaders == other.shaders
 		&& formats == other.formats
+		&& raster == other.raster
+		&& vertexInput == other.vertexInput
+		&& topology == other.topology
 		&& samePushConstantRange(pushConstantRange, other.pushConstantRange)
 		&& sameBindings(materialBindings, other.materialBindings)
 		&& sameBindings(objectBindings, other.objectBindings);

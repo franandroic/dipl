@@ -202,6 +202,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="DeviceUtility.hpp" />
     <ClInclude Include="DrawItem.hpp" />
     <ClInclude Include="EngineUtility.hpp" />
+    <ClInclude Include="MaterialPass.hpp" />
     <ClInclude Include="Prop.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="PipelineCache.hpp" />

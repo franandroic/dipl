@@ -189,3 +189,65 @@ void TextureImageObject::createTextureSampler() {
 		throw std::runtime_error("Failed to create texture sampler!");
 	}
 }
+
+void TextureImageObject::createRenderTargetImage(uint32_t width, uint32_t height, VkFormat format) {
+
+	//Nothing is uploaded: the contents are rendered into it by a pass, every frame, and then sampled by a later pass.
+	//There's no mip chain (it would have to be regenerated after every rendering) and it's single-sample,
+	//so it can be sampled directly. Its layout is left undefined; the pass that renders into it transitions it.
+
+	VkFormatProperties properties;
+	vkGetPhysicalDeviceFormatProperties(Device::active->physical, format, &properties);
+
+	VkFormatFeatureFlags required = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
+		| VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT
+		| VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+
+	if ((properties.optimalTilingFeatures & required) != required) {
+		throw std::runtime_error("The format of a render target texture can't be rendered into and sampled!");
+	}
+
+	mipLevels = 1;
+
+	ImageObject::createImage(
+		width,
+		height,
+		mipLevels,
+		VK_SAMPLE_COUNT_1_BIT,
+		format,
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+	);
+
+	createImageView(image, format, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+}
+
+void TextureImageObject::createRenderTargetTextureSampler() {
+
+	//A render target usually covers the screen and is read around each pixel (by a kernel, for example),
+	//so reading past its edge clamps instead of wrapping around to the opposite side.
+	//No mip levels, so no anisotropy either.
+
+	VkSamplerCreateInfo samplerInfo{};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.anisotropyEnable = VK_FALSE;
+	samplerInfo.maxAnisotropy = 1.0f;
+	samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+
+	if (vkCreateSampler(Device::active->logical, &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create render target sampler!");
+	}
+}

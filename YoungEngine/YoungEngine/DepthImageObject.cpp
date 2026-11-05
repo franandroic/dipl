@@ -1,12 +1,12 @@
 #include "DepthImageObject.hpp"
 
-void DepthImageObject::createImage(uint32_t width, uint32_t height) {
+void DepthImageObject::createImage(uint32_t width, uint32_t height, VkSampleCountFlagBits samples) {
 
 	ImageObject::createImage(
 		width,
 		height,
 		1,
-		Device::active->msaaSamples,
+		samples,
 		depthFormat,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,

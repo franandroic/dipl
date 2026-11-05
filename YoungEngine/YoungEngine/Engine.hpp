@@ -61,6 +61,9 @@ public:
 	const PipelineDescription::ShaderPair TEXTURED_SHADERS{ "shaders/toon.vert.spv", "shaders/toon.frag.spv" };
 	const PipelineDescription::ShaderPair UNTEXTURED_SHADERS{ "shaders/normals.vert.spv", "shaders/normals.frag.spv" };
 	const PipelineDescription::ShaderPair AXES_SHADERS{ "shaders/axes.vert.spv", "shaders/axes.frag.spv" };
+	const PipelineDescription::ShaderPair HULL_SHADERS{ "shaders/hull.vert.spv", "shaders/hull.frag.spv" };
+	const PipelineDescription::ShaderPair MASK_SHADERS{ "shaders/mask.vert.spv", "shaders/mask.frag.spv" };
+	const PipelineDescription::ShaderPair ROBERTS_CROSS_SHADERS{ "shaders/fullscreen.vert.spv", "shaders/robertscross.frag.spv" };
 
 private:
 
@@ -99,4 +102,5 @@ private:
 	Mesh &loadMesh(const std::string &path);
 	Texture &loadTexture(const std::string &path);
 	Material &createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture = nullptr);
+	Material &createMaterial(std::vector<MaterialPass> passes);
 };
