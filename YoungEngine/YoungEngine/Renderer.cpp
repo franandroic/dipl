@@ -70,7 +70,7 @@ void Renderer::updateFrame(size_t frame) {
 	Camera::UniformBlock cameraBlock = camera.getUniformBlock();
 	frameUBOs[frame]->updateBuffer(&cameraBlock, sizeof(cameraBlock));
 
-	PipelineDescription::RenderingFormats formats = renderTarget.renderingFormats();
+	PipelineDescription::RenderingFormats formats = renderTarget.getRenderingFormats();
 
 	drawItems.clear();
 	for (const auto &renderable : scene->getRenderables()) {
@@ -100,7 +100,7 @@ void Renderer::updateFrame(size_t frame) {
 			drawItems.end(),
 			[](const DrawItem &a, const DrawItem &b) {
 				return a.material && a.material == b.material && a.pass == b.pass
-					&& a.material->getPass(a.pass).geometry == MaterialPass::Geometry::Fullscreen;
+					&& a.material->getPass(a.pass).getDescription().geometry == MaterialPass::Geometry::Fullscreen;
 			}
 		),
 		drawItems.end()
@@ -117,130 +117,20 @@ void Renderer::updateFrame(size_t frame) {
 
 void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame) {
 
-	//The command buffer has already been begun. First the passes that render into textures, each in its own
-	//rendering scope, so that the screen's passes after them can sample what they rendered. Then the parts
-	//that happen once per frame for the screen: the transitions of its images and its rendering scope
-	//(the attachments are cleared when it begins). Everything in between is recorded from the draw items.
+	//The command buffer has already been begun. First the passes that render into textures, so that
+	//the screen's passes after them can sample what they rendered, then the screen.
 
 	recordTexturePasses(commandBuffer, frame);
 
-	//Without a render pass, nothing transitions the layouts of the attachments or synchronizes
-	//access to them for us. That's why the rendering is bracketed by explicit image barriers.
-
-	VkImage swapChainImage = SwapChain::active->swapChainImages[imageIndex];
-	VkImageView swapChainImageView = SwapChain::active->swapChainImageViews[imageIndex];
-	VkExtent2D extent = SwapChain::active->swapChainExtent;
-
-	VkImageAspectFlags depthAspect = VK_IMAGE_ASPECT_DEPTH_BIT;
-	if (ImageUtility::hasStencilComponent(renderTarget.depthFormat())) {
-		depthAspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
-	}
-
-	//BARRIERS BEFORE RENDERING
-	//All three images are written from scratch (cleared, or fully resolved into)
-
-	//The swap chain image receives the resolved result
-	ImageUtility::recordImageLayoutTransition(
-		commandBuffer,
-		swapChainImage,
-		VK_IMAGE_ASPECT_COLOR_BIT,
-		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
-	);
-
-	//The multisampled color image and the depth image are shared between the frames in flight
-	ImageUtility::recordImageLayoutTransition(
-		commandBuffer,
-		renderTarget.CIO.image,
-		VK_IMAGE_ASPECT_COLOR_BIT,
-		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
-	);
-
-	ImageUtility::recordImageLayoutTransition(
-		commandBuffer,
-		renderTarget.DIO.image,
-		depthAspect,
-		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
-	);
-
-	//Describing the attachments directly, instead of through a render pass and a framebuffer.
-	//The color attachment is the multisampled image, which is resolved into the swap chain image
-	//at the end of rendering. The multisampled contents aren't needed afterwards, so they're not stored.
-	VkClearValue colorClearValue{};
-	colorClearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-
-	VkRenderingAttachmentInfo colorAttachment{};
-	colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-	colorAttachment.imageView = renderTarget.CIO.imageView;
-	colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachment.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
-	colorAttachment.resolveImageView = swapChainImageView;
-	colorAttachment.resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.clearValue = colorClearValue;
-
-	VkClearValue depthClearValue{};
-	depthClearValue.depthStencil = { 1.0f, 0 };
-
-	VkRenderingAttachmentInfo depthAttachment{};
-	depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-	depthAttachment.imageView = renderTarget.DIO.imageView;
-	depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	depthAttachment.resolveMode = VK_RESOLVE_MODE_NONE;
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.clearValue = depthClearValue;
-
-	VkRenderingInfo renderingInfo{};
-	renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-	renderingInfo.renderArea.offset = { 0, 0 };
-	renderingInfo.renderArea.extent = extent;
-	renderingInfo.layerCount = 1;
-	renderingInfo.viewMask = 0;
-	renderingInfo.colorAttachmentCount = 1;
-	renderingInfo.pColorAttachments = &colorAttachment;
-	renderingInfo.pDepthAttachment = &depthAttachment;
-	renderingInfo.pStencilAttachment = nullptr;
-
-	//Thus begins the recording of commands of the rendering
-	vkCmdBeginRendering(commandBuffer, &renderingInfo);
-
-	setViewportAndScissor(commandBuffer, extent);
-
-	recordDrawItems(commandBuffer, frame, firstScreenItem, drawItems.size());
-
-	vkCmdEndRendering(commandBuffer);
-
-	//BARRIER AFTER RENDERING
-	//The resolved swap chain image goes to the layout required for presentation.
-	//The render pass used to do this through the finalLayout of the resolve attachment.
-	ImageUtility::recordImageLayoutTransition(
-		commandBuffer,
-		swapChainImage,
-		VK_IMAGE_ASPECT_COLOR_BIT,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0
-	);
+	renderTarget.setSwapChainImage(imageIndex);
+	recordTarget(commandBuffer, renderTarget, frame, firstScreenItem, drawItems.size());
 }
 
 void Renderer::recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame) {
 
 	//The items before firstScreenItem render into textures. The items of one pass of one material are next to
-	//each other and all render into the same texture, so each such run is one rendering scope. Since the passes
-	//of a material are in order, a pass that samples the texture of an earlier pass is recorded after it.
+	//each other and all render into the same target, so each such run is recorded into that target. Since the
+	//passes of a material are in order, a pass that samples the target of an earlier pass is recorded after it.
 
 	size_t first = 0;
 
@@ -255,15 +145,18 @@ void Renderer::recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame) 
 			last++;
 		}
 
-		const Texture &target = *firstItem.material->getTarget(firstItem.pass);
-
-		target.recordBeginRendering(commandBuffer, firstItem.material->getTargetDepth(firstItem.pass));
-		setViewportAndScissor(commandBuffer, target.getExtent());
-		recordDrawItems(commandBuffer, frame, first, last);
-		target.recordEndRendering(commandBuffer);
+		recordTarget(commandBuffer, *targetOf(firstItem), frame, first, last);
 
 		first = last;
 	}
+}
+
+void Renderer::recordTarget(VkCommandBuffer commandBuffer, const RenderTarget &target, size_t frame, size_t first, size_t last) {
+
+	target.recordBegin(commandBuffer);
+	setViewportAndScissor(commandBuffer, target.getExtent());
+	recordDrawItems(commandBuffer, frame, first, last);
+	target.recordEnd(commandBuffer);
 }
 
 void Renderer::recordDrawItems(VkCommandBuffer commandBuffer, size_t frame, size_t first, size_t last) {
@@ -360,9 +253,9 @@ void Renderer::recreateSwapChain() {
 	renderTarget.recreateAttachments();
 }
 
-const Texture *Renderer::targetOf(const DrawItem &item) {
+const RenderTarget *Renderer::targetOf(const DrawItem &item) {
 
-	return item.material ? item.material->getTarget(item.pass) : nullptr;
+	return item.material ? item.material->getPass(item.pass).getTarget() : nullptr;
 }
 
 void Renderer::setViewportAndScissor(VkCommandBuffer commandBuffer, VkExtent2D extent) {

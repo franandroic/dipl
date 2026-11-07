@@ -102,5 +102,5 @@ private:
 	Mesh &loadMesh(const std::string &path);
 	Texture &loadTexture(const std::string &path);
 	Material &createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture = nullptr);
-	Material &createMaterial(std::vector<MaterialPass> passes);
+	Material &createMaterial(const std::vector<MaterialPass::Description> &passes);
 };

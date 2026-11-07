@@ -1,10 +1,8 @@
 #pragma once
 #include "GLFWConfig.hpp"
 
-#include "DeviceUtility.hpp"
+#include "ImageUtility.hpp"
 
-#include "SwapChain.hpp"
-#include "ColorImageObject.hpp"
 #include "DepthImageObject.hpp"
 #include "PipelineDescription.hpp"
 
@@ -15,8 +13,8 @@ class RenderTarget {
 public:
 
 	//Construction
-	RenderTarget();
-	~RenderTarget() = default;
+	RenderTarget() = default;
+	virtual ~RenderTarget() = default;
 
 	//Copy and Move constructor
 	RenderTarget(const RenderTarget &) = delete;
@@ -24,18 +22,16 @@ public:
 	RenderTarget(RenderTarget &&) = delete;
 	RenderTarget &operator=(RenderTarget &&) = delete;
 
-	//Member variables
-	ColorImageObject CIO;
-	DepthImageObject DIO;
+	//Parameters of pipeline attachments, for the pipeline that renders into this
+	virtual PipelineDescription::RenderingFormats getRenderingFormats() const = 0;
+	virtual VkExtent2D getExtent() const = 0;
 
-	//Formats the attachments are created with, needed to create a pipeline that renders to them
-	VkFormat colorFormat() const { return CIO.colorFormat; }
-	VkFormat depthFormat() const { return DIO.depthFormat; }
+	//Records barriers needed at start and end of rendering commands
+	virtual void recordBegin(VkCommandBuffer commandBuffer) const = 0;
+	virtual void recordEnd(VkCommandBuffer commandBuffer) const = 0;
 
-	PipelineDescription::RenderingFormats renderingFormats() const {
-		return { CIO.colorFormat, DIO.depthFormat, Device::active->msaaSamples };
-	}
+protected:
 
-	//Recreates the images to match the current swap chain extent
-	void recreateAttachments();
+	static void recordDepthBarrier(VkCommandBuffer commandBuffer, const DepthImageObject &depthImage);
+	static VkRenderingAttachmentInfo makeDepthAttachment(const DepthImageObject &depthImage);
 };

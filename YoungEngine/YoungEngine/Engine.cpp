@@ -73,11 +73,11 @@ void Engine::initialize() {
 	));
 
 	//FOURTH OBJECT: outlined by an inverted hull, two passes into the screen.
-	MaterialPass hullPass;
+	MaterialPass::Description hullPass;
 	hullPass.shaders = HULL_SHADERS;
 	hullPass.raster.cullMode = VK_CULL_MODE_FRONT_BIT;
 
-	MaterialPass hullBodyPass;
+	MaterialPass::Description hullBodyPass;
 	hullBodyPass.shaders = TEXTURED_SHADERS;
 	hullBodyPass.textures = { &secondTexture };
 
@@ -91,16 +91,16 @@ void Engine::initialize() {
 	));
 
 	//FIFTH OBJECT: outlined by a kernel, three passes.
-	MaterialPass maskPass;
+	MaterialPass::Description maskPass;
 	maskPass.shaders = MASK_SHADERS;
 	maskPass.rendersToTexture = true;
 	maskPass.format = VK_FORMAT_R8_UNORM;
 
-	MaterialPass kernelBodyPass;
+	MaterialPass::Description kernelBodyPass;
 	kernelBodyPass.shaders = TEXTURED_SHADERS;
 	kernelBodyPass.textures = { &firstTexture };
 
-	MaterialPass edgePass;
+	MaterialPass::Description edgePass;
 	edgePass.shaders = ROBERTS_CROSS_SHADERS;
 	edgePass.geometry = MaterialPass::Geometry::Fullscreen;
 	edgePass.passInputs = { 0 };
@@ -186,9 +186,9 @@ Material &Engine::createMaterial(const PipelineDescription::ShaderPair &shaders,
 	return *myMaterials.back();
 }
 
-Material &Engine::createMaterial(std::vector<MaterialPass> passes) {
+Material &Engine::createMaterial(const std::vector<MaterialPass::Description> &passes) {
 
-	myMaterials.push_back(std::make_unique<Material>(std::move(passes)));
+	myMaterials.push_back(std::make_unique<Material>(passes));
 
 	return *myMaterials.back();
 }

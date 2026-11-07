@@ -163,6 +163,7 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="DescriptorSet.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="EngineUtility.cpp" />
+    <ClCompile Include="MaterialPass.cpp" />
     <ClCompile Include="Prop.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="PipelineCache.cpp" />
@@ -178,10 +179,12 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="ScreenRenderTarget.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Synchronizer.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureImageObject.cpp" />
+    <ClCompile Include="TextureRenderTarget.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="UniformDescription.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
@@ -223,12 +226,14 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="Scene.hpp" />
+    <ClInclude Include="ScreenRenderTarget.hpp" />
     <ClInclude Include="SimpleModelUD.hpp" />
     <ClInclude Include="SwapChain.hpp" />
     <ClInclude Include="SwapChainSupportDetails.hpp" />
     <ClInclude Include="Synchronizer.hpp" />
     <ClInclude Include="Texture.hpp" />
     <ClInclude Include="TextureImageObject.hpp" />
+    <ClInclude Include="TextureRenderTarget.hpp" />
     <ClInclude Include="UniformBufferObject.hpp" />
     <ClInclude Include="UniformData.hpp" />
     <ClInclude Include="UniformDescription.hpp" />

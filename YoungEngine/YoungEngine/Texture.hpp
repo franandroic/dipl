@@ -3,7 +3,6 @@
 
 #include "Device.hpp"
 #include "TextureImageObject.hpp"
-#include "DepthImageObject.hpp"
 
 //Everything that belongs to one texture instance: the image (with its mip chain and view),
 //the sampler used to read it, its dimensions and the descriptor set the shaders read it through.
@@ -32,15 +31,12 @@ public:
 	const int width;
 	const int height;
 	const int channels;
-	const bool isRenderTarget;
 
+	VkImage getImage() const { return TIO.image; }
 	VkImageView getImageView() const { return TIO.imageView; }
 	VkSampler getSampler() const { return TIO.sampler; }
 	uint32_t getMipLevels() const { return TIO.mipLevels; }
 	VkExtent2D getExtent() const { return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) }; }
-
-	void recordBeginRendering(VkCommandBuffer commandBuffer, const DepthImageObject *depthImage = nullptr) const;
-	void recordEndRendering(VkCommandBuffer commandBuffer) const;
 
 private:
 

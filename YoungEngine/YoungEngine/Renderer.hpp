@@ -15,6 +15,7 @@
 #include "Synchronizer.hpp"
 #include "Command.hpp"
 #include "RenderTarget.hpp"
+#include "ScreenRenderTarget.hpp"
 #include "PipelineCache.hpp"
 #include "PipelineDescription.hpp"
 #include "DescriptorSet.hpp"
@@ -55,7 +56,7 @@ protected:
 	Window &window;
 	Scene *scene;
 
-	RenderTarget renderTarget;
+	ScreenRenderTarget renderTarget;
 	Synchronizer sync;
 	Command command;
 
@@ -71,11 +72,12 @@ protected:
 	void updateFrame(size_t frame);
 	void recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame);
 	void recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame);
+	void recordTarget(VkCommandBuffer commandBuffer, const RenderTarget &target, size_t frame, size_t first, size_t last);
 	void recordDrawItems(VkCommandBuffer commandBuffer, size_t frame, size_t first, size_t last);
 	void submitFrame(size_t frame, VkSemaphore imageAvailable, VkSemaphore renderFinished, VkFence inFlight);
 	void recreateSwapChain();
 
 	//The texture an item renders into, null for the screen
-	static const Texture *targetOf(const DrawItem &item);
+	static const RenderTarget *targetOf(const DrawItem &item);
 	static void setViewportAndScissor(VkCommandBuffer commandBuffer, VkExtent2D extent);
 };

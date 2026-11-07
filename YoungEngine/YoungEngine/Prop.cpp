@@ -38,15 +38,16 @@ void Prop::resolvePipelines(const PipelineDescription::RenderingFormats &formats
 	for (size_t i = 0; i < material->passCount(); i++) {
 
 		const MaterialPass &pass = material->getPass(i);
-		bool fullscreen = pass.geometry == MaterialPass::Geometry::Fullscreen;
+		const MaterialPass::Description &passDescription = pass.getDescription();
+		bool fullscreen = passDescription.geometry == MaterialPass::Geometry::Fullscreen;
 
 		PipelineDescription description;
-		description.shaders = pass.shaders;
-		description.formats = material->renderingFormats(i, formats);
-		description.raster = pass.raster;
+		description.shaders = passDescription.shaders;
+		description.formats = pass.renderingFormats(formats);
+		description.raster = passDescription.raster;
 		description.vertexInput = fullscreen ? PipelineDescription::VertexInput::None : PipelineDescription::VertexInput::Mesh;
 		description.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		description.materialBindings = material->bindings(i);
+		description.materialBindings = pass.bindings();
 
 		if (!fullscreen) {
 			description.objectBindings = uniforms.bindings();
@@ -66,13 +67,15 @@ void Prop::collect(size_t frame, std::vector<DrawItem> &out) const {
 
 	for (size_t i = 0; i < material->passCount(); i++) {
 
+		const MaterialPass &pass = material->getPass(i);
+
 		DrawItem item;
 		item.pipeline = pipelines[i];
 		item.material = material;
 		item.pass = static_cast<uint32_t>(i);
-		item.materialSet = material->getSet(i);
+		item.materialSet = pass.getSet();
 
-		if (material->getPass(i).geometry == MaterialPass::Geometry::Fullscreen) {
+		if (pass.getDescription().geometry == MaterialPass::Geometry::Fullscreen) {
 			item.count = 3;
 		} else {
 			item.objectSet = uniforms.hasDescriptorSets() ? uniforms.getSet(frame).getHandle() : VK_NULL_HANDLE;
