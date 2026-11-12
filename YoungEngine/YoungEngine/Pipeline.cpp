@@ -1,37 +1,5 @@
 #include "Pipeline.hpp"
 
-namespace {
-
-	VkPipelineColorBlendAttachmentState makeBlendState(PipelineDescription::BlendMode mode) {
-
-		VkPipelineColorBlendAttachmentState state{};
-		state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		state.colorBlendOp = VK_BLEND_OP_ADD;
-		state.alphaBlendOp = VK_BLEND_OP_ADD;
-
-		switch (mode) {
-
-		case PipelineDescription::BlendMode::Opaque:
-			state.blendEnable = VK_FALSE;
-			state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-			state.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-			break;
-
-		case PipelineDescription::BlendMode::Alpha:
-			state.blendEnable = VK_TRUE;
-			state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-			state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-			state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-			state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-			break;
-		}
-
-		return state;
-	}
-}
-
 Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDescription) {
 
 	VkShaderModule vertShaderModule = VK_NULL_HANDLE;
@@ -259,6 +227,35 @@ void Pipeline::destroy() {
 	graphicsPipeline = VK_NULL_HANDLE;
 	pipelineLayout = VK_NULL_HANDLE;
 	setLayouts.clear();
+}
+
+VkPipelineColorBlendAttachmentState Pipeline::makeBlendState(PipelineDescription::BlendMode mode) {
+
+	VkPipelineColorBlendAttachmentState state{};
+	state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	state.colorBlendOp = VK_BLEND_OP_ADD;
+	state.alphaBlendOp = VK_BLEND_OP_ADD;
+
+	switch (mode) {
+
+	case PipelineDescription::BlendMode::Opaque:
+		state.blendEnable = VK_FALSE;
+		state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+		state.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+		state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		break;
+
+	case PipelineDescription::BlendMode::Alpha:
+		state.blendEnable = VK_TRUE;
+		state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		break;
+	}
+
+	return state;
 }
 
 VkDescriptorSetLayout Pipeline::createSetLayout(const std::vector<VkDescriptorSetLayoutBinding> &bindings) {

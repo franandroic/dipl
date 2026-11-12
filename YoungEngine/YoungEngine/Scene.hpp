@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Camera.hpp"
+#include "LightSource.hpp"
 #include "Renderable.hpp"
 
 //What there is to see: the renderables, which the scene owns, and the camera they're seen through.
@@ -26,10 +27,12 @@ public:
 	void update(float dt);
 
 	Camera &getCamera() { return camera; }
+	LightSource &getLight() { return light; }
 	const std::vector<std::unique_ptr<Renderable>> &getRenderables() const { return renderables; }
 
 private:
 
 	Camera camera;
+	LightSource light;
 	std::vector<std::unique_ptr<Renderable>> renderables;
 };

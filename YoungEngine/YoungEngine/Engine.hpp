@@ -21,14 +21,16 @@
 #include "Texture.hpp"
 #include "Material.hpp"
 #include "Camera.hpp"
+#include "LightSource.hpp"
 #include "Scene.hpp"
 #include "Prop.hpp"
 #include "Axes.hpp"
 #include "Renderer.hpp"
 
 #include "SimpleModelUD.hpp"
+#include "SimpleLitUD.hpp"
 #include "InPlaceYRotationUO.hpp"
-
+#include "MovingLightUO.hpp"
 
 /*
 Represents the engine's global context.
@@ -58,12 +60,13 @@ public:
 	const std::string FIRST_TEXTURE_PATH = "textures/Discr2DTex5.png";
 	const std::string SECOND_TEXTURE_PATH = "textures/Discr2DTex3.png";
 
-	const PipelineDescription::ShaderPair TEXTURED_SHADERS{ "shaders/toon.vert.spv", "shaders/toon.frag.spv" };
-	const PipelineDescription::ShaderPair UNTEXTURED_SHADERS{ "shaders/normals.vert.spv", "shaders/normals.frag.spv" };
-	const PipelineDescription::ShaderPair AXES_SHADERS{ "shaders/axes.vert.spv", "shaders/axes.frag.spv" };
-	const PipelineDescription::ShaderPair HULL_SHADERS{ "shaders/hull.vert.spv", "shaders/hull.frag.spv" };
-	const PipelineDescription::ShaderPair MASK_SHADERS{ "shaders/mask.vert.spv", "shaders/mask.frag.spv" };
-	const PipelineDescription::ShaderPair ROBERTS_CROSS_SHADERS{ "shaders/fullscreen.vert.spv", "shaders/robertscross.frag.spv" };
+	const PipelineDescription::ShaderPair TOON_SHADERS{ "shaders/spv/toon.vert.spv", "shaders/spv/toon.frag.spv" };
+	const PipelineDescription::ShaderPair NORMAL_SHADERS{ "shaders/spv/normals.vert.spv", "shaders/spv/normals.frag.spv" };
+	const PipelineDescription::ShaderPair AXES_SHADERS{ "shaders/spv/axes.vert.spv", "shaders/spv/axes.frag.spv" };
+	const PipelineDescription::ShaderPair HULL_SHADERS{ "shaders/spv/hull.vert.spv", "shaders/spv/hull.frag.spv" };
+	const PipelineDescription::ShaderPair MASK_SHADERS{ "shaders/spv/mask.vert.spv", "shaders/spv/mask.frag.spv" };
+	const PipelineDescription::ShaderPair ROBERTS_CROSS_SHADERS{ "shaders/spv/fullscreen.vert.spv", "shaders/spv/robertscross.frag.spv" };
+	const PipelineDescription::ShaderPair PHONG_SHADERS{ "shaders/spv/phong.vert.spv", "shaders/spv/phong.frag.spv" };
 
 private:
 
@@ -102,5 +105,5 @@ private:
 	Mesh &loadMesh(const std::string &path);
 	Texture &loadTexture(const std::string &path);
 	Material &createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture = nullptr);
-	Material &createMaterial(const std::vector<MaterialPass::Description> &passes);
+	Material &createMaterial(const std::vector<MaterialPass::Settings> &passes);
 };

@@ -7,7 +7,6 @@ layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
 const vec3 OUTLINE_COLOR = vec3(0.1, 0.8, 1.0);
-
 const float STEP = 2.0;
 
 void main() {

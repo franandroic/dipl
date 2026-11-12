@@ -17,7 +17,7 @@ class Material {
 public:
 
 	//Construction
-	explicit Material(const std::vector<MaterialPass::Description> &descriptions);
+	explicit Material(const std::vector<MaterialPass::Settings> &settingsVector);
 
 	//A single pass into the screen, sampling the texture if there is one
 	Material(
@@ -40,8 +40,8 @@ public:
 
 private:
 
-	static std::vector<MaterialPass::Description> singlePass(const PipelineDescription::ShaderPair &shaders, const Texture *texture);
-	static void validate(const std::vector<MaterialPass::Description> &descriptions);
+	static std::vector<MaterialPass::Settings> singlePass(const PipelineDescription::ShaderPair &shaders, const Texture *texture);
+	static void validate(const std::vector<MaterialPass::Settings> &settingsVector);
 
 	std::vector<std::unique_ptr<MaterialPass>> passes;
 

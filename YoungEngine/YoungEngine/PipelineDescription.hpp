@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "RenderUtility.hpp"
+
 //Everything that makes one graphics pipeline different from another: the shaders it runs, the layouts of
 //the descriptor sets they read, the push constants they use and the attachments it renders to.
 class PipelineDescription {

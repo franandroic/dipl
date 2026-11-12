@@ -52,16 +52,6 @@ void UniformDescription::upload(size_t frame) {
 	UBOs[frame]->updateBuffer(block.data, block.size);
 }
 
-void UniformDescription::recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const {
-
-	//Records the push constants (if there are any) into a command buffer that's being recorded.
-
-	UniformData::Block block = data->pushConstantBlock();
-	if (block.empty()) return;
-
-	vkCmdPushConstants(commandBuffer, pipelineLayout, data->pushConstantStages(), 0, static_cast<uint32_t>(block.size), block.data);
-}
-
 VkPushConstantRange UniformDescription::pushConstantRange() const {
 
 	//The range to declare in the pipeline layout. A range of size 0 means there are no push constants.

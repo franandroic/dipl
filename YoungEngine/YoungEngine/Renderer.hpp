@@ -4,10 +4,9 @@
 #include <memory>
 #include <vector>
 #include <stdexcept>
-#include <algorithm>
-#include <functional>
 
 #include "ImageUtility.hpp"
+#include "RenderUtility.hpp"
 
 #include "Device.hpp"
 #include "SwapChain.hpp"
@@ -51,7 +50,7 @@ public:
 
 	void render(bool externalResizeRequested);
 
-protected:
+private:
 
 	Window &window;
 	Scene *scene;
@@ -72,12 +71,11 @@ protected:
 	void updateFrame(size_t frame);
 	void recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame);
 	void recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame);
-	void recordTarget(VkCommandBuffer commandBuffer, const RenderTarget &target, size_t frame, size_t first, size_t last);
 	void recordDrawItems(VkCommandBuffer commandBuffer, size_t frame, size_t first, size_t last);
 	void submitFrame(size_t frame, VkSemaphore imageAvailable, VkSemaphore renderFinished, VkFence inFlight);
 	void recreateSwapChain();
 
-	//The texture an item renders into, null for the screen
-	static const RenderTarget *targetOf(const DrawItem &item);
-	static void setViewportAndScissor(VkCommandBuffer commandBuffer, VkExtent2D extent);
+	void sortDrawItems(std::vector<DrawItem> &drawItems);
+	void removeDuplicateFullscreenItems(std::vector<DrawItem> &drawItems);
+	size_t partitionByTarget(std::vector<DrawItem> &drawItems);
 };

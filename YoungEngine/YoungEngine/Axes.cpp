@@ -30,7 +30,7 @@ std::vector<Vertex> Axes::makeVertices(float length) {
 	for (const glm::vec3 &direction : directions) {
 
 		Vertex start{};
-		start.pos = glm::vec3(0.0f);
+		start.pos = glm::vec3(0.0f) - direction * length / 2.0f;
 		start.color = direction;
 
 		Vertex end{};

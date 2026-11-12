@@ -38,18 +38,17 @@ void Prop::resolvePipelines(const PipelineDescription::RenderingFormats &formats
 	for (size_t i = 0; i < material->passCount(); i++) {
 
 		const MaterialPass &pass = material->getPass(i);
-		const MaterialPass::Description &passDescription = pass.getDescription();
-		bool fullscreen = passDescription.geometry == MaterialPass::Geometry::Fullscreen;
+		const MaterialPass::Settings &passSettings = pass.getSettings();
 
 		PipelineDescription description;
-		description.shaders = passDescription.shaders;
+		description.shaders = passSettings.shaders;
 		description.formats = pass.renderingFormats(formats);
-		description.raster = passDescription.raster;
-		description.vertexInput = fullscreen ? PipelineDescription::VertexInput::None : PipelineDescription::VertexInput::Mesh;
+		description.raster = passSettings.raster;
+		description.vertexInput = passSettings.hasFullscreenContext ? PipelineDescription::VertexInput::None : PipelineDescription::VertexInput::Mesh;
 		description.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		description.materialBindings = pass.bindings();
 
-		if (!fullscreen) {
+		if (!passSettings.hasFullscreenContext) {
 			description.objectBindings = uniforms.bindings();
 			description.pushConstantRange = uniforms.pushConstantRange();
 		}
@@ -75,7 +74,7 @@ void Prop::collect(size_t frame, std::vector<DrawItem> &out) const {
 		item.pass = static_cast<uint32_t>(i);
 		item.materialSet = pass.getSet();
 
-		if (pass.getDescription().geometry == MaterialPass::Geometry::Fullscreen) {
+		if (pass.getSettings().hasFullscreenContext) {
 			item.count = 3;
 		} else {
 			item.objectSet = uniforms.hasDescriptorSets() ? uniforms.getSet(frame).getHandle() : VK_NULL_HANDLE;

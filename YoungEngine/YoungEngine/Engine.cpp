@@ -33,93 +33,35 @@ void Engine::initialize() {
 	camera.target = glm::vec3(0.0f, 1.5f, 0.0f);
 	camera.farPlane = 50.0f;
 
+	LightSource &light = myScene->getLight();
+	light.position = glm::vec3(0.0f, 0.0f, 4.0f);
+	light.intensity = 1.5f;
+
 	myRenderer = std::make_unique<Renderer>(
 		myWindow,
 		*myScene,
 		MAX_FRAMES_IN_FLIGHT
 	);
 
+	//THE AXES OF THE WORLD, at the origin
+	myScene->add(std::make_unique<Axes>(AXES_SHADERS, 100.0f));
+
 	//FIRST OBJECT: first mesh, material of the first texture and the first shader pair
 	Mesh &firstMesh = loadMesh(MODEL_PATH);
-	Texture &firstTexture = loadTexture(FIRST_TEXTURE_PATH);
-	Material &firstMaterial = createMaterial(TEXTURED_SHADERS, &firstTexture);
 
-	myScene->add(std::make_unique<Prop>(
-		firstMesh,
-		firstMaterial,
-		std::make_unique<SimpleModelUD>(glm::vec3(-3.0f, 3.0f, 0.0f)),
-		std::make_unique<InPlaceYRotationUO>(90.0f)
-	));
+	MaterialPass::Settings colorPass;
+	colorPass.shaders = NORMAL_SHADERS;
 
-	//SECOND OBJECT: first mesh, material of the second texture and the first shader pair
-	Texture &secondTexture = loadTexture(SECOND_TEXTURE_PATH);
-	Material &secondMaterial = createMaterial(TEXTURED_SHADERS, &secondTexture);
-
-	myScene->add(std::make_unique<Prop>(
-		firstMesh,
-		secondMaterial,
-		std::make_unique<SimpleModelUD>(glm::vec3(0.0f, 3.0f, 0.0f)),
-		std::make_unique<InPlaceYRotationUO>(-45.0f)
-	));
-
-	//THIRD OBJECT: first mesh, material without a texture and with the second shader pair
-	Material &thirdMaterial = createMaterial(UNTEXTURED_SHADERS);
-
-	myScene->add(std::make_unique<Prop>(
-		firstMesh,
-		thirdMaterial,
-		std::make_unique<SimpleModelUD>(glm::vec3(3.0f, 3.0f, 0.0f)),
-		std::make_unique<InPlaceYRotationUO>(30.0f)
-	));
-
-	//FOURTH OBJECT: outlined by an inverted hull, two passes into the screen.
-	MaterialPass::Description hullPass;
-	hullPass.shaders = HULL_SHADERS;
-	hullPass.raster.cullMode = VK_CULL_MODE_FRONT_BIT;
-
-	MaterialPass::Description hullBodyPass;
-	hullBodyPass.shaders = TEXTURED_SHADERS;
-	hullBodyPass.textures = { &secondTexture };
-
-	Material &hullMaterial = createMaterial({ hullPass, hullBodyPass });
-
-	myScene->add(std::make_unique<Prop>(
-		firstMesh,
-		hullMaterial,
-		std::make_unique<SimpleModelUD>(glm::vec3(-2.5f, -1.0f, 0.0f)),
-		std::make_unique<InPlaceYRotationUO>(20.0f)
-	));
-
-	//FIFTH OBJECT: outlined by a kernel, three passes.
-	MaterialPass::Description maskPass;
-	maskPass.shaders = MASK_SHADERS;
-	maskPass.rendersToTexture = true;
-	maskPass.format = VK_FORMAT_R8_UNORM;
-
-	MaterialPass::Description kernelBodyPass;
-	kernelBodyPass.shaders = TEXTURED_SHADERS;
-	kernelBodyPass.textures = { &firstTexture };
-
-	MaterialPass::Description edgePass;
-	edgePass.shaders = ROBERTS_CROSS_SHADERS;
-	edgePass.geometry = MaterialPass::Geometry::Fullscreen;
-	edgePass.passInputs = { 0 };
-	edgePass.raster.cullMode = VK_CULL_MODE_NONE;
-	edgePass.raster.depthTest = false;
-	edgePass.raster.depthWrite = false;
-	edgePass.raster.blend = PipelineDescription::BlendMode::Alpha;
-
-	Material &kernelMaterial = createMaterial({ maskPass, kernelBodyPass, edgePass });
-
-	myScene->add(std::make_unique<Prop>(
-		firstMesh,
-		kernelMaterial,
-		std::make_unique<SimpleModelUD>(glm::vec3(2.5f, -1.0f, 0.0f)),
-		std::make_unique<InPlaceYRotationUO>(-20.0f)
-	));
-
-	//THE AXES OF THE WORLD, at the origin
-	myScene->add(std::make_unique<Axes>(AXES_SHADERS, 1.5f));
+	Material &colorMaterial = createMaterial({ colorPass });
+	
+	myScene->add(
+		std::make_unique<Prop>(
+			firstMesh,
+			colorMaterial,
+			std::make_unique<SimpleModelUD>(),
+			std::make_unique<InPlaceYRotationUO>(5.0f)
+		)
+	);
 }
 
 void Engine::renderLoop() {
@@ -186,7 +128,7 @@ Material &Engine::createMaterial(const PipelineDescription::ShaderPair &shaders,
 	return *myMaterials.back();
 }
 
-Material &Engine::createMaterial(const std::vector<MaterialPass::Description> &passes) {
+Material &Engine::createMaterial(const std::vector<MaterialPass::Settings> &passes) {
 
 	myMaterials.push_back(std::make_unique<Material>(passes));
 

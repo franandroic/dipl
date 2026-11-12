@@ -1,12 +1,12 @@
 #include "Material.hpp"
 
-Material::Material(const std::vector<MaterialPass::Description> &descriptions) {
+Material::Material(const std::vector<MaterialPass::Settings> &settingsVector) {
 
-	validate(descriptions);
+	validate(settingsVector);
 
-	passes.reserve(descriptions.size());
-	for (const MaterialPass::Description &description : descriptions) {
-		passes.push_back(std::make_unique<MaterialPass>(description));
+	passes.reserve(settingsVector.size());
+	for (const MaterialPass::Settings &settings : settingsVector) {
+		passes.push_back(std::make_unique<MaterialPass>(settings));
 	}
 }
 
@@ -16,34 +16,34 @@ Material::Material(
 ) : Material(singlePass(inShaders, inTexture)) {
 }
 
-std::vector<MaterialPass::Description> Material::singlePass(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
+std::vector<MaterialPass::Settings> Material::singlePass(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
 
-	MaterialPass::Description pass;
+	MaterialPass::Settings pass;
 	pass.shaders = shaders;
 	if (texture) pass.textures.push_back(texture);
 
 	return { pass };
 }
 
-void Material::validate(const std::vector<MaterialPass::Description> &descriptions) {
+void Material::validate(const std::vector<MaterialPass::Settings> &settingsVector) {
 
-	if (descriptions.empty()) {
+	if (settingsVector.empty()) {
 		throw std::invalid_argument("A material needs at least one pass!");
 	}
 
-	for (size_t i = 0; i < descriptions.size(); i++) {
+	for (size_t i = 0; i < settingsVector.size(); i++) {
 
-		for (const Texture *texture : descriptions[i].textures) {
+		for (const Texture *texture : settingsVector[i].textures) {
 			if (!texture) {
 				throw std::invalid_argument("A material pass can't sample a null texture!");
 			}
 		}
 
-		for (uint32_t input : descriptions[i].passInputs) {
+		for (uint32_t input : settingsVector[i].passInputs) {
 			if (input >= i) {
 				throw std::invalid_argument("A material pass can only sample the textures of earlier passes!");
 			}
-			if (!descriptions[input].rendersToTexture) {
+			if (!settingsVector[input].rendersToTexture) {
 				throw std::invalid_argument("A material pass samples a pass that doesn't render into a texture!");
 			}
 		}
@@ -66,7 +66,7 @@ void Material::prepareTargets(VkExtent2D extent) {
 	//Every pass that samples earlier passes is pointed at the textures of their new targets
 	for (const auto &pass : passes) {
 
-		const std::vector<uint32_t> &inputs = pass->getDescription().passInputs;
+		const std::vector<uint32_t> &inputs = pass->getSettings().passInputs;
 
 		for (uint32_t i = 0; i < static_cast<uint32_t>(inputs.size()); i++) {
 			pass->writeInput(i, passes[inputs[i]]->getTarget()->getTexture());

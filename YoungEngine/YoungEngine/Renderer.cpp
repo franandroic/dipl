@@ -79,40 +79,9 @@ void Renderer::updateFrame(size_t frame) {
 		renderable->collect(frame, drawItems);
 	}
 
-	//The items of a material are put together, in the order of its passes. Within one pass of one material
-	//they're sorted by pipeline and set, so that they're bound as few times as possible.
-	std::sort(
-		drawItems.begin(),
-		drawItems.end(),
-		[](const DrawItem &a, const DrawItem &b) {
-			if (a.material != b.material) return std::less<const Material *>()(a.material, b.material);
-			if (a.pass != b.pass) return a.pass < b.pass;
-			if (a.pipeline != b.pipeline) return std::less<const Pipeline *>()(a.pipeline, b.pipeline);
-			return std::less<VkDescriptorSet>()(a.materialSet, b.materialSet);
-		}
-	);
-
-	//Every prop collects the fullscreen passes of its material, but each one is drawn only once per material.
-	//After the sort the copies are next to each other, so all but the first are dropped.
-	drawItems.erase(
-		std::unique(
-			drawItems.begin(),
-			drawItems.end(),
-			[](const DrawItem &a, const DrawItem &b) {
-				return a.material && a.material == b.material && a.pass == b.pass
-					&& a.material->getPass(a.pass).getDescription().geometry == MaterialPass::Geometry::Fullscreen;
-			}
-		),
-		drawItems.end()
-	);
-
-	//The items that render into textures go before the ones drawn into the screen, keeping the order above
-	auto firstScreen = std::stable_partition(
-		drawItems.begin(),
-		drawItems.end(),
-		[](const DrawItem &item) { return targetOf(item) != nullptr; }
-	);
-	firstScreenItem = static_cast<size_t>(firstScreen - drawItems.begin());
+	sortDrawItems(drawItems);
+	removeDuplicateFullscreenItems(drawItems);
+	firstScreenItem = partitionByTarget(drawItems);
 }
 
 void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, size_t frame) {
@@ -123,7 +92,11 @@ void Renderer::recordFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex, s
 	recordTexturePasses(commandBuffer, frame);
 
 	renderTarget.setSwapChainImage(imageIndex);
-	recordTarget(commandBuffer, renderTarget, frame, firstScreenItem, drawItems.size());
+	
+	renderTarget.recordBegin(commandBuffer);
+	RenderUtility::setViewportAndScissor(commandBuffer, renderTarget.getExtent());
+	recordDrawItems(commandBuffer, frame, firstScreenItem, drawItems.size());
+	renderTarget.recordEnd(commandBuffer);
 }
 
 void Renderer::recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame) {
@@ -145,18 +118,15 @@ void Renderer::recordTexturePasses(VkCommandBuffer commandBuffer, size_t frame) 
 			last++;
 		}
 
-		recordTarget(commandBuffer, *targetOf(firstItem), frame, first, last);
+		const RenderTarget &target = *firstItem.material->getPass(firstItem.pass).getTarget();
+
+		target.recordBegin(commandBuffer);
+		RenderUtility::setViewportAndScissor(commandBuffer, target.getExtent());
+		recordDrawItems(commandBuffer, frame, first, last);
+		target.recordEnd(commandBuffer);
 
 		first = last;
 	}
-}
-
-void Renderer::recordTarget(VkCommandBuffer commandBuffer, const RenderTarget &target, size_t frame, size_t first, size_t last) {
-
-	target.recordBegin(commandBuffer);
-	setViewportAndScissor(commandBuffer, target.getExtent());
-	recordDrawItems(commandBuffer, frame, first, last);
-	target.recordEnd(commandBuffer);
 }
 
 void Renderer::recordDrawItems(VkCommandBuffer commandBuffer, size_t frame, size_t first, size_t last) {
@@ -169,6 +139,10 @@ void Renderer::recordDrawItems(VkCommandBuffer commandBuffer, size_t frame, size
 	for (size_t i = first; i < last; i++) {
 
 		const DrawItem &item = drawItems[i];
+
+		if (!item.pipeline) {
+			throw std::logic_error("A draw item has to have a pipeline!");
+		}
 
 		VkPipelineLayout layout = item.pipeline->pipelineLayout;
 
@@ -253,26 +227,49 @@ void Renderer::recreateSwapChain() {
 	renderTarget.recreateAttachments();
 }
 
-const RenderTarget *Renderer::targetOf(const DrawItem &item) {
+void Renderer::sortDrawItems(std::vector<DrawItem> &drawItems) {
 
-	return item.material ? item.material->getPass(item.pass).getTarget() : nullptr;
+	std::sort(
+		drawItems.begin(),
+		drawItems.end(),
+		[](const DrawItem &a, const DrawItem &b) {
+			if (a.material != b.material) return std::less<const Material *>()(a.material, b.material);
+			if (a.pass != b.pass) return a.pass < b.pass;
+			if (a.pipeline != b.pipeline) return std::less<const Pipeline *>()(a.pipeline, b.pipeline);
+			return std::less<VkDescriptorSet>()(a.materialSet, b.materialSet);
+		}
+	);
 }
 
-void Renderer::setViewportAndScissor(VkCommandBuffer commandBuffer, VkExtent2D extent) {
+void Renderer::removeDuplicateFullscreenItems(std::vector<DrawItem> &drawItems) {
 
-	//Viewport and scissor are dynamic state of every pipeline, so they're set once per rendering scope
+	//Two draw items that work in screen space on the same pass of the same material
+	//would be redundant to draw more than once.
 
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(extent.width);
-	viewport.height = static_cast<float>(extent.height);
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+	drawItems.erase(
+		std::unique(
+			drawItems.begin(),
+			drawItems.end(),
+			[](const DrawItem &a, const DrawItem &b) {
+				return a.material && a.material == b.material && a.pass == b.pass
+					&& a.material->getPass(a.pass).getSettings().hasFullscreenContext;
+			}
+		),
+		drawItems.end()
+	);
+}
 
-	VkRect2D scissor{};
-	scissor.offset = { 0, 0 };
-	scissor.extent = extent;
-	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+size_t Renderer::partitionByTarget(std::vector<DrawItem> &drawItems) {
+
+	//First we want to do all passes that render to a separate texture, then on-screen
+
+	auto firstScreenItem = std::stable_partition(
+		drawItems.begin(),
+		drawItems.end(),
+		[](const DrawItem &item) {
+			return item.material && item.material->getPass(item.pass).getTarget() != nullptr;
+		}
+	);
+
+	return static_cast<size_t>(firstScreenItem - drawItems.begin());
 }

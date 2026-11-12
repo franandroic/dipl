@@ -36,7 +36,6 @@ public:
 
 	void update(float dt);
 	void upload(size_t frame);
-	void recordPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const;
 
 	VkPushConstantRange pushConstantRange() const;
 
