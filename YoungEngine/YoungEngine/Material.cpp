@@ -43,7 +43,7 @@ void Material::validate(const std::vector<MaterialPass::Settings> &settingsVecto
 			if (input >= i) {
 				throw std::invalid_argument("A material pass can only sample the textures of earlier passes!");
 			}
-			if (!settingsVector[input].rendersToTexture) {
+			if (!settingsVector[input].rendersOffscreen) {
 				throw std::invalid_argument("A material pass samples a pass that doesn't render into a texture!");
 			}
 		}

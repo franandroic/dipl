@@ -48,14 +48,14 @@ PipelineDescription::RenderingFormats MaterialPass::renderingFormats(const Pipel
 
 	//Known from the description alone, so it doesn't matter whether the target has been made yet
 
-	if (!settings.rendersToTexture) return screenFormats;
-	return TextureRenderTarget::formatsFor(settings.format, settings.depth);
+	if (!settings.rendersOffscreen) return screenFormats;
+	return TextureRenderTarget::formatsFor(settings.offscreenFormat, settings.offscreenDepth);
 }
 
 void MaterialPass::prepareTarget(VkExtent2D extent) {
 
-	if (!settings.rendersToTexture) return;
-	target = std::make_unique<TextureRenderTarget>(extent, settings.format, settings.depth);
+	if (!settings.rendersOffscreen) return;
+	target = std::make_unique<TextureRenderTarget>(extent, settings.offscreenFormat, settings.offscreenDepth);
 }
 
 void MaterialPass::writeInput(uint32_t input, const Texture &texture) {

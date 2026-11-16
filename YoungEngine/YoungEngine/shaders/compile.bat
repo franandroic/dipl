@@ -15,6 +15,7 @@ C:\VulkanSDK\1.4.321.1\Bin\glslc.exe mask.frag -o spv\mask.frag.spv
 
 C:\VulkanSDK\1.4.321.1\Bin\glslc.exe fullscreen.vert -o spv\fullscreen.vert.spv
 C:\VulkanSDK\1.4.321.1\Bin\glslc.exe robertscross.frag -o spv\robertscross.frag.spv
+C:\VulkanSDK\1.4.321.1\Bin\glslc.exe sketch.frag -o spv\sketch.frag.spv
 
 C:\VulkanSDK\1.4.321.1\Bin\glslc.exe phong.vert -o spv\phong.vert.spv
 C:\VulkanSDK\1.4.321.1\Bin\glslc.exe phong.frag -o spv\phong.frag.spv

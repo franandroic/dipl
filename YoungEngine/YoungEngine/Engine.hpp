@@ -67,6 +67,7 @@ public:
 	const PipelineDescription::ShaderPair MASK_SHADERS{ "shaders/spv/mask.vert.spv", "shaders/spv/mask.frag.spv" };
 	const PipelineDescription::ShaderPair ROBERTS_CROSS_SHADERS{ "shaders/spv/fullscreen.vert.spv", "shaders/spv/robertscross.frag.spv" };
 	const PipelineDescription::ShaderPair PHONG_SHADERS{ "shaders/spv/phong.vert.spv", "shaders/spv/phong.frag.spv" };
+	const PipelineDescription::ShaderPair SKETCH_SHADERS{ "shaders/spv/fullscreen.vert.spv", "shaders/spv/sketch.frag.spv" };
 
 private:
 

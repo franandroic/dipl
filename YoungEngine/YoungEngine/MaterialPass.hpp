@@ -34,9 +34,9 @@ public:
 
 		//Whether the pass renders into a texture of its own instead of the screen.
 		//The texture is the size of the window and is cleared and rendered anew every frame.
-		bool rendersToTexture = false;
-		VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-		bool depth = false;
+		bool rendersOffscreen = false;
+		VkFormat offscreenFormat = VK_FORMAT_R8G8B8A8_UNORM;
+		bool offscreenDepth = false;
 
 		PipelineDescription::RasterState raster;
 	};

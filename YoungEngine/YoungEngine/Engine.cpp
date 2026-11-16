@@ -49,17 +49,34 @@ void Engine::initialize() {
 	//FIRST OBJECT: first mesh, material of the first texture and the first shader pair
 	Mesh &firstMesh = loadMesh(MODEL_PATH);
 
-	MaterialPass::Settings colorPass;
-	colorPass.shaders = NORMAL_SHADERS;
+	MaterialPass::Settings normalPass;
+	normalPass.shaders = NORMAL_SHADERS;
+	normalPass.rendersOffscreen = true;
+	normalPass.offscreenFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+	normalPass.offscreenDepth = true;
 
-	Material &colorMaterial = createMaterial({ colorPass });
+	MaterialPass::Settings colorPass;
+	colorPass.shaders = PHONG_SHADERS;
+	colorPass.rendersOffscreen = true;
+	colorPass.offscreenDepth = true;
+
+	MaterialPass::Settings edgePass;
+	edgePass.shaders = SKETCH_SHADERS;
+	edgePass.passInputs = { 0, 1 };
+	edgePass.hasFullscreenContext = true;
+	edgePass.raster.cullMode = VK_CULL_MODE_NONE;
+	edgePass.raster.depthTest = false;
+	edgePass.raster.depthWrite = false;
+	edgePass.raster.blend = PipelineDescription::BlendMode::Alpha;
+
+	Material &sketchMaterial = createMaterial({ normalPass, colorPass, edgePass });
 	
 	myScene->add(
 		std::make_unique<Prop>(
 			firstMesh,
-			colorMaterial,
-			std::make_unique<SimpleModelUD>(),
-			std::make_unique<InPlaceYRotationUO>(5.0f)
+			sketchMaterial,
+			std::make_unique<SimpleLitUD>(light),
+			std::make_unique<InPlaceYRotationUO>(5.0f, &light)
 		)
 	);
 }

@@ -36,11 +36,13 @@ public:
 		bool operator==(const RenderingFormats &other) const;
 	};
 
+	//Whether color blending stage overwrites or mixes
 	enum class BlendMode {
 		Opaque,
 		Alpha
 	};
 
+	//State of the rasterization stage
 	struct RasterState {
 
 		VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT;
@@ -53,6 +55,7 @@ public:
 		bool operator==(const RasterState &other) const;
 	};
 
+	//Type of data that gets input
 	enum class VertexInput {
 		Mesh,
 		None

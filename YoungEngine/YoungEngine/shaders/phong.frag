@@ -23,7 +23,7 @@ const float ka = 0.2;
 const float alpha = 50;
 const float ia = 0.8;
 
-vec3 debugColor = vec3(1.0, 0.0, 0.0);
+vec3 debugColor = vec3(0.75, 0.75, 0.75);
 
 void main() {
 
@@ -32,6 +32,6 @@ void main() {
     vec3 R = reflect(-L, nN);
     vec3 V = normalize(camera.position - P);
 
-    float phongFactor = ka * ia + (kd * max(dot(L, nN), 0.0) * light.intensity + ks * pow(dot(R, V), alpha) * light.intensity);
+    float phongFactor = ka * ia + (kd * max(dot(L, nN), 0.0) * light.intensity + ks * pow(max(dot(R, V), 0.0), alpha) * light.intensity);
     outColor = vec4(debugColor * phongFactor, 1.0);
 }
