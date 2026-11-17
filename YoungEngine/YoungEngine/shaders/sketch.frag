@@ -18,6 +18,8 @@ const float COLOR_W = 0.6;
 const float NORMAL_W = 0.3;
 
 const float GRAIN_GAIN = 10.0;
+const float GRAIN_SCALE = 0.37;
+
 const float CLOUD_SCALE = 4.0;
 const float COLOR_WOBBLE = 1.0 / 40.0;
 const float NORMAL_WOBBLE = 1.0 / 50.0;
@@ -89,28 +91,36 @@ float grain;
 
 float valueAtPoint(float dx, float dy) {
 
+    //Sampling displaced values
     vec4 lit = texture(colorMask, colorUV + vec2(dx, dy));
     vec3 normal = texture(normalMask, normalUV + vec2(dx, dy)).rgb;
 
+    //Computing the new color value to be used with Sobel
+    //Blends the paper color with the input before turning it to grayscale
     float colorValue = dot(lit.rgb + PAPER_COLOR * (1.0 - lit.a), rgbToGrayscale);
     float normalValue = dot(normal * 0.5 + 0.5, rgbToGrayscale);
 
+    //The color and normal values are combined into information that is used
+    //by Sobel to find gradients
     return colorValue * COLOR_W + normalValue * NORMAL_W * grain;
 }
 
 void main() {
 
+    //Pixel(fragment) offset calculation
     vec2 size = vec2(textureSize(colorMask, 0));
     vec2 texel = STEP / size;
     float dx = texel.x;
     float dy = texel.y;
 
+    //Displacment of texture UV values based on a simulated noise
     float wobble = cloud(vec2(uv.x * size.x / size.y, uv.y) * CLOUD_SCALE) - 0.5;
     colorUV = uv + wobble * COLOR_WOBBLE;
     normalUV = uv + wobble * NORMAL_WOBBLE;
+    //Determines the extent to which a normal value will influence the color
+    grain = noise(gl_FragCoord.xy * GRAIN_SCALE) * GRAIN_GAIN;
 
-    grain = (noise(gl_FragCoord.xy) * 2.0 - 1.0) * GRAIN_GAIN;
-
+    //Creating a window matrix of the displaced sampled fragment colors for Sobel
     mat3 window = MAT3_ROWS(
         valueAtPoint(-dx, -dy), valueAtPoint(0.0, -dy), valueAtPoint(dx, -dy),
         valueAtPoint(-dx, 0.0), valueAtPoint(0.0, 0.0), valueAtPoint(dx, 0.0),
@@ -120,11 +130,20 @@ void main() {
     float gx = dot(Gx[0], window[0]) + dot(Gx[1], window[1]) + dot(Gx[2], window[2]);
     float gy = dot(Gy[0], window[0]) + dot(Gy[1], window[1]) + dot(Gy[2], window[2]);
 
+    //Squared gradient magnitude
     float mag = gx * gx + gy * gy;
+    
+    //OPACITY VALUES
+    //Normalizing the squared magnitude, while allowing for some anti-aliasing
     float edge = smoothstep(MIN_VAL, MAX_VAL, mag);
-
+    //Finding where the object actually is
     float coverage = texture(colorMask, colorUV).a;
+
+    //COLOR COMPOSITING (paper layer + pencil layer)
+    //https://en.wikipedia.org/wiki/Alpha_compositing#Description
+    //Calculating how much each layer contributes to opacity
     float alpha = edge + coverage * (1.0 - edge);
+    //Compositing the layers using calculated opacity, then dividing by alpha because of the pipeline blend mode
     vec3 color = (LINE_COLOR * edge + PAPER_COLOR * coverage * (1.0 - edge)) / max(alpha, 1e-5);
 
     outColor = vec4(color, alpha);
