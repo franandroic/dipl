@@ -14,11 +14,6 @@ void Engine::run() {
 	renderLoop();
 }
 
-void Engine::reloadShaders() {
-
-	PipelineCache::active->rebuild(ShaderCompiler::active->recompile());
-}
-
 void Engine::initialize() {
 
 	myLoader.setModelLoader(&myModelLoader);
@@ -94,6 +89,9 @@ void Engine::renderLoop() {
 	while (!glfwWindowShouldClose(myWindow.window)) {
 
 		glfwPollEvents();
+
+		for (auto &inputCommand : myWindow.getInputCommands()) inputCommand->execute();
+		myWindow.resumeInput();
 		
 		auto currentTime = std::chrono::steady_clock::now();
 		float dt = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - previousTime).count();

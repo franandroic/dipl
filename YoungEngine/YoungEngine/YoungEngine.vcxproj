@@ -163,6 +163,9 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClCompile Include="DescriptorSet.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="EngineUtility.cpp" />
+    <ClCompile Include="InputCommandFlyMode.cpp" />
+    <ClCompile Include="InputCommandInspectMode.cpp" />
+    <ClCompile Include="InputCommandReload.cpp" />
     <ClCompile Include="MaterialPass.cpp" />
     <ClCompile Include="Prop.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -206,6 +209,10 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="DeviceUtility.hpp" />
     <ClInclude Include="DrawItem.hpp" />
     <ClInclude Include="EngineUtility.hpp" />
+    <ClInclude Include="InputCommand.hpp" />
+    <ClInclude Include="InputCommandFlyMode.hpp" />
+    <ClInclude Include="InputCommandInspectMode.hpp" />
+    <ClInclude Include="InputCommandReload.hpp" />
     <ClInclude Include="LightSource.hpp" />
     <ClInclude Include="MaterialPass.hpp" />
     <ClInclude Include="MovingLightUO.hpp" />

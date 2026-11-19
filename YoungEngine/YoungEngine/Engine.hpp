@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Window.hpp"
+#include "InputCommand.hpp"
 #include "Vertex.hpp"
 #include "Device.hpp"
 #include "SwapChain.hpp"
