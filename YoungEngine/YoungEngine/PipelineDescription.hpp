@@ -14,12 +14,14 @@ class PipelineDescription {
 public:
 
 	//The pair of compiled shaders (paths to SPIR-V files) a pipeline runs
-	struct ShaderPair {
+	struct ShaderSource {
 
 		std::string vertex;
 		std::string fragment;
 
-		bool operator==(const ShaderPair &other) const;
+		std::string entryPoint = "main";
+
+		bool operator==(const ShaderSource &other) const;
 	};
 
 	//The attachments a pipeline renders into.
@@ -77,7 +79,7 @@ public:
 	static std::vector<VkDescriptorSetLayoutBinding> frameBindings();
 
 	//Member variables
-	ShaderPair shaders;
+	ShaderSource shaders;
 	RenderingFormats formats;
 	RasterState raster;
 	VertexInput vertexInput = VertexInput::Mesh;

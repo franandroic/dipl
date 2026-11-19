@@ -1,7 +1,7 @@
 #include "Axes.hpp"
 
 Axes::Axes(
-	const PipelineDescription::ShaderPair &inShaders,
+	const PipelineDescription::ShaderSource &inShaders,
 	float length,
 	const glm::vec3 &position
 ) : shaders(inShaders),

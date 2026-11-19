@@ -14,6 +14,11 @@ void Engine::run() {
 	renderLoop();
 }
 
+void Engine::reloadShaders() {
+
+	PipelineCache::active->rebuild(ShaderCompiler::active->recompile());
+}
+
 void Engine::initialize() {
 
 	myLoader.setModelLoader(&myModelLoader);
@@ -24,6 +29,7 @@ void Engine::initialize() {
 	mySwapChain = std::make_unique<SwapChain>(myWindow.window);
 	mySwapChain->createImageViews();
 
+	myShaderCompiler = std::make_unique<ShaderCompiler>();
 	myPipelineCache = std::make_unique<PipelineCache>();
 
 	myScene = std::make_unique<Scene>();
@@ -138,7 +144,7 @@ Texture &Engine::loadTexture(const std::string &path) {
 	return *myTextures.back();
 }
 
-Material &Engine::createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
+Material &Engine::createMaterial(const PipelineDescription::ShaderSource &shaders, const Texture *texture) {
 
 	myMaterials.push_back(std::make_unique<Material>(shaders, texture));
 

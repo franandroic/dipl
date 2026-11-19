@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <string>
 #include <vector>
 #include <assert.h>
 
@@ -32,6 +33,8 @@ public:
 
 	const Pipeline &get(const PipelineDescription &description);
 	size_t size() const { return pipelines.size(); }
+
+	void rebuild(const std::vector<std::string> &changedSources);
 
 private:
 

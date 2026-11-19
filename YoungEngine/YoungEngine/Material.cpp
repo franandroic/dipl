@@ -11,12 +11,12 @@ Material::Material(const std::vector<MaterialPass::Settings> &settingsVector) {
 }
 
 Material::Material(
-	const PipelineDescription::ShaderPair &inShaders,
+	const PipelineDescription::ShaderSource &inShaders,
 	const Texture *inTexture
 ) : Material(singlePass(inShaders, inTexture)) {
 }
 
-std::vector<MaterialPass::Settings> Material::singlePass(const PipelineDescription::ShaderPair &shaders, const Texture *texture) {
+std::vector<MaterialPass::Settings> Material::singlePass(const PipelineDescription::ShaderSource &shaders, const Texture *texture) {
 
 	MaterialPass::Settings pass;
 	pass.shaders = shaders;

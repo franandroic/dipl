@@ -21,7 +21,7 @@ public:
 
 	//A single pass into the screen, sampling the texture if there is one
 	Material(
-		const PipelineDescription::ShaderPair &inShaders,
+		const PipelineDescription::ShaderSource &inShaders,
 		const Texture *inTexture = nullptr
 	);
 
@@ -40,7 +40,7 @@ public:
 
 private:
 
-	static std::vector<MaterialPass::Settings> singlePass(const PipelineDescription::ShaderPair &shaders, const Texture *texture);
+	static std::vector<MaterialPass::Settings> singlePass(const PipelineDescription::ShaderSource &shaders, const Texture *texture);
 	static void validate(const std::vector<MaterialPass::Settings> &settingsVector);
 
 	std::vector<std::unique_ptr<MaterialPass>> passes;

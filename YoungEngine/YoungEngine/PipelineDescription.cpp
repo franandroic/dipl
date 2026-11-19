@@ -14,9 +14,9 @@ std::vector<VkDescriptorSetLayoutBinding> PipelineDescription::frameBindings() {
 	return { cameraBinding };
 }
 
-bool PipelineDescription::ShaderPair::operator==(const ShaderPair &other) const {
+bool PipelineDescription::ShaderSource::operator==(const ShaderSource &other) const {
 
-	return vertex == other.vertex && fragment == other.fragment;
+	return vertex == other.vertex && fragment == other.fragment && entryPoint == other.entryPoint;
 }
 
 bool PipelineDescription::RenderingFormats::operator==(const RenderingFormats &other) const {

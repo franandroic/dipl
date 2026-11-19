@@ -26,3 +26,32 @@ const Pipeline &PipelineCache::get(const PipelineDescription &description) {
 
 	return *pipelines.back();
 }
+
+void PipelineCache::rebuild(const std::vector<std::string> &changedSources) {
+
+	//Rebuilds every pipeline that runs one of the shader sources, waiting for the device to go idle first.
+	//Has to be called between frames. A pipeline that fails to rebuild keeps its old one and the error is printed.
+
+	auto changed = [&changedSources](const std::string &source) {
+		return std::find(changedSources.begin(), changedSources.end(), source) != changedSources.end();
+	};
+
+	bool idle = false;
+
+	for (const auto &pipeline : pipelines) {
+
+		const PipelineDescription::ShaderSource &shaders = pipeline->getDescription().shaders;
+		if (!changed(shaders.vertex) && !changed(shaders.fragment)) continue;
+
+		if (!idle) {
+			vkDeviceWaitIdle(Device::active->logical);
+			idle = true;
+		}
+
+		try {
+			pipeline->rebuild();
+		} catch (const std::exception &e) {
+			std::cerr << "Failed to rebuild the pipeline of " << shaders.vertex << " and " << shaders.fragment << ": " << e.what() << std::endl;
+		}
+	}
+}

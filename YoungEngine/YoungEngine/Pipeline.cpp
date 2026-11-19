@@ -7,28 +7,97 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 
 	try {
 
-		auto vertShaderCode = readFile(description.shaders.vertex);
-		auto fragShaderCode = readFile(description.shaders.fragment);
+		createLayouts();
+		graphicsPipeline = createGraphicsPipeline();
 
-		//Printing the size of the read code to compare with its file size of disk.
-		//std::cout << "SHADER SIZES: " << vertShaderCode.size() << " " << fragShaderCode.size() << std::endl;
+	} catch (...) {
 
-		vertShaderModule = createShaderModule(vertShaderCode);
-		fragShaderModule = createShaderModule(fragShaderCode);
+		destroy();
+		throw;
+	}
+}
+
+Pipeline::~Pipeline() {
+
+	destroy();
+}
+
+void Pipeline::rebuild() {
+
+	VkPipeline newPipeline = createGraphicsPipeline();
+
+	vkDestroyPipeline(Device::active->logical, graphicsPipeline, nullptr);
+	graphicsPipeline = newPipeline;
+}
+
+void Pipeline::destroy() {
+
+	vkDestroyPipeline(Device::active->logical, graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(Device::active->logical, pipelineLayout, nullptr);
+
+	for (VkDescriptorSetLayout setLayout : setLayouts) {
+		vkDestroyDescriptorSetLayout(Device::active->logical, setLayout, nullptr);
+	}
+
+	graphicsPipeline = VK_NULL_HANDLE;
+	pipelineLayout = VK_NULL_HANDLE;
+	setLayouts.clear();
+}
+
+void Pipeline::createLayouts() {
+
+	//Creating the layout of each set, in the order of the tiers (the position in the list is the set number).
+	//The first one is the Frame set, which is the same for every pipeline and filled by the renderer.
+	setLayouts.resize(PipelineDescription::DescriptorTier::Count);
+	//set = 0
+	setLayouts[PipelineDescription::DescriptorTier::Frame] = createSetLayout(PipelineDescription::frameBindings());
+	//set = 1
+	setLayouts[PipelineDescription::DescriptorTier::Material] = createSetLayout(description.materialBindings);
+	//set = 2
+	setLayouts[PipelineDescription::DescriptorTier::Object] = createSetLayout(description.objectBindings);
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+	pipelineLayoutInfo.pSetLayouts = setLayouts.data();
+	//A range of size zero means the pipeline uses no push constants.
+	bool usesPushConstants = description.pushConstantRange.size > 0;
+	pipelineLayoutInfo.pushConstantRangeCount = usesPushConstants ? 1 : 0;
+	pipelineLayoutInfo.pPushConstantRanges = usesPushConstants ? &description.pushConstantRange : nullptr;
+
+	if (vkCreatePipelineLayout(Device::active->logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create pipeline layout!");
+	}
+}
+
+VkPipeline Pipeline::createGraphicsPipeline() const {
+
+	//Uses the layouts made by createLayouts.
+	//The shader modules are only needed until the pipeline is made.
+
+	VkShaderModule vertShaderModule = VK_NULL_HANDLE;
+	VkShaderModule fragShaderModule = VK_NULL_HANDLE;
+
+	VkPipeline result = VK_NULL_HANDLE;
+
+	try {
+
+		vertShaderModule = createShaderModule(ShaderCompiler::active->getCompiled(description.shaders.vertex));
+		fragShaderModule = createShaderModule(ShaderCompiler::active->getCompiled(description.shaders.fragment));
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 		//TODO: Look into combining multiple shaders into a single module with different entry points
 		vertShaderStageInfo.module = vertShaderModule;
-		vertShaderStageInfo.pName = "main";
+		vertShaderStageInfo.pName = description.shaders.entryPoint.c_str();
 		//TODO: Look into the pSpecializationInfo member of the info struct
 
 		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
 		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 		fragShaderStageInfo.module = fragShaderModule;
-		fragShaderStageInfo.pName = "main";
+		fragShaderStageInfo.pName = description.shaders.entryPoint.c_str();
 
 		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
@@ -51,27 +120,10 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 		//TODO: Look into using primitiveRestartEnable and different topologies
 
-		//Commenting this part out because of a later setup for dynamic control of these objects
-		/*
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = (float)swapChainExtent.width;
-		viewport.height = (float)swapChainExtent.height;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		VkRect2D scissor{};
-		scissor.offset = {0, 0};
-		scissor.extent = swapChainExtent;
-		*/
-
 		VkPipelineViewportStateCreateInfo viewportState{};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = 1;
-		//viewportState.pViewports = &viewport;
 		viewportState.scissorCount = 1;
-		//viewportState.pScissors = &scissor;
 
 		const PipelineDescription::RasterState &raster = description.raster;
 
@@ -137,29 +189,6 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 		dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 		dynamicState.pDynamicStates = dynamicStates.data();
 
-		//Creating the layout of each set, in the order of the tiers (the position in the list is the set number).
-		//The first one is the Frame set, which is the same for every pipeline and filled by the renderer.
-		setLayouts.resize(PipelineDescription::DescriptorTier::Count);
-		//set = 0
-		setLayouts[PipelineDescription::DescriptorTier::Frame] = createSetLayout(PipelineDescription::frameBindings());
-		//set = 1
-		setLayouts[PipelineDescription::DescriptorTier::Material] = createSetLayout(description.materialBindings);
-		//set = 2
-		setLayouts[PipelineDescription::DescriptorTier::Object] = createSetLayout(description.objectBindings);
-
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
-		pipelineLayoutInfo.pSetLayouts = setLayouts.data();
-		//A range of size zero means the pipeline uses no push constants.
-		bool usesPushConstants = description.pushConstantRange.size > 0;
-		pipelineLayoutInfo.pushConstantRangeCount = usesPushConstants ? 1 : 0;
-		pipelineLayoutInfo.pPushConstantRanges = usesPushConstants ? &description.pushConstantRange : nullptr;
-
-		if (vkCreatePipelineLayout(Device::active->logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create pipeline layout!");
-		}
-
 		//Dynamic rendering: instead of a render pass, we state which attachment formats the pipeline renders to.
 		//These have to match the formats of the image views passed to vkCmdBeginRendering when the pipeline is used.
 		VkFormat colorFormat = description.formats.colorFormat;
@@ -191,42 +220,22 @@ Pipeline::Pipeline(const PipelineDescription &inDescription) : description(inDes
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineInfo.basePipelineIndex = -1;
 
-		if (vkCreateGraphicsPipelines(Device::active->logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+		if (vkCreateGraphicsPipelines(Device::active->logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &result) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create graphics pipeline!");
 		}
 
-		vkDestroyShaderModule(Device::active->logical, fragShaderModule, nullptr);
-		vkDestroyShaderModule(Device::active->logical, vertShaderModule, nullptr);
-
 	} catch (...) {
 
-		//The destructor doesn't run for an object whose constructor threw,
-		//so whatever was created up to the failure is destroyed here.
 		vkDestroyShaderModule(Device::active->logical, fragShaderModule, nullptr);
 		vkDestroyShaderModule(Device::active->logical, vertShaderModule, nullptr);
-		destroy();
 
 		throw;
 	}
-}
 
-Pipeline::~Pipeline() {
+	vkDestroyShaderModule(Device::active->logical, fragShaderModule, nullptr);
+	vkDestroyShaderModule(Device::active->logical, vertShaderModule, nullptr);
 
-	destroy();
-}
-
-void Pipeline::destroy() {
-
-	vkDestroyPipeline(Device::active->logical, graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(Device::active->logical, pipelineLayout, nullptr);
-
-	for (VkDescriptorSetLayout setLayout : setLayouts) {
-		vkDestroyDescriptorSetLayout(Device::active->logical, setLayout, nullptr);
-	}
-
-	graphicsPipeline = VK_NULL_HANDLE;
-	pipelineLayout = VK_NULL_HANDLE;
-	setLayouts.clear();
+	return result;
 }
 
 VkPipelineColorBlendAttachmentState Pipeline::makeBlendState(PipelineDescription::BlendMode mode) {
@@ -277,15 +286,12 @@ VkDescriptorSetLayout Pipeline::createSetLayout(const std::vector<VkDescriptorSe
 	return setLayout;
 }
 
-VkShaderModule Pipeline::createShaderModule(const std::vector<char> &code) {
-
-	//The bytes of code passed as the argument need to be forcibly cast to unit32_t
-	//so they can be fed into the shader module create info. We return the created shader module.
+VkShaderModule Pipeline::createShaderModule(const std::vector<uint32_t> &code) const {
 
 	VkShaderModuleCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = code.size();
-	createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
+	createInfo.codeSize = code.size() * sizeof(uint32_t);
+	createInfo.pCode = code.data();
 
 	VkShaderModule shaderModule;
 
@@ -294,23 +300,4 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char> &code) {
 	}
 
 	return shaderModule;
-}
-
-std::vector<char> Pipeline::readFile(const std::string &filename) {
-
-	std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-	if (!file.is_open()) {
-		throw std::runtime_error("Failed to open file: " + filename);
-	}
-
-	size_t fileSize = (size_t)file.tellg();
-	std::vector<char> buffer(fileSize);
-
-	file.seekg(0);
-	file.read(buffer.data(), fileSize);
-
-	file.close();
-
-	return buffer;
 }

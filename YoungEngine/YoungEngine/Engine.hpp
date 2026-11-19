@@ -26,6 +26,7 @@
 #include "Prop.hpp"
 #include "Axes.hpp"
 #include "Renderer.hpp"
+#include "ShaderCompiler.hpp"
 
 #include "SimpleModelUD.hpp"
 #include "SimpleLitUD.hpp"
@@ -60,14 +61,14 @@ public:
 	const std::string FIRST_TEXTURE_PATH = "textures/Discr2DTex5.png";
 	const std::string SECOND_TEXTURE_PATH = "textures/Discr2DTex3.png";
 
-	const PipelineDescription::ShaderPair TOON_SHADERS{ "shaders/spv/toon.vert.spv", "shaders/spv/toon.frag.spv" };
-	const PipelineDescription::ShaderPair NORMAL_SHADERS{ "shaders/spv/normals.vert.spv", "shaders/spv/normals.frag.spv" };
-	const PipelineDescription::ShaderPair AXES_SHADERS{ "shaders/spv/axes.vert.spv", "shaders/spv/axes.frag.spv" };
-	const PipelineDescription::ShaderPair HULL_SHADERS{ "shaders/spv/hull.vert.spv", "shaders/spv/hull.frag.spv" };
-	const PipelineDescription::ShaderPair MASK_SHADERS{ "shaders/spv/mask.vert.spv", "shaders/spv/mask.frag.spv" };
-	const PipelineDescription::ShaderPair ROBERTS_CROSS_SHADERS{ "shaders/spv/fullscreen.vert.spv", "shaders/spv/robertscross.frag.spv" };
-	const PipelineDescription::ShaderPair PHONG_SHADERS{ "shaders/spv/phong.vert.spv", "shaders/spv/phong.frag.spv" };
-	const PipelineDescription::ShaderPair SKETCH_SHADERS{ "shaders/spv/fullscreen.vert.spv", "shaders/spv/sketch.frag.spv" };
+	const PipelineDescription::ShaderSource TOON_SHADERS{ "shaders/toon.vert", "shaders/toon.frag" };
+	const PipelineDescription::ShaderSource NORMAL_SHADERS{ "shaders/normals.vert", "shaders/normals.frag" };
+	const PipelineDescription::ShaderSource AXES_SHADERS{ "shaders/axes.vert", "shaders/axes.frag" };
+	const PipelineDescription::ShaderSource HULL_SHADERS{ "shaders/hull.vert", "shaders/hull.frag" };
+	const PipelineDescription::ShaderSource MASK_SHADERS{ "shaders/mask.vert", "shaders/mask.frag" };
+	const PipelineDescription::ShaderSource ROBERTS_CROSS_SHADERS{ "shaders/fullscreen.vert", "shaders/robertscross.frag" };
+	const PipelineDescription::ShaderSource PHONG_SHADERS{ "shaders/phong.vert", "shaders/phong.frag" };
+	const PipelineDescription::ShaderSource SKETCH_SHADERS{ "shaders/fullscreen.vert", "shaders/sketch.frag" };
 
 private:
 
@@ -84,6 +85,7 @@ private:
 	std::unique_ptr<Device> myDevice;
 	std::unique_ptr<SwapChain> mySwapChain;
 	std::unique_ptr<PipelineCache> myPipelineCache;
+	std::unique_ptr<ShaderCompiler> myShaderCompiler;
 
 	//Vectors of things that props can be constructed with
 	std::vector<std::unique_ptr<Mesh>> myMeshes;
@@ -97,6 +99,7 @@ private:
 public:
 
 	void run();
+	void reloadShaders();
 
 private:
 	
@@ -105,6 +108,6 @@ private:
 
 	Mesh &loadMesh(const std::string &path);
 	Texture &loadTexture(const std::string &path);
-	Material &createMaterial(const PipelineDescription::ShaderPair &shaders, const Texture *texture = nullptr);
+	Material &createMaterial(const PipelineDescription::ShaderSource &shaders, const Texture *texture = nullptr);
 	Material &createMaterial(const std::vector<MaterialPass::Settings> &passes);
 };

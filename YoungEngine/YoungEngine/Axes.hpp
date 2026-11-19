@@ -19,7 +19,7 @@ public:
 
 	//Construction
 	Axes(
-		const PipelineDescription::ShaderPair &inShaders,
+		const PipelineDescription::ShaderSource &inShaders,
 		float length = 1.0f,
 		const glm::vec3 &position = glm::vec3(0.0f)
 	);
@@ -35,7 +35,7 @@ private:
 
 	static std::vector<Vertex> makeVertices(float length);
 
-	PipelineDescription::ShaderPair shaders;
+	PipelineDescription::ShaderSource shaders;
 
 	//Only the model matrix, passed as a push constant. The axes don't move, so there's no operator.
 	SimpleModelUD modelData;

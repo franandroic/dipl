@@ -22,7 +22,7 @@ public:
 
 	struct Settings {
 
-		PipelineDescription::ShaderPair shaders;
+		PipelineDescription::ShaderSource shaders;
 		bool hasFullscreenContext = false;
 
 		//Loaded textures the pass samples

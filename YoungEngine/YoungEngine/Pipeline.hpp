@@ -9,6 +9,7 @@
 #include "Device.hpp"
 #include "Vertex.hpp"
 #include "PipelineDescription.hpp"
+#include "ShaderCompiler.hpp"
 
 //Contains definition of the graphics pipeline and handles shader code.
 class Pipeline {
@@ -29,8 +30,11 @@ public:
 	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
-	//The description of set N. Throws std::out_of_range if the pipeline has no such set.
+	//The description of set N.
 	const PipelineDescription &getDescription() const { return description; }
+
+	//Recreates the graphicsPipeline with current shaders.
+	void rebuild();
 
 private:
 
@@ -39,8 +43,10 @@ private:
 
 	static VkPipelineColorBlendAttachmentState makeBlendState(PipelineDescription::BlendMode mode);
 	VkDescriptorSetLayout createSetLayout(const std::vector<VkDescriptorSetLayoutBinding> &bindings);
-	VkShaderModule createShaderModule(const std::vector<char> &code);
-	std::vector<char> readFile(const std::string &filename);
+	VkShaderModule createShaderModule(const std::vector<uint32_t> &code) const;
+
+	void createLayouts();
+	VkPipeline createGraphicsPipeline() const;
 
 	void destroy();
 };
