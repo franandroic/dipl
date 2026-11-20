@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "Context.hpp"
 #include "Device.hpp"
 #include "DescriptorSet.hpp"
 #include "UniformBufferObject.hpp"
@@ -24,9 +25,9 @@ public:
 	};
 
 	//Member variables
-	glm::vec3 position{ 0.0f, -2.0f, 1.0f };
-	glm::vec3 target{ 0.0f, 0.0f, 0.0f };
-	glm::vec3 up{ 0.0f, 0.0f, 1.0f };
+	glm::vec3 position{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 target{ 0.0f, 0.0f, 1.0f };
+	glm::vec3 up = Context::GLOBAL_UP;
 	float fovDegrees = 45.0f;
 	float nearPlane = 0.1f;
 	float farPlane = 10.0f;
@@ -35,7 +36,14 @@ public:
 	float getAspectRatio() const { return aspectRatio; }
 	UniformBlock getUniformBlock() const;
 
+	void move(glm::vec3 direction);
+	void turn(glm::vec3 direction);
+
 private:
 
 	float aspectRatio = 1.0f;
+	float maxTurnAngle = 0.995f;
+
+	float moveSpeed = 0.5f;
+	float turnSpeed = 0.002f;
 };

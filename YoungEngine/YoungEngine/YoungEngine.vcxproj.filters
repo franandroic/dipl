@@ -126,15 +126,6 @@
     <ClCompile Include="ShaderCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InputCommandReload.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InputCommandFlyMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InputCommandInspectMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.hpp">
@@ -312,6 +303,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InputCommandInspectMode.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Context.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputCommandMoveCamera.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputCommandTurnCamera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

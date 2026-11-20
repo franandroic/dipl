@@ -1,15 +1,19 @@
 #pragma once
 #include "GLFWConfig.hpp"
+#include "GLMConfig.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "Context.hpp"
 #include "InputCommand.hpp"
 #include "InputCommandReload.hpp"
 #include "InputCommandFlyMode.hpp"
 #include "InputCommandInspectMode.hpp"
+#include "InputCommandMoveCamera.hpp"
+#include "InputCommandTurnCamera.hpp"
 
 //Contains the window logic, currently wraps GLFWwindow
 class Window {
@@ -43,6 +47,8 @@ private:
 	struct InputState {
 		InputMode mode = InputMode::Inspect;
 		bool acceptsInput = true;
+		glm::dvec2 lastCursorPos{ 0.0 };
+		bool cursorCaptured = false;
 	};
 
 	InputState inputState;
@@ -50,8 +56,12 @@ private:
 
 	static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
 	static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
+	static void cursorPosCallback(GLFWwindow *window, double x, double y);
 
 	void handleKey(int key, int action);
+	void handleCursor(double x, double y);
+
 	std::unique_ptr<InputCommand> createFlyInputCommand(int key, int action);
 	std::unique_ptr<InputCommand> createInspectInputCommand(int key, int action);
+	std::unique_ptr<InputCommand> createFlyCursorCommand(double x, double y);
 };

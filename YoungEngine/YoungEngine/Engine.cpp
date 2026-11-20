@@ -1,11 +1,20 @@
 #include "Engine.hpp"
 
 Engine::Engine() :
+	myContext(),
 	myModelLoader(),
 	myImageLoader(),
 	myLoader(),
 	myWindow(WIDTH, HEIGHT, "Vulkan"),
 	myEngineUtility() {
+
+	assert(!active && "Engine already exists!");
+	active = this;
+}
+
+Engine::~Engine() {
+
+	if (active == this) active = nullptr;
 }
 
 void Engine::run() {
@@ -28,14 +37,15 @@ void Engine::initialize() {
 	myPipelineCache = std::make_unique<PipelineCache>();
 
 	myScene = std::make_unique<Scene>();
+	myContext.activeScene = myScene.get();
 
 	Camera &camera = myScene->getCamera();
-	camera.position = glm::vec3(2.0f, -6.0f, 4.0f);
-	camera.target = glm::vec3(0.0f, 1.5f, 0.0f);
+	camera.position = glm::vec3(2.0f, 4.0f, 6.0f);
+	camera.target = glm::vec3(0.0f, 0.0f, -1.5f);
 	camera.farPlane = 50.0f;
 
 	LightSource &light = myScene->getLight();
-	light.position = glm::vec3(0.0f, 0.0f, 4.0f);
+	light.position = glm::vec3(0.0f, 4.0f, 0.0f);
 	light.intensity = 1.5f;
 
 	myRenderer = std::make_unique<Renderer>(

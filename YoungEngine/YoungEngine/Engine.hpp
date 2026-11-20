@@ -3,11 +3,13 @@
 
 #include "EngineUtility.hpp"
 
+#include <cassert>
 #include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "Context.hpp"
 #include "Window.hpp"
 #include "InputCommand.hpp"
 #include "Vertex.hpp"
@@ -46,13 +48,16 @@ public:
 
 	//Construction
 	Engine();
-	~Engine() = default;
+	~Engine();
 
 	//Copy and Move constructors
 	Engine(const Engine &) = delete;
 	Engine &operator=(const Engine &) = delete;
 	Engine(Engine &&) = delete;
 	Engine &operator=(Engine &&) = delete;
+
+	//Global access
+	static inline Engine *active = nullptr;
 
 	//Currently hard-coded values for initial window size and asset paths
 	const uint32_t WIDTH = 800;
@@ -72,6 +77,9 @@ public:
 	const PipelineDescription::ShaderSource SKETCH_SHADERS{ "shaders/fullscreen.vert", "shaders/sketch.frag" };
 
 private:
+
+	//Global value storage
+	Context myContext;
 
 	//Specific loaders and a generic loader
 	ModelLoader myModelLoader;
@@ -100,7 +108,6 @@ private:
 public:
 
 	void run();
-	void reloadShaders();
 
 private:
 	

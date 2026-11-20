@@ -10,6 +10,11 @@ class InputCommandReload : public InputCommand {
 
 public:
 
-	void execute() override;
+	void execute() override {
+
+		if (!ShaderCompiler::active || !PipelineCache::active) return;
+		PipelineCache::active->rebuild(ShaderCompiler::active->recompile());
+	}
+
 	bool blocksInput() const override { return true; }
 };

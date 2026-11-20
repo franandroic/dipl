@@ -11,6 +11,9 @@ Window::Window(uint32_t width, uint32_t height, const std::string &title) {
 	glfwSetWindowUserPointer(window, this);
 	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 	glfwSetKeyCallback(window, keyCallback);
+	glfwSetCursorPosCallback(window, cursorPosCallback);
+
+	glfwGetCursorPos(window, &inputState.lastCursorPos.x, &inputState.lastCursorPos.y);
 }
 
 Window::~Window() {
@@ -49,6 +52,12 @@ void Window::keyCallback(GLFWwindow *window, int key, int scancode, int action, 
 	self->handleKey(key, action);
 }
 
+void Window::cursorPosCallback(GLFWwindow *window, double x, double y) {
+
+	auto self = static_cast<Window *>(glfwGetWindowUserPointer(window));
+	self->handleCursor(x, y);
+}
+
 void Window::handleKey(int key, int action) {
 
 	//Reacts to key callbacks by going through possible input signals and creating appropriate
@@ -75,6 +84,39 @@ void Window::handleKey(int key, int action) {
 	pendingInputCommands.push_back(std::move(inputCommand));
 }
 
+void Window::handleCursor(double x, double y) {
+
+	//Recording the cursor's position
+	glm::dvec2 currCursorPos(x, y);
+	glm::dvec2 offset = currCursorPos - inputState.lastCursorPos;
+	inputState.lastCursorPos = currCursorPos;
+	
+	//If we're changing cursor's state we don't want to create a command
+	bool captured = glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
+	if (captured != inputState.cursorCaptured) {
+		inputState.cursorCaptured = captured;
+		return;
+	}
+
+	if (!inputState.acceptsInput) return;
+
+	std::unique_ptr<InputCommand> inputCommand;
+	switch (inputState.mode) {
+
+	case InputMode::Fly:
+		inputCommand = createFlyCursorCommand(offset.x, offset.y);
+		break;
+
+	case InputMode::Inspect:
+		break;
+	}
+
+	if (!inputCommand) return;
+	if (inputCommand->blocksInput()) inputState.acceptsInput = false;
+
+	pendingInputCommands.push_back(std::move(inputCommand));
+}
+
 std::unique_ptr<InputCommand> Window::createFlyInputCommand(int key, int action) {
 
 	switch (key) {
@@ -89,6 +131,42 @@ std::unique_ptr<InputCommand> Window::createFlyInputCommand(int key, int action)
 	case GLFW_KEY_R:
 		if (action == GLFW_PRESS) {
 			return std::make_unique<InputCommandReload>();
+		}
+		break;
+
+	case GLFW_KEY_W:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			return std::make_unique<InputCommandMoveCamera>(Context::CAMERA_FORWARD);
+		}
+		break;
+
+	case GLFW_KEY_A:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			return std::make_unique<InputCommandMoveCamera>(-Context::CAMERA_RIGHT);
+		}
+		break;
+
+	case GLFW_KEY_S:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			return std::make_unique<InputCommandMoveCamera>(-Context::CAMERA_FORWARD);
+		}
+		break;
+
+	case GLFW_KEY_D:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			return std::make_unique<InputCommandMoveCamera>(Context::CAMERA_RIGHT);
+		}
+		break;
+
+	case GLFW_KEY_Q:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			return std::make_unique<InputCommandMoveCamera>(Context::CAMERA_UP);
+		}
+		break;
+
+	case GLFW_KEY_E:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+			return std::make_unique<InputCommandMoveCamera>(-Context::CAMERA_UP);
 		}
 		break;
 
@@ -121,4 +199,11 @@ std::unique_ptr<InputCommand> Window::createInspectInputCommand(int key, int act
 	}
 
 	return nullptr;
+}
+
+std::unique_ptr<InputCommand> Window::createFlyCursorCommand(double x, double y) {
+
+	return std::make_unique<InputCommandTurnCamera>(
+		Context::CAMERA_RIGHT * static_cast<float>(x) - Context::CAMERA_UP * static_cast<float>(y)
+	);
 }

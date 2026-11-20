@@ -7,6 +7,7 @@
 
 #include <glm/gtc/constants.hpp>
 
+#include "Context.hpp"
 #include "UniformOperator.hpp"
 #include "SimpleModelUD.hpp"
 #include "SimpleLitUD.hpp"
@@ -52,7 +53,7 @@ public:
 
 		*model =
 			glm::translate(glm::mat4(1.0f), *position) *
-			glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 0.0f, 1.0f));
+			glm::rotate(glm::mat4(1.0f), angle, Context::GLOBAL_UP);
 	}
 
 private:
