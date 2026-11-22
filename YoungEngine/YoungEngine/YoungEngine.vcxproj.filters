@@ -314,6 +314,12 @@
     <ClInclude Include="InputCommandTurnCamera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MouseDragUO.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputCommandRotateFocused.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

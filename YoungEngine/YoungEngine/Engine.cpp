@@ -87,7 +87,7 @@ void Engine::initialize() {
 			firstMesh,
 			sketchMaterial,
 			std::make_unique<SimpleLitUD>(light),
-			std::make_unique<InPlaceYRotationUO>(5.0f, &light)
+			std::make_unique<MouseDragUO>(&light)
 		)
 	);
 }

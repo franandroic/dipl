@@ -7,6 +7,7 @@
 //to objects. We won't be using them in any way so we don't need to include the files
 //and considering we want everyone to have access to context, we want to avoid cyclic dependency
 class Scene;
+class Prop;
 
 //Used as a globally-accessible state storage
 class Context {
@@ -44,6 +45,7 @@ public:
 
 	//Engine's objects that may be active one at a time
 	Scene *activeScene = nullptr;
+	Prop *propInFocus = nullptr;
 };
 
 //We want to enforce right-handedness of the global coordinate system

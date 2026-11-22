@@ -32,6 +32,7 @@ public:
 	const Mesh &getMesh() const { return *mesh; }
 	const Material &getMaterial() const { return *material; }
 	const UniformDescription &getUniformDescription() const { return uniforms; }
+	UniformOperator *getUniformOperator() const { return uniforms.getOperator(); }
 
 	void update(float dt) override;
 	void upload(size_t frame) override;

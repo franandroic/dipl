@@ -14,6 +14,7 @@
 #include "InputCommandInspectMode.hpp"
 #include "InputCommandMoveCamera.hpp"
 #include "InputCommandTurnCamera.hpp"
+#include "InputCommandRotateFocused.hpp"
 
 //Contains the window logic, currently wraps GLFWwindow
 class Window {
@@ -61,7 +62,8 @@ private:
 	void handleKey(int key, int action);
 	void handleCursor(double x, double y);
 
-	std::unique_ptr<InputCommand> createFlyInputCommand(int key, int action);
-	std::unique_ptr<InputCommand> createInspectInputCommand(int key, int action);
-	std::unique_ptr<InputCommand> createFlyCursorCommand(double x, double y);
+	std::unique_ptr<InputCommand> createFlyKeyInputCommand(int key, int action);
+	std::unique_ptr<InputCommand> createInspectKeyInputCommand(int key, int action);
+	std::unique_ptr<InputCommand> createFlyCursorInputCommand(double x, double y);
+	std::unique_ptr<InputCommand> createInspectCursorInputCommand(double x, double y);
 };

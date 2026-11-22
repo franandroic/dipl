@@ -35,6 +35,7 @@
 #include "SimpleLitUD.hpp"
 #include "InPlaceYRotationUO.hpp"
 #include "MovingLightUO.hpp"
+#include "MouseDragUO.hpp"
 
 /*
 Represents the engine's global context.

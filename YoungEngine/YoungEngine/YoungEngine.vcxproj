@@ -212,9 +212,11 @@ xcopy "C:\VulkanSuppLibs\glfw-3.4.bin.WIN64\lib-vc2022\glfw3.dll" "$(SolutionDir
     <ClInclude Include="InputCommandInspectMode.hpp" />
     <ClInclude Include="InputCommandMoveCamera.hpp" />
     <ClInclude Include="InputCommandReload.hpp" />
+    <ClInclude Include="InputCommandRotateFocused.hpp" />
     <ClInclude Include="InputCommandTurnCamera.hpp" />
     <ClInclude Include="LightSource.hpp" />
     <ClInclude Include="MaterialPass.hpp" />
+    <ClInclude Include="MouseDragUO.hpp" />
     <ClInclude Include="MovingLightUO.hpp" />
     <ClInclude Include="Prop.hpp" />
     <ClInclude Include="Material.hpp" />

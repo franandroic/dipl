@@ -21,6 +21,9 @@ public:
 		if (glfwRawMouseMotionSupported()) {
 			glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 		}
+
+		//Removing any prop from focus
+		if (Context::active) Context::active->propInFocus = nullptr;
 	}
 
 private:

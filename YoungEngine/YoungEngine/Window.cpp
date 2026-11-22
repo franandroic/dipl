@@ -70,11 +70,11 @@ void Window::handleKey(int key, int action) {
 	switch (inputState.mode) {
 
 	case InputMode::Fly:
-		inputCommand = createFlyInputCommand(key, action);
+		inputCommand = createFlyKeyInputCommand(key, action);
 		break;
 
 	case InputMode::Inspect:
-		inputCommand = createInspectInputCommand(key, action);
+		inputCommand = createInspectKeyInputCommand(key, action);
 		break;
 	}
 
@@ -104,10 +104,11 @@ void Window::handleCursor(double x, double y) {
 	switch (inputState.mode) {
 
 	case InputMode::Fly:
-		inputCommand = createFlyCursorCommand(offset.x, offset.y);
+		inputCommand = createFlyCursorInputCommand(offset.x, offset.y);
 		break;
 
 	case InputMode::Inspect:
+		inputCommand = createInspectCursorInputCommand(offset.x, offset.y);
 		break;
 	}
 
@@ -117,7 +118,7 @@ void Window::handleCursor(double x, double y) {
 	pendingInputCommands.push_back(std::move(inputCommand));
 }
 
-std::unique_ptr<InputCommand> Window::createFlyInputCommand(int key, int action) {
+std::unique_ptr<InputCommand> Window::createFlyKeyInputCommand(int key, int action) {
 
 	switch (key) {
 
@@ -177,7 +178,7 @@ std::unique_ptr<InputCommand> Window::createFlyInputCommand(int key, int action)
 	return nullptr;
 }
 
-std::unique_ptr<InputCommand> Window::createInspectInputCommand(int key, int action) {
+std::unique_ptr<InputCommand> Window::createInspectKeyInputCommand(int key, int action) {
 
 	switch (key) {
 
@@ -201,9 +202,18 @@ std::unique_ptr<InputCommand> Window::createInspectInputCommand(int key, int act
 	return nullptr;
 }
 
-std::unique_ptr<InputCommand> Window::createFlyCursorCommand(double x, double y) {
+std::unique_ptr<InputCommand> Window::createFlyCursorInputCommand(double x, double y) {
 
 	return std::make_unique<InputCommandTurnCamera>(
+		Context::CAMERA_RIGHT * static_cast<float>(x) - Context::CAMERA_UP * static_cast<float>(y)
+	);
+}
+
+std::unique_ptr<InputCommand> Window::createInspectCursorInputCommand(double x, double y) {
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS) return nullptr;
+
+	return std::make_unique<InputCommandRotateFocused>(
 		Context::CAMERA_RIGHT * static_cast<float>(x) - Context::CAMERA_UP * static_cast<float>(y)
 	);
 }

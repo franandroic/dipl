@@ -46,6 +46,7 @@ public:
 	UniformBufferObject *getUBO(size_t frame) const { return UBOs.empty() ? nullptr : UBOs[frame].get(); }
 	const UniformData &getData() const { return *data; }
 
+	UniformOperator *getOperator() const { return op.get(); }
 	void setOperator(std::unique_ptr<UniformOperator> inOp);
 
 private:
